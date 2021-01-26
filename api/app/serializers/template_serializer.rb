@@ -26,22 +26,10 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-require 'sinatra/jsonapi'
-
-require_relative 'app/autoload'
-
-resource :templates do
-  index do
-    paths_with_ext = Dir.glob(Template.new(name: '*', extension: '*').template_path)
-    paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
-
-    [*paths_with_ext, *paths_sans_ext].map do |path|
-      basename = File.basename(path)
-      Template.new(
-        name: basename.sub(/\..*\Z/, ''),
-        extension: /(\..*)?\.erb\Z/.match(basename)
-      )
-    end
+class TemplateSerializer < ApplicationSerializer
+  def id
+    object.extension ? "#{object.name}.#{object.extension}" : object.name
   end
-end
 
+  attributes :name, :extension
+end

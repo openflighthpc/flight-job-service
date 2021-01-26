@@ -26,22 +26,28 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-require 'sinatra/jsonapi'
+require 'spec_helper'
 
-require_relative 'app/autoload'
+RSpec.describe '/templates' do
+  context 'with an authenticated user' do
+    # TODO: Add auth credentials header here when required
+    before do
+      header 'Accept', 'application/vnd.api+json'
+    end
 
-resource :templates do
-  index do
-    paths_with_ext = Dir.glob(Template.new(name: '*', extension: '*').template_path)
-    paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
+    describe '#index' do
+      let!(:templates) do
+        10.times
+          .map { [build(:template), build(:template, extension: 'sh')] }
+          .flatten
+      end
 
-    [*paths_with_ext, *paths_sans_ext].map do |path|
-      basename = File.basename(path)
-      Template.new(
-        name: basename.sub(/\..*\Z/, ''),
-        extension: /(\..*)?\.erb\Z/.match(basename)
-      )
+      it 'returns a list with the templates' do
+        get '/templates'
+        expect(last_response).to be_ok
+        names = last_response_data.map { |t| t[:attributes][:name] }
+        expect(names).to include(*templates.map(&:name))
+      end
     end
   end
 end
-

@@ -42,7 +42,7 @@ module SpecApp
 
   def app
     @app ||= Rack::Builder.app do
-      map('/') { run ::App }
+      map('/') { run Sinatra::Application }
     end
   end
 end
@@ -122,6 +122,16 @@ RSpec.configure do |config|
   # test failures related to randomization by passing the same `--seed` value
   # as the one that triggered the failure.
   Kernel.srand config.seed
+
+  # Include the spec app
+  config.include SpecApp
+  def last_response_data
+    YAML.load(last_response.body, symbolize_names: true)[:data]
+  end
+
+  def last_request_error
+    last_request.env['sinatra.error']
+  end
 
   # Load factory methods
   config.include FactoryBot::Syntax::Methods
