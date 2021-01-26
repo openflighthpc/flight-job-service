@@ -30,7 +30,15 @@ require 'sinatra/jsonapi'
 
 require_relative 'app/autoload'
 
-resource :templates do
+resource :templates, pkre: /[\w.-]+/ do
+  helpers do
+    def find(id)
+      name, ext = id.split('.', 2)
+      template = Template.new(name: name, extension: ext)
+      template.valid? ? template : nil
+    end
+  end
+
   index do
     paths_with_ext = Dir.glob(Template.new(name: '*', extension: '*').template_path)
     paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
@@ -43,5 +51,7 @@ resource :templates do
       )
     end
   end
+
+  show
 end
 

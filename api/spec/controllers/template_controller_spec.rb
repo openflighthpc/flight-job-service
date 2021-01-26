@@ -49,5 +49,35 @@ RSpec.describe '/templates' do
         expect(names).to include(*templates.map(&:name))
       end
     end
+
+    describe '#show' do
+      # NOTE: These two templates intentionally share a name!
+      # Whilst this shouldn't happen in practice, nothing is stopping it
+      let!(:template_with_ext) { build(:template, extension: 'sh') }
+      let!(:template_sans_ext) do
+        build(:template, name: template_with_ext.name, extension: nil)
+      end
+
+      it 'returns 404 if missing' do
+        get '/templates/missing'
+        expect(last_response).to be_not_found
+      end
+
+      it 'can find a template sans extension' do
+        template = template_sans_ext
+        get "/templates/#{template.name}"
+        expect(last_response).to be_ok
+        expect(last_response_data[:attributes][:name]).to eq(template.name)
+        expect(last_response_data[:attributes][:extension]).to be_nil
+      end
+
+      it 'can find a template sans extension' do
+        template = template_with_ext
+        get "/templates/#{template.name}.#{template.extension}"
+        expect(last_response).to be_ok
+        expect(last_response_data[:attributes][:name]).to eq(template.name)
+        expect(last_response_data[:attributes][:extension]).to eq(template.extension)
+      end
+    end
   end
 end
