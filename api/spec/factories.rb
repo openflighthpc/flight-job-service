@@ -25,28 +25,26 @@
 # For more information on Flight Job Service, please visit:
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
-source 'https://rubygems.org'
 
-git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
+FactoryBot.define do
+  factory :template do
+    sequence(:name) { |n| "demo-template-#{n}" }
 
-gem 'activemodel', require: 'active_model'
-gem 'activesupport', require: 'active_support'
-gem 'console'
-gem 'rake'
-gem 'rpam-ruby19', require: 'rpam'
-gem 'puma'
-gem 'sinatra'
-gem 'sinja'
+    transient do
+      save_metadata { nil }
+      save_script { nil }
+    end
 
-group :development, :test do
-  gem 'pry'
-  gem 'pry-byebug'
-end
-
-group :test do
-  gem 'factory_bot'
-  gem 'fakefs', require: 'fakefs/spec_helpers'
-  gem 'rack-test'
-  gem 'rspec'
-  gem 'rspec-collection_matchers'
+    initialize_with do
+      new(**attributes).tap do |template|
+        if (save_metadata || save_script) && !FakeFS.activated?
+          raise 'Refusing to write mocked factory data to the file system'
+        elsif save_metadata
+          File.write(template.metadata_path, save_metadata)
+        elsif save_script
+          File.write(template.script_path, save_script)
+        end
+      end
+    end
+  end
 end

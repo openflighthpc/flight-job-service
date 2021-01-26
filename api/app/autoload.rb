@@ -26,6 +26,7 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-Pathname.new(__dir__).join('models').children(false).each do |file|
+Pathname.new(__dir__).join('models').children.each do |file|
+  next if file.directory? # Recursive autoload is not supported
   autoload file.basename('.*').to_s.classify, file.to_s
 end

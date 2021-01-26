@@ -25,28 +25,11 @@
 # For more information on Flight Job Service, please visit:
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
-source 'https://rubygems.org'
 
-git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
+require 'spec_helper'
 
-gem 'activemodel', require: 'active_model'
-gem 'activesupport', require: 'active_support'
-gem 'console'
-gem 'rake'
-gem 'rpam-ruby19', require: 'rpam'
-gem 'puma'
-gem 'sinatra'
-gem 'sinja'
+RSpec.describe Template do
+  subject { build(:template) }
 
-group :development, :test do
-  gem 'pry'
-  gem 'pry-byebug'
-end
-
-group :test do
-  gem 'factory_bot'
-  gem 'fakefs', require: 'fakefs/spec_helpers'
-  gem 'rack-test'
-  gem 'rspec'
-  gem 'rspec-collection_matchers'
+  it { should be_valid }
 end
