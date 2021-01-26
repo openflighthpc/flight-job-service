@@ -30,11 +30,8 @@ class Template < ApplicationModel
   attr_accessor :name, :extension
 
   # Validates the metadata file
-  validate do
-    unless File.exists? metadata_path
-      @errors.add(:metadata, "has not been saved")
-    end
-  end
+  # TODO: Ensure the metadata conforms to a specification
+  validate { metadata }
 
   # Validates the script
   validate do
@@ -50,5 +47,18 @@ class Template < ApplicationModel
   def script_path
     basename = extension ? "#{name}.#{extension}" : name
     File.join(FlightJobAPI.config.cache_dir, basename)
+  end
+
+  # NOTE: The metadata is intentionally cached to prevent excess file reads during
+  # serialization. This cache is not intended to be reset, instead a new Template
+  # instance should be initialized.
+  def metadata
+    @metadata ||= begin
+      YAML.load(File.read(metadata_path, symbolize_names: true))
+    end
+  rescue Errno::ENOENT
+    @errors.add(:metadata, "has not been saved")
+  rescue Psych::SyntaxError
+    @errors.add(:metadata, "is not valid YAML")
   end
 end

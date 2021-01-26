@@ -42,4 +42,9 @@ RSpec.describe Template do
     subject { build(:template, save_metadata: false) }
     it { should_not be_valid }
   end
+
+  context 'with invalid YAML metadata' do
+    subject { build(:template, save_metadata: '}{') }
+    it { should_not be_valid }
+  end
 end
