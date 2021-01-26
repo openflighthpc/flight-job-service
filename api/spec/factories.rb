@@ -50,8 +50,8 @@ FactoryBot.define do
           File.write(template.metadata_path, save_metadata)
         end
         if save_script
-          FileUtils.mkdir_p File.dirname(template.script_path)
-          File.write(template.script_path, save_script)
+          FileUtils.mkdir_p File.dirname(template.template_path)
+          File.write(template.template_path, save_script)
         end
       end
     end

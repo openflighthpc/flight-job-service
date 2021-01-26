@@ -35,8 +35,8 @@ class Template < ApplicationModel
 
   # Validates the script
   validate do
-    unless File.exists? script_path
-      @errors.add(:script, "has not been saved")
+    unless File.exists? template_path
+      @errors.add(:template, "has not been saved")
     end
   end
 
@@ -44,8 +44,8 @@ class Template < ApplicationModel
     File.join(FlightJobAPI.config.cache_dir, 'templates', "#{name}.yaml")
   end
 
-  def script_path
-    basename = extension ? "#{name}.#{extension}" : name
+  def template_path
+    basename = extension ? "#{name}.#{extension}.erb" : "#{name}.erb"
     File.join(FlightJobAPI.config.cache_dir, basename)
   end
 
