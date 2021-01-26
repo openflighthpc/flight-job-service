@@ -1,0 +1,11 @@
+.BrandBar a:first-child {
+    padding-left: 4rem;
+}
+
+.BrandBar a:last-child {
+    padding-right: 4rem;
+}
+
+.BrandBar li {
+    padding-top: 1rem;
+}
