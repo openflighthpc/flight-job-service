@@ -29,6 +29,11 @@
 class Template < ApplicationModel
   attr_accessor :name, :extension
 
+  def self.from_id(id)
+    name, ext = id.split('.', 2)
+    Template.new(name: name, extension: ext)
+  end
+
   # Validates the metadata file
   # TODO: Ensure the metadata conforms to a specification
   validate { metadata }
@@ -38,6 +43,10 @@ class Template < ApplicationModel
     unless File.exists? template_path
       @errors.add(:template, "has not been saved")
     end
+  end
+
+  def id
+    extension ? "#{name}.#{extension}" : name
   end
 
   def metadata_path

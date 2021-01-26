@@ -26,32 +26,58 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
+require 'sinatra/base'
 require 'sinatra/jsonapi'
-
 require_relative 'app/autoload'
 
-resource :templates, pkre: /[\w.-]+/ do
-  helpers do
-    def find(id)
-      name, ext = id.split('.', 2)
-      template = Template.new(name: name, extension: ext)
-      template.valid? ? template : nil
+# The base JSON:API for most interactions. Mounted in rack under
+# /:version
+class App < Sinatra::Base
+  register Sinatra::JSONAPI
+
+  resource :templates, pkre: /[\w.-]+/ do
+    helpers do
+      def find(id)
+        template = Template.from_id(id)
+        template.valid? ? template : nil
+      end
     end
+
+    index do
+      paths_with_ext = Dir.glob(Template.new(name: '*', extension: '*').template_path)
+      paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
+
+      [*paths_with_ext, *paths_sans_ext].map do |path|
+        basename = File.basename(path)
+        Template.new(
+          name: basename.sub(/\..*\Z/, ''),
+          extension: /(\..*)?\.erb\Z/.match(basename)
+        )
+      end
+    end
+
+    show
   end
 
-  index do
-    paths_with_ext = Dir.glob(Template.new(name: '*', extension: '*').template_path)
-    paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
-
-    [*paths_with_ext, *paths_sans_ext].map do |path|
-      basename = File.basename(path)
-      Template.new(
-        name: basename.sub(/\..*\Z/, ''),
-        extension: /(\..*)?\.erb\Z/.match(basename)
-      )
-    end
-  end
-
-  show
+  freeze_jsonapi
 end
 
+# NOTE: The render route is implemented independently because:
+# 1. It does not conform to the JSON:API standard
+# 2. Sinja would require an work around involving the Content-Type/Accept headers
+# 3. Even with the work aroud, authentication needs manual integration
+#
+# The two apps are mounted together in rack. This app is mounted under
+# /:version/render
+class RenderApp < Sinatra::Base
+  post '/:id' do
+    template = Template.from_id(params['id'])
+    if template.valid?
+      # NOOP
+    else
+      status 404
+      halt
+    end
+    # header "Content-Disposition:", "attachment; filename=#{}"
+  end
+end

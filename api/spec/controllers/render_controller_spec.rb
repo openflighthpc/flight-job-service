@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
 #
@@ -26,6 +25,23 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-class TemplateSerializer < ApplicationSerializer
-  attributes :name, :extension
+RSpec.describe '/render' do
+  context 'with an authenicated user' do
+    before do
+      # TODO: Add auth credentials
+    end
+
+    describe 'POST' do
+      it 'returns 404 for unknown ids' do
+        post "/render/missing"
+        expect(last_response).to be_not_found
+      end
+
+      it 'downloads the rendered file' do
+        template = build(:template)
+        post "/render/#{template.id}", "{}"
+        expect(last_response).to be_ok
+      end
+    end
+  end
 end

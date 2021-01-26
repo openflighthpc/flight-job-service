@@ -40,9 +40,11 @@ module SpecApp
     base.include Rack::Test::Methods
   end
 
+  # NOTE: This MUST match config.ru without the /v0 prefix
   def app
     @app ||= Rack::Builder.app do
-      map('/') { run Sinatra::Application }
+      map('/render') { run RenderApp }
+      map('/') { run App }
     end
   end
 end

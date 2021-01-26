@@ -35,7 +35,8 @@ configure do
 end
 
 app = Rack::Builder.new do
-  map('/v0') { run Sinatra::Application }
+  map('/v0/render') { run RenderApp }
+  map('/v0') { run App }
 end
 
 run app
