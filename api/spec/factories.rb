@@ -31,17 +31,26 @@ FactoryBot.define do
     sequence(:name) { |n| "demo-template-#{n}" }
 
     transient do
-      save_metadata { nil }
-      save_script { nil }
+      save_metadata { YAML.dump({}) }
+      save_script do
+        <<~SCRIPT
+          #! /bin/bash
+          echo I am the #{name} script
+        SCRIPT
+      end
     end
 
     initialize_with do
       new(**attributes).tap do |template|
         if (save_metadata || save_script) && !FakeFS.activated?
           raise 'Refusing to write mocked factory data to the file system'
-        elsif save_metadata
+        end
+        if save_metadata
+          FileUtils.mkdir_p File.dirname(template.metadata_path)
           File.write(template.metadata_path, save_metadata)
-        elsif save_script
+        end
+        if save_script
+          FileUtils.mkdir_p File.dirname(template.script_path)
           File.write(template.script_path, save_script)
         end
       end

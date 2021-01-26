@@ -32,4 +32,14 @@ RSpec.describe Template do
   subject { build(:template) }
 
   it { should be_valid }
+
+  context 'without a script' do
+    subject { build(:template, save_script: false) }
+    it { should_not be_valid }
+  end
+
+  context 'without a metadata file' do
+    subject { build(:template, save_metadata: false) }
+    it { should_not be_valid }
+  end
 end

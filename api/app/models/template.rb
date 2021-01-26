@@ -29,6 +29,20 @@
 class Template < ApplicationModel
   attr_accessor :name, :extension
 
+  # Validates the metadata file
+  validate do
+    unless File.exists? metadata_path
+      @errors.add(:metadata, "has not been saved")
+    end
+  end
+
+  # Validates the script
+  validate do
+    unless File.exists? script_path
+      @errors.add(:script, "has not been saved")
+    end
+  end
+
   def metadata_path
     File.join(FlightJobAPI.config.cache_dir, 'templates', "#{name}.yaml")
   end
