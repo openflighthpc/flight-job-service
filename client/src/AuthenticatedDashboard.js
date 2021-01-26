@@ -27,13 +27,13 @@ function AuthenticatedDashboard() {
             <ol>
               <li>
                 Answer a few simple questions to customize the job script to
-                your needs
+                your needs.
               </li>
               <li>
-                Download your customized script
+                Download your customized script.
               </li>
               <li>
-                Submit your script to your cluster scheduler
+                Submit your script to the cluster's scheduler.
               </li>
             </ol>
           </div>

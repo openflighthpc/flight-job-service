@@ -1,14 +1,14 @@
 import Dashboard from './Dashboard';
-// import FileManagerPage from './FileManagerPage';
+import TemplatesPage from './TemplatesPage';
 import UnconfiguredDashboard from './UnconfiguredDashboard';
 
 const routes = [
   {
-    path: '/browse',
-    name: 'Manage your files',
-    Component: () => <div>XXX Add templates page</div>,
+    path: '/templates',
+    name: 'Templates',
+    Component: TemplatesPage,
     authenticated: true,
-    sideNav: false,
+    sideNav: true,
   },
   {
     path: '/',

@@ -41,8 +41,9 @@ function useAuthCheck() {
   useEffect(() => { tempUserRef.current = tempUser; }, [ tempUser ]);
 
   return useFetch(
-    "/ping",
+    '/authenticates/user',
     {
+      headers: { Accept: 'application/vnd.api+json' },
       interceptors: {
         request: async ({ options }) => {
           if (tempUserRef.current) {
@@ -55,19 +56,10 @@ function useAuthCheck() {
     });
 }
 
-// export function useLaunchSession() {
-//   const request = useFetch(
-//     "/cloudcmd",
-//     {
-//       method: 'post',
-//       headers: {
-//         Accept: 'application/json',
-//         'Content-Type': 'application/json',
-//       },
-//       body: {
-//       },
-//       cachePolicy: 'no-cache',
-//     });
-
-//   return request;
-// }
+export function useFetchTemplates() {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    "/templates",
+    { headers: { Accept: 'application/vnd.api+json' } },
+    [ currentUser.authToken ]);
+}
