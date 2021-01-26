@@ -26,7 +26,6 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-require 'sinatra/jsonapi'
-
-require_relative 'app/autoload'
-
+Pathname.new(__dir__).join('models').children(false).each do |file|
+  autoload file.basename('.*').to_s.classify, file.to_s
+end

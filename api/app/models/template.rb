@@ -26,7 +26,15 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-require 'sinatra/jsonapi'
+class Template < ApplicationModel
+  attr_accessor :name, :extension
 
-require_relative 'app/autoload'
+  def metadata_path
+    File.join(FlightJobAPI.config.cache_dir, 'templates', "#{name}.yaml")
+  end
 
+  def script_path
+    basename = extension ? "#{name}.#{extension}" : name
+    File.join(FlightJobAPI.config.cache_dir, basename)
+  end
+end

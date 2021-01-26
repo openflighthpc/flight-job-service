@@ -26,7 +26,7 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-require 'sinatra/jsonapi'
-
-require_relative 'app/autoload'
-
+class ApplicationModel
+  include ActiveModel::Model
+  include ActiveModel::Serialization
+end
