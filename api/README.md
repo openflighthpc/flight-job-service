@@ -2,19 +2,31 @@
 
 ## Overview
 
-What is it?
+API server for rendering job templates
 
 ## Installation
 
-How is it installed?
+Run the following to install a local version
+
+```
+git clone https://github.com/openflighthpc/flight-job-service
+cd flight-job-service/api
+bundle install
+```
 
 ## Configuration
 
-Any required or optional configuration?
+See [configuration](etc/flight-job-api.yaml)
 
 ## Operation
 
-How do you use it?
+Start the service via:
+
+```
+bin/puma
+```
+
+See for full [route documentation](docs/routes.md)
 
 # Contributing
 
