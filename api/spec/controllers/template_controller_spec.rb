@@ -82,51 +82,11 @@ RSpec.describe '/templates' do
     end
   end
 
-  context 'with a missing Authorization header' do
-    before do
-      header 'Accept', 'application/vnd.api+json'
-    end
-
-    it 'returns 401' do
+  describe '/templates' do
+    def make_request
       get '/templates'
-      expect(last_response).to be_unauthorized
-    end
-  end
-
-  context 'with invalid Authorization Basic encoding' do
-    before do
-      header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64('foo-bar')}"
     end
 
-    it 'returns 401' do
-      get '/templates'
-      expect(last_response).to be_unauthorized
-    end
-  end
-
-  context 'with an invalid authorization scheme' do
-    before do
-      header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Foobar #{Base64.encode64('foo:bar')}"
-    end
-
-    it 'returns 401' do
-      get '/templates'
-      expect(last_response).to be_unauthorized
-    end
-  end
-
-  context 'with invalid Basic credentials' do
-    before do
-      allow(Rpam).to receive(:auth).and_return(false)
-      header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
-    end
-
-    it 'returns 403' do
-      get '/templates'
-      expect(last_response).to be_forbidden
-    end
+    include_examples 'shared_auth_spec'
   end
 end
