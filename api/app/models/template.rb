@@ -27,6 +27,21 @@
 #==============================================================================
 
 class Template < ApplicationModel
+  METADATA_SCHEMA = JSONSchemer.schema({
+    "type" => "object",
+    # NOTE: Should the validation be this strict? The serializer hard codes the
+    # expected keys, so extraneous details will be ignored.
+    #
+    # The strict validation is ok for now, but may cause usability issues when
+    # switching back and forth between different versions.
+    "additionalProperties" => false,
+    "required" => [:synopsis],
+    "properties" => {
+      synopsis: { "type" => 'string' },
+      details: { "type" => 'string' }
+    }
+  })
+
   attr_accessor :name, :extension
 
   def self.from_id(id)
@@ -35,8 +50,13 @@ class Template < ApplicationModel
   end
 
   # Validates the metadata file
-  # TODO: Ensure the metadata conforms to a specification
-  validate { metadata }
+  validate do
+    if metadata_file_content
+      METADATA_SCHEMA.validate(metadata).to_a.each do |error|
+        @errors.add(:metadata, JSON.pretty_generate(error))
+      end
+    end
+  end
 
   # Validates the script
   validate do
@@ -68,16 +88,24 @@ class Template < ApplicationModel
     File.basename(template_path).chomp('.erb')
   end
 
+  def metadata
+    metadata_file_content[:metadata]
+  end
+
+  private
+
   # NOTE: The metadata is intentionally cached to prevent excess file reads during
   # serialization. This cache is not intended to be reset, instead a new Template
   # instance should be initialized.
-  def metadata
-    @metadata ||= begin
-      YAML.load(File.read(metadata_path, symbolize_names: true))
+  def metadata_file_content
+    @metadata_file_content ||= begin
+      YAML.load(File.read(metadata_path, symbolize_names: true)).to_h
     end
   rescue Errno::ENOENT
     @errors.add(:metadata, "has not been saved")
+    nil
   rescue Psych::SyntaxError
     @errors.add(:metadata, "is not valid YAML")
+    nil
   end
 end

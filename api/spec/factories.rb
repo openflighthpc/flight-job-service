@@ -31,7 +31,11 @@ FactoryBot.define do
     sequence(:name) { |n| "demo-template-#{n}" }
 
     transient do
-      save_metadata { YAML.dump({}) }
+      save_metadata do
+        YAML.dump({
+          metadata: { synopsis: "I am a demo metada for #{name}" }
+        })
+      end
       save_script do
         <<~SCRIPT
           #! /bin/bash
