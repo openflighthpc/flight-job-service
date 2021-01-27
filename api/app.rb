@@ -30,10 +30,59 @@ require 'sinatra/base'
 require 'sinatra/jsonapi'
 require_relative 'app/autoload'
 
+# Adds 401 Unauthorized error
+module Sinja
+  class UnauthorizedError < HttpError
+    HTTP_STATUS = 401
+
+    def initialize(*args) super(HTTP_STATUS, *args) end
+  end
+end
+
 # The base JSON:API for most interactions. Mounted in rack under
 # /:version
 class App < Sinatra::Base
   register Sinatra::JSONAPI
+
+  helpers do
+    def role
+      case FlightJobAPI::PamAuth.valid?(env['HTTP_AUTHORIZATION'])
+      when true
+        :user
+      when false
+        :forbidden
+      else
+        raise Sinja::UnauthorizedError, 'Could not authenticate your authorization credentials'
+      end
+    end
+  end
+
+  configure_jsonapi do |c|
+    # Resource roles
+    c.default_roles = {
+      index: :user,
+      show: :user,
+      create: :user,
+      update: :user,
+      destroy: :user
+    }
+
+    # To-one relationship roles
+    c.default_has_one_roles = {
+      pluck: :user,
+      prune: :user,
+      graft: :user
+    }
+
+    # To-many relationship roles
+    c.default_has_many_roles = {
+      fetch: :user,
+      clear: :user,
+      replace: :user,
+      merge: :user,
+      subtract: :user
+    }
+  end
 
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
@@ -76,6 +125,7 @@ class RenderApp < Sinatra::Base
     'application/json' => ->(body) { JSON.parse(body) }
   }
 
+  # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
     template = Template.from_id(params['id'])
     if template.valid?

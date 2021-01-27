@@ -30,9 +30,10 @@ require 'spec_helper'
 
 RSpec.describe '/templates' do
   context 'with an authenticated user' do
-    # TODO: Add auth credentials header here when required
     before do
+      allow(Rpam).to receive(:auth).and_return(true)
       header 'Accept', 'application/vnd.api+json'
+      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
     end
 
     describe '#index' do
@@ -78,6 +79,54 @@ RSpec.describe '/templates' do
         expect(last_response_data[:attributes][:name]).to eq(template.name)
         expect(last_response_data[:attributes][:extension]).to eq(template.extension)
       end
+    end
+  end
+
+  context 'with a missing Authorization header' do
+    before do
+      header 'Accept', 'application/vnd.api+json'
+    end
+
+    it 'returns 401' do
+      get '/templates'
+      expect(last_response).to be_unauthorized
+    end
+  end
+
+  context 'with invalid Authorization Basic encoding' do
+    before do
+      header 'Accept', 'application/vnd.api+json'
+      header 'Authorization', "Basic #{Base64.encode64('foo-bar')}"
+    end
+
+    it 'returns 401' do
+      get '/templates'
+      expect(last_response).to be_unauthorized
+    end
+  end
+
+  context 'with an invalid authorization scheme' do
+    before do
+      header 'Accept', 'application/vnd.api+json'
+      header 'Authorization', "Foobar #{Base64.encode64('foo:bar')}"
+    end
+
+    it 'returns 401' do
+      get '/templates'
+      expect(last_response).to be_unauthorized
+    end
+  end
+
+  context 'with invalid Basic credentials' do
+    before do
+      allow(Rpam).to receive(:auth).and_return(false)
+      header 'Accept', 'application/vnd.api+json'
+      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
+    end
+
+    it 'returns 403' do
+      get '/templates'
+      expect(last_response).to be_forbidden
     end
   end
 end

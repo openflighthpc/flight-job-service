@@ -26,25 +26,22 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
+require 'base64'
 module FlightJobAPI
-  # Injects the logger into the core module
-  extend Console
-
-  autoload(:PamAuth, 'flight_job_api/pam_auth')
-  autoload(:Configuration, 'flight_job_api/configuration')
-
-  class << self
-    def app
-      # XXX: Eventually extract this to a Application object when the need arises
-      @app ||= Struct.new(:config).new(
-        Configuration.load(Pathname.new('..').expand_path(__dir__))
-      )
+  module PamAuth
+    # Returns true, false, or nil:
+    # * true: The username/password are valid
+    # * false: The username/password were decoded but are otherwise invalid
+    # * nil: An error occurred whilst decoding the header
+    def self.valid?(header)
+      return nil unless header
+      match = /\ABasic (.*)\Z/.match(header)
+      return nil unless match
+      encoded = match[1]
+      return nil unless encoded
+      username, password = Base64.decode64(encoded).split(':', 2)
+      return nil if password.nil?
+      Rpam.auth(username.to_s, password.to_s, service: FlightJobAPI.config.pam_service)
     end
-
-    def config
-      app.config
-    end
-
-    alias_method :load_configuration, :config
   end
 end
