@@ -67,6 +67,11 @@ end
 # The two apps are mounted together in rack. This app is mounted under
 # /:version/render
 class RenderApp < Sinatra::Base
+  # Content-Type application/x-www-form-urlencoded is implicitly handled by sinatra
+  use Rack::Parser, parsers: {
+    'application/json' => ->(body) { JSON.parse(body) }
+  }
+
   post '/:id' do
     template = Template.from_id(params['id'])
     if template.valid?
