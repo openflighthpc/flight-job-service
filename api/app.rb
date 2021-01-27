@@ -50,7 +50,7 @@ class App < Sinatra::Base
       [*paths_with_ext, *paths_sans_ext].map do |path|
         id = File.basename(path).chomp('.erb')
         Template.from_id(id)
-      end
+      end.select(&:valid?)
     end
 
     show
