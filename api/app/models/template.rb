@@ -42,6 +42,23 @@ class Template < ApplicationModel
     }
   })
 
+  QUESTIONS_SCHEMA = JSONSchemer.schema({
+    "type" => "array",
+    "items" => {
+      "type" => "object",
+      "additionalProperties" => true,
+      "required" => [:id, :text],
+      "properties" => {
+        id: { 'type' => 'string' },
+        text: { 'type' => 'string' },
+        # NOTE: Forcing the default to be a string is a stop-gap measure
+        # It keeps the initial implementation simple as everything is a strings
+        # Eventually multiple formats will be supported
+        default: { 'type' => 'string' }
+      }
+    }
+  })
+
   attr_accessor :name, :extension
 
   def self.from_id(id)
@@ -49,11 +66,21 @@ class Template < ApplicationModel
     Template.new(name: name, extension: ext)
   end
 
-  # Validates the metadata file
+  # Validates the metadata and questions file
   validate do
     if metadata_file_content
-      METADATA_SCHEMA.validate(metadata).to_a.each do |error|
-        @errors.add(:metadata, JSON.pretty_generate(error))
+      unless (metadata_errors = METADATA_SCHEMA.validate(metadata).to_a).empty?
+        FlightJobAPI.logger.error "The following file has invalid metadata: #{metadata_path}" do
+          JSON.pretty_generate(metadata_errors)
+        end
+        @errors.add(:metadata, 'is not valid')
+      end
+
+      unless (questions_errors = QUESTIONS_SCHEMA.validate(questions_data).to_a).empty?
+        FlightJobAPI.logger.error "The following file has invalid questions: #{metadata_path}" do
+          JSON.pretty_generate(questions_errors)
+        end
+        @errors.add(:questions, 'is not valid')
       end
     end
   end
@@ -90,6 +117,10 @@ class Template < ApplicationModel
 
   def metadata
     metadata_file_content[:metadata]
+  end
+
+  def questions_data
+    metadata_file_content[:questions]
   end
 
   private

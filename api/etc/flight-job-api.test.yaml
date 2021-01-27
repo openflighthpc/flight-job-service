@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
 #
@@ -26,39 +25,5 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-FactoryBot.define do
-  factory :template do
-    sequence(:name) { |n| "demo-template-#{n}" }
-
-    transient do
-      save_metadata do
-        YAML.dump({
-          metadata: { synopsis: "I am a demo metada for #{name}" },
-          questions: []
-        })
-      end
-      save_script do
-        <<~SCRIPT
-          #! /bin/bash
-          echo I am the #{name} script
-        SCRIPT
-      end
-    end
-
-    initialize_with do
-      new(**attributes).tap do |template|
-        if (save_metadata || save_script) && !FakeFS.activated?
-          raise 'Refusing to write mocked factory data to the file system'
-        end
-        if save_metadata
-          FileUtils.mkdir_p File.dirname(template.metadata_path)
-          File.write(template.metadata_path, save_metadata)
-        end
-        if save_script
-          FileUtils.mkdir_p File.dirname(template.template_path)
-          File.write(template.template_path, save_script)
-        end
-      end
-    end
-  end
-end
+# Mostly disable logging within the specs
+log_level: fatal
