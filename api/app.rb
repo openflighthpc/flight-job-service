@@ -120,6 +120,17 @@ end
 # The two apps are mounted together in rack. This app is mounted under
 # /:version/render
 class RenderApp < Sinatra::Base
+  before do
+    case FlightJobAPI::PamAuth.valid?(env['HTTP_AUTHORIZATION'])
+    when false
+      status 403
+      halt
+    when nil
+      status 401
+      halt
+    end
+  end
+
   # Content-Type application/x-www-form-urlencoded is implicitly handled by sinatra
   use Rack::Parser, parsers: {
     'application/json' => ->(body) { JSON.parse(body) }

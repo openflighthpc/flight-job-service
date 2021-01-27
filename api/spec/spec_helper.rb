@@ -35,6 +35,9 @@ require 'rack/test'
 
 require_relative '../app.rb'
 
+# Ensure shared examples are loaded
+Dir["./spec/support/**/*.rb"].each {|f| require f}
+
 module SpecApp
   def self.included(base)
     base.include Rack::Test::Methods

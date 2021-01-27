@@ -25,10 +25,13 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
+require 'spec_helper'
+
 RSpec.describe '/render' do
   context 'with an authenicated user' do
     before do
-      # TODO: Add auth credentials
+      allow(Rpam).to receive(:auth).and_return(true)
+      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
     end
 
     describe 'POST' do
@@ -46,5 +49,12 @@ RSpec.describe '/render' do
         expect(last_response.body).to eq(template.render_template)
       end
     end
+  end
+
+  describe '/render/foo' do
+    def make_request
+      post '/render/foo'
+    end
+    include_examples 'shared_auth_spec'
   end
 end
