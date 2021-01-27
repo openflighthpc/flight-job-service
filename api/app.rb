@@ -84,6 +84,16 @@ class App < Sinatra::Base
     }
   end
 
+  resource :authenticates, pkre: /user/ do
+    helpers do
+      def find(id)
+        Authenticate.new(id: id)
+      end
+    end
+
+    show
+  end
+
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
