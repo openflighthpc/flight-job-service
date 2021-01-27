@@ -59,8 +59,9 @@ class Template < ApplicationModel
   end
 
   def render_template(**context)
-    # TODO: Render the ERB template within the given context
-    File.read(template_path)
+    bind = OpenStruct.new(**context).instance_exec { binding }
+    template = File.read(template_path)
+    ERB.new(template, nil, '-').result(bind)
   end
 
   def attachment_name
