@@ -1,0 +1,9 @@
+.SummaryCard, .QuestionCard {
+    min-height: calc(
+      100vh
+      - 102px  /* Card header */
+      - 24px   /* Top margin */
+      - 24px   /* Bottom margin */
+      - 60px   /* Footer */
+    );
+}

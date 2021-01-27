@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { CardFooter } from './CardParts';
 
 function TemplateCard({ template }) {
+
   return (
     <div
       className={

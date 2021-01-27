@@ -63,3 +63,28 @@ export function useFetchTemplates() {
     { headers: { Accept: 'application/vnd.api+json' } },
     [ currentUser.authToken ]);
 }
+
+export function useFetchQuestions(templateId) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/templates/${templateId}/questions`,
+    { headers: { Accept: 'application/vnd.api+json' } },
+    [ templateId, currentUser.authToken ]
+  );
+}
+
+export function useDownloadScript(templateId, answers) {
+  const request = useFetch(
+    `/render/${templateId}`,
+    {
+      method: 'post',
+      headers: {
+        Accept: 'text/plain',
+        'Content-Type': 'application/json',
+      },
+      body: answers,
+      cachePolicy: 'no-cache',
+    },
+  );
+  return request;
+}
