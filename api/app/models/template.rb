@@ -50,12 +50,21 @@ class Template < ApplicationModel
   end
 
   def metadata_path
-    File.join(FlightJobAPI.config.cache_dir, 'templates', "#{name}.yaml")
+    File.join(FlightJobAPI.config.cache_dir, "#{name}.yaml")
   end
 
   def template_path
     basename = extension ? "#{name}.#{extension}.erb" : "#{name}.erb"
     File.join(FlightJobAPI.config.cache_dir, basename)
+  end
+
+  def render_template(**context)
+    # TODO: Render the ERB template within the given context
+    File.read(template_path)
+  end
+
+  def attachment_name
+    File.basename(template_path).chomp('.erb')
   end
 
   # NOTE: The metadata is intentionally cached to prevent excess file reads during

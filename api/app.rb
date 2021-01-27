@@ -48,11 +48,8 @@ class App < Sinatra::Base
       paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
 
       [*paths_with_ext, *paths_sans_ext].map do |path|
-        basename = File.basename(path)
-        Template.new(
-          name: basename.sub(/\..*\Z/, ''),
-          extension: /(\..*)?\.erb\Z/.match(basename)
-        )
+        id = File.basename(path).chomp('.erb')
+        Template.from_id(id)
       end
     end
 
@@ -73,11 +70,12 @@ class RenderApp < Sinatra::Base
   post '/:id' do
     template = Template.from_id(params['id'])
     if template.valid?
-      # NOOP
+      attachment(template.attachment_name, :attachment)
+      response.headers['Content-Type'] = 'text/plain'
+      next template.render_template
     else
       status 404
       halt
     end
-    # header "Content-Disposition:", "attachment; filename=#{}"
   end
 end
