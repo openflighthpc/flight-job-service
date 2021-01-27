@@ -54,6 +54,10 @@ class App < Sinatra::Base
     end
 
     show
+
+    has_many :questions do
+      fetch { resource.questions }
+    end
   end
 
   freeze_jsonapi

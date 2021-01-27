@@ -26,10 +26,6 @@
 # https://github.com/openflighthpc/flight-job-service
 #==============================================================================
 
-class TemplateSerializer < ApplicationSerializer
-  attributes :name, :extension
-  attribute(:synposis) { object.metadata[:synopsis] }
-  attribute(:description) { object.metadata[:description] }
-
-  has_many :questions
+class Question < ApplicationModel
+  attr_accessor :id, :text, :description, :default
 end

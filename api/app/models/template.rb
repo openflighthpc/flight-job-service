@@ -51,6 +51,7 @@ class Template < ApplicationModel
       "properties" => {
         id: { 'type' => 'string' },
         text: { 'type' => 'string' },
+        description: { 'type' => 'string' },
         # NOTE: Forcing the default to be a string is a stop-gap measure
         # It keeps the initial implementation simple as everything is a strings
         # Eventually multiple formats will be supported
@@ -123,6 +124,12 @@ class Template < ApplicationModel
     metadata_file_content[:questions]
   end
 
+  def questions
+    @questions ||= questions_data.map do |datum|
+      Question.new(**datum)
+    end
+  end
+
   private
 
   # NOTE: The metadata is intentionally cached to prevent excess file reads during
@@ -130,7 +137,7 @@ class Template < ApplicationModel
   # instance should be initialized.
   def metadata_file_content
     @metadata_file_content ||= begin
-      YAML.load(File.read(metadata_path, symbolize_names: true)).to_h
+      YAML.load(File.read(metadata_path), symbolize_names: true).to_h
     end
   rescue Errno::ENOENT
     @errors.add(:metadata, "has not been saved")
