@@ -11,7 +11,7 @@ Failed authentication requests will return one of two following response unless 
 ```
 # Requests where the Authorization Basic header isn't set or otherwise can not be decoded
 HTTP/2 401 Unauthorized
-
+Content-Type: application/vnd.api+json
 {
   "errors": [
     {
@@ -25,7 +25,7 @@ HTTP/2 401 Unauthorized
 
 # Requsts where the Authorization Basic header was correctly decoded but failed the username/password check
 HTTP/2 403 Forbidden
-
+Content-Type: application/vnd.api+json
 {
   "errors": [
     {
@@ -46,6 +46,8 @@ The following examples are common error conditions due to missing/ incorrect hea
 # Bad - Request is missing the Accepts header
 GET /...
 
+HTTP/2 406 Not Acceptable
+Content-Type: application/vnd.api+json
 {
   "errors": [
     {
@@ -63,6 +65,7 @@ Accepts: application/vnd.api+json
 
 # Bad - Making a request to a known route with the incorrect HTTP verb
 POST /templates/:id
+Content-Type: application/vnd.api+json
 {
   "errors": [
     {
@@ -91,6 +94,7 @@ Authorization: Basic <base64 username:password>
 Accepts: application/vnd.api+json
 
 HTTP/2 200 OK
+Content-Type: application/vnd.api+json
 {
   "data": {
     "type": "authenticates",
@@ -117,6 +121,7 @@ Authorization: Basic <base64 username:password>
 Accepts: application/vnd.api+json
 
 HTTP/2 200 OK
+Content-Type: application/vnd.api+json
 {
   "data": [
     TemplateResource,
@@ -140,6 +145,7 @@ Authorization: Basic <base64 username:password>
 Accepts: application/vnd.api+json
 
 HTTP/2 200 OK
+Content-Type: application/vnd.api+json
 {
   "data": {
     "type": "templates",
@@ -180,6 +186,7 @@ Authorization: Basic <base64 username:password>
 Accepts: application/vnd.api+json
 
 HTTP/2 200 OK
+Content-Type: application/vnd.api+json
 {
   "data": [
     {
