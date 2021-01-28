@@ -27,25 +27,36 @@
 #==============================================================================
 
 module FlightJobScriptAPI
-  # Injects the logger into the core module
-  extend Console
-
-  autoload(:Configuration, 'flight_job_script_api/configuration')
-  autoload(:PamAuth, 'flight_job_script_api/pam_auth')
-  autoload(:RenderContext, 'flight_job_script_api/render_context')
-
-  class << self
-    def app
-      # XXX: Eventually extract this to a Application object when the need arises
-      @app ||= Struct.new(:config).new(
-        Configuration.load(Pathname.new('..').expand_path(__dir__))
-      )
+  # NOTE: The render context has been designed to allow a super-set of question
+  # not defined on the template.
+  RenderContext = Struct.new(:template, :questions_array, :answers_hash) do
+    def to_h
+      {
+        'template' => template_hash,
+        'questions' => questions_hash
+      }
     end
 
-    def config
-      app.config
+    private
+
+    def template_hash
+      @template_hash ||= begin
+        sub_questions_hash = template.questions.reduce({}) do |memo, question|
+          id = question.id
+          memo.merge({ id => questions_hash[id] || convert_question(question) })
+        end
+        template.to_h.merge({ 'questions' => sub_questions_hash })
+      end
     end
 
-    alias_method :load_configuration, :config
+    def questions_hash
+      @questions_hash ||= questions_array.reduce({}) do |memo, question|
+        memo.merge({ question.id => convert_question(question) })
+      end
+    end
+
+    def convert_question(question)
+      question.to_h.merge({ 'answer' => answers_hash[question.id] })
+    end
   end
 end

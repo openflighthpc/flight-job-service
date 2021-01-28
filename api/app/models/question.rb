@@ -30,6 +30,6 @@ class Question < ApplicationModel
   attr_accessor :id, :text, :description, :default, :format, :ask_when, :template
 
   def to_h
-    QuestionSerializer.new(self).attributes.merge({ 'id' => id })
+    QuestionSerializer.new(self).attributes.merge({ 'id' => id }).deep_dup
   end
 end

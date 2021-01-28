@@ -167,7 +167,7 @@ class Template < ApplicationModel
   end
 
   def to_h
-    TemplateSerializer.new(self).attributes.merge({ 'id' => id })
+    TemplateSerializer.new(self).attributes.merge({ 'id' => id }).deep_dup
   end
 
   private
