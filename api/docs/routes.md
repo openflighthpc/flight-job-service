@@ -147,20 +147,21 @@ Accepts: application/vnd.api+json
 HTTP/2 200 OK
 Content-Type: application/vnd.api+json
 {
-  "data": {
-    "type": "templates",
-    "id": "<name>[.<extension>]",
-    "attributes": {
-      "name": "<STRING>",
-      "extension": "[STRING]",
-      "synposis": "<STRING>",
-      "description": "[STRING]"
+  "data": {                       # REQUIRED - The TemplateResource object
+    "type": "templates",          # REQUIRED - Specifes the response as a template
+    "id": "<name>[.<extension>]", # REQUIRED - The template id comprised of the name and extension
+    "attributes": {               # REQUIRED - Template Attributes
+      "name": STRING,             # REQUIRED - The name of the template
+      "extension": STRING,        # OPTIONAL - The templates extension
+      "synopsis": STRING,         # REQUIRED - A short summary of the template
+      "description": STRING,      # OPTIONAL - A longer description of the template
+      "version": 0                # REQUIRED - Species the version used by the template
     },
-    "links": {
-      "self": "/templates/simple"
+    "links": {                    # REQUIRED - Self reference to the resource
+      "self": "/templates/<id>"
     },
-    "relationships": {
-      "questions": {
+    "relationships": {            # REQURIED - References to other resources
+      "questions": {              # REQUIRED - References to the template's questions
         "links": {
           "self": "/templates/:id/relationships/questions",
           "related": "/templates/:id/questions"
@@ -188,16 +189,30 @@ Accepts: application/vnd.api+json
 HTTP/2 200 OK
 Content-Type: application/vnd.api+json
 {
-  "data": [
+  "data": [                     # REQUIRED    - A list of QuestionResource object
     {
-      "type": "questions",
-      "id": "<question_id>"
-      "attributes": {
-        "text": "<string>",
-        "description": "[string]",
-        "default": variable_type
+      "type": "questions",      # REQUIRED    - Specifies the response is a question
+      "id": "<question_id>"     # REQUIRED    - Gives the question's ID
+      "attributes": {           # REQUIRED    - Quesion attributes
+        "text": STRING,         # REQUIRED    - A short summary of the question
+        "description": STRING,  # OPTIONAL    - A longer description of the question
+        "default": STRING,      # OPTIONAL    - The value which should pre-populate the question
+        "format": {             # OPTIONAL    - Specifies how the field should be presented
+          "type": STRING,       # RECOMMENDED - The field type that should be used (specifcation TBA)
+          "options":            # OPTIONAL    - A list of valid responses to the question
+            {
+              "text": STRING,   # RECOMMENDED - The value to be prompted to the user
+              "value": STRING   # RECOMMENDED - The value to be submitted back to the API
+            },
+            ...
+          ]
+        },
+        "ask-when": {           # OPTIONAL    - Defines when the question should be asked
+          "value": STRING,      # RECOMMENDED - The lookup to the source value (specifcation TBA)
+          "eq": STRING          # RECOMMENDED - Ask the question when the lookup equals this value
+        }
       },
-      "links": {
+      "links": {                # REQUIRED  - Self reference to the resource
         "self": "/questions/<question_id>"
       }
     },
