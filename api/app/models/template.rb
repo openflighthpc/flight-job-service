@@ -132,12 +132,12 @@ class Template < ApplicationModel
   end
 
   def metadata_path
-    File.join(FlightJobAPI.config.cache_dir, "#{name}.yaml")
+    File.join(FlightJobAPI.config.data_dir, "#{name}.yaml")
   end
 
   def template_path
     basename = extension ? "#{name}.#{extension}.erb" : "#{name}.erb"
-    File.join(FlightJobAPI.config.cache_dir, basename)
+    File.join(FlightJobAPI.config.data_dir, basename)
   end
 
   def render_template(**context)

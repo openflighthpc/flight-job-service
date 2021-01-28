@@ -52,9 +52,9 @@ module FlightJobAPI
         default: 'login'
       },
       {
-        name: 'cache_dir',
+        name: 'data_dir',
         env_var: true,
-        default: ->(root) { root.join('var/cache') }
+        default: ->(root) { root.join('usr/share') }
       },
       {
         name: 'log_dir',

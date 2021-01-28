@@ -51,14 +51,14 @@
 # pam_service: login
 
 #-------------------------------------------------------------------------------
-# Cache Directory
+# Data Directory
 # Specify the directory for internal runtime data
-# The environment variable FLIGHT_JOB_API_CACHE_DIR takes precedence
+# The environment variable FLIGHT_JOB_API_DATA_DIR takes precedence
 #
 # The default is relative to the install directory. All overrides should use
 # absolute paths. The behaviour of overrides with relative paths is undefined.
 #-------------------------------------------------------------------------------
-# cache_dir: /path/to/flight-job-api/var/cache
+# data_dir: /path/to/flight-job-api/usr/share
 
 #-------------------------------------------------------------------------------
 # Log Directory
