@@ -38,7 +38,7 @@ class Template < ApplicationModel
     "required" => [:synopsis, :version],
     "properties" => {
       synopsis: { "type" => 'string' },
-      details: { "type" => 'string' },
+      description: { "type" => 'string' },
       version: { "type" => 'integer', 'enum' => [0] }
     }
   })
@@ -151,10 +151,12 @@ class Template < ApplicationModel
   end
 
   def metadata
+    return {} if metadata_file_content.nil?
     metadata_file_content[:metadata]
   end
 
   def questions_data
+    return [] if metadata_file_content.nil?
     metadata_file_content[:questions]
   end
 

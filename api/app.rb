@@ -106,7 +106,7 @@ class App < Sinatra::Base
       paths_with_ext = Dir.glob(Template.new(name: '*', extension: '*').template_path)
       paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
 
-      [*paths_with_ext, *paths_sans_ext].map do |path|
+      [*paths_with_ext, *paths_sans_ext].uniq.map do |path|
         id = File.basename(path).chomp('.erb')
         Template.from_id(id)
       end.select(&:valid?)
