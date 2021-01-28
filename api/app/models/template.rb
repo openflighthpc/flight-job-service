@@ -166,6 +166,10 @@ class Template < ApplicationModel
     end
   end
 
+  def to_h
+    TemplateSerializer.new(self).attributes.merge({ 'id' => id })
+  end
+
   private
 
   # NOTE: The metadata is intentionally cached to prevent excess file reads during
