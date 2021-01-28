@@ -43,7 +43,7 @@ class Template < ApplicationModel
     }
   })
 
-  FORMAT_SCHEMA_SPEC = {
+  FORMAT_SPEC = {
     "type" => "object",
     "additionalProperties" => false,
     "required" => [:type],
@@ -64,6 +64,16 @@ class Template < ApplicationModel
     }
   }
 
+  ASK_WHEN_SPEC = {
+    "type" => "object",
+    "additionalProperties" => false,
+    "required" => [:value, :eq],
+    "properties" => {
+      value: { "type" => "string" },
+      eq: { "type" => "string" }
+    }
+  }
+
   QUESTIONS_SCHEMA = JSONSchemer.schema({
     "type" => "array",
     "items" => {
@@ -78,7 +88,8 @@ class Template < ApplicationModel
         # It keeps the initial implementation simple as everything is a strings
         # Eventually multiple formats will be supported
         default: { 'type' => 'string' },
-        format: FORMAT_SCHEMA_SPEC
+        format: FORMAT_SPEC,
+        ask_when: ASK_WHEN_SPEC
       }
     }
   })

@@ -27,5 +27,5 @@
 #==============================================================================
 
 class QuestionSerializer < ApplicationSerializer
-  attributes :text, :description, :default, :format
+  attributes :text, :description, :default, :format, :ask_when
 end

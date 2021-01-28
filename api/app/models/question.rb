@@ -27,5 +27,5 @@
 #==============================================================================
 
 class Question < ApplicationModel
-  attr_accessor :id, :text, :description, :default, :format
+  attr_accessor :id, :text, :description, :default, :format, :ask_when, :template
 end
