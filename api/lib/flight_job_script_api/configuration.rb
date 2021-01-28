@@ -2,7 +2,7 @@
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
 #
-# This file is part of Flight Job Service.
+# This file is part of Flight Job Script Service.
 #
 # This program and the accompanying materials are made available under
 # the terms of the Eclipse Public License 2.0 which is available at
@@ -10,7 +10,7 @@
 # terms made available by Alces Flight Ltd - please direct inquiries
 # about licensing to licensing@alces-flight.com.
 #
-# Flight Job Service is distributed in the hope that it will be useful, but
+# Flight Job Script Service is distributed in the hope that it will be useful, but
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
 # IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS
 # OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
@@ -18,20 +18,20 @@
 # details.
 #
 # You should have received a copy of the Eclipse Public License 2.0
-# along with Flight Job Service. If not, see:
+# along with Flight Job Script Service. If not, see:
 #
 #  https://opensource.org/licenses/EPL-2.0
 #
-# For more information on Flight Job Service, please visit:
-# https://github.com/openflighthpc/flight-job-service
+# For more information on Flight Job Script Service, please visit:
+# https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-module FlightJobAPI
+module FlightJobScriptAPI
   class Configuration
-    autoload(:Loader, 'flight_job_api/configuration/loader')
+    autoload(:Loader, 'flight_job_script_api/configuration/loader')
 
-    PRODUCTION_PATH = 'etc/flight-job-api.yaml'
-    PATH_GENERATOR = ->(env) { "etc/flight-job-api.#{env}.yaml" }
+    PRODUCTION_PATH = 'etc/flight-job-script-api.yaml'
+    PATH_GENERATOR = ->(env) { "etc/flight-job-script-api.#{env}.yaml" }
 
     class ConfigError < StandardError; end
 
@@ -83,7 +83,7 @@ module FlightJobAPI
 
     def log_level=(level)
       @log_level = level
-      FlightJobAPI.logger.send("#{@log_level}!")
+      FlightJobScriptAPI.logger.send("#{@log_level}!")
     end
   end
 end

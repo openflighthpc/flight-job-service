@@ -26,11 +26,22 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class TemplateSerializer < ApplicationSerializer
-  attributes :name, :extension
-  attribute(:synposis) { object.metadata[:synopsis] }
-  attribute(:description) { object.metadata[:description] }
-  attribute(:version) { object.metadata[:version] }
-
-  has_many :questions
+require 'base64'
+module FlightJobScriptAPI
+  module PamAuth
+    # Returns true, false, or nil:
+    # * true: The username/password are valid
+    # * false: The username/password were decoded but are otherwise invalid
+    # * nil: An error occurred whilst decoding the header
+    def self.valid?(header)
+      return nil unless header
+      match = /\ABasic (.*)\Z/.match(header)
+      return nil unless match
+      encoded = match[1]
+      return nil unless encoded
+      username, password = Base64.decode64(encoded).split(':', 2)
+      return nil if password.nil?
+      Rpam.auth(username.to_s, password.to_s, service: FlightJobScriptAPI.config.pam_service)
+    end
+  end
 end
