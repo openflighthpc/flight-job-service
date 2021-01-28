@@ -30,6 +30,11 @@ module FlightJobScriptAPI
   # NOTE: The render context has been designed to allow a super-set of question
   # not defined on the template.
   RenderContext = Struct.new(:template, :questions_array, :answers_hash) do
+    def render
+      bind = Hashie::Mash.new(to_h).instance_exec { binding }
+      template.to_erb.result(bind)
+    end
+
     def to_h
       {
         'template' => template_hash,

@@ -153,9 +153,11 @@ class RenderApp < Sinatra::Base
       attachment(template.attachment_name, :attachment)
       response.headers['Content-Type'] = 'text/plain'
 
-      # TODO: Run the params against an allowed list of keys
-      context = params.map { |k, v| [k.to_sym, v] }.to_h
-      next template.render_template(**context)
+      context = FlightJobScriptAPI::RenderContext.new(
+        template, template.questions, params
+      )
+
+      next context.render
     else
       status 404
       halt

@@ -140,12 +140,6 @@ class Template < ApplicationModel
     File.join(FlightJobScriptAPI.config.data_dir, basename)
   end
 
-  def render_template(**context)
-    bind = OpenStruct.new(**context).instance_exec { binding }
-    template = File.read(template_path)
-    ERB.new(template, nil, '-').result(bind)
-  end
-
   def attachment_name
     File.basename(template_path).chomp('.erb')
   end
@@ -168,6 +162,10 @@ class Template < ApplicationModel
 
   def to_h
     TemplateSerializer.new(self).attributes.merge({ 'id' => id }).deep_dup
+  end
+
+  def to_erb
+    ERB.new(File.read(template_path), nil, '-')
   end
 
   private
