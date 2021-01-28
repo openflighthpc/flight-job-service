@@ -31,7 +31,9 @@ require 'spec_helper'
 RSpec.describe Template do
   subject { build(:template) }
 
-  it { should be_valid }
+  it do
+    should be_valid
+  end
 
   context 'without a script' do
     subject { build(:template, save_script: false) }

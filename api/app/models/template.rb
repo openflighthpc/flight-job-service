@@ -35,10 +35,11 @@ class Template < ApplicationModel
     # The strict validation is ok for now, but may cause usability issues when
     # switching back and forth between different versions.
     "additionalProperties" => false,
-    "required" => [:synopsis],
+    "required" => [:synopsis, :version],
     "properties" => {
       synopsis: { "type" => 'string' },
-      details: { "type" => 'string' }
+      details: { "type" => 'string' },
+      version: { "type" => 'integer', 'enum' => [0] }
     }
   })
 

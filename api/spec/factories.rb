@@ -33,7 +33,10 @@ FactoryBot.define do
     transient do
       save_metadata do
         YAML.dump({
-          metadata: { synopsis: "I am a demo metada for #{name}" },
+          metadata: {
+            synopsis: "I am a demo metada for #{name}",
+            version: 0
+          },
           questions: []
         })
       end
