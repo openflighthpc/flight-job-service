@@ -27,8 +27,5 @@
 #==============================================================================
 
 class QuestionSerializer < ApplicationSerializer
-  attributes :text, :description, :default
-
-  # NOTE: The relationship to templates/questions have not been implemented
-  # because the exact requirement is TBD
+  attributes :text, :description, :default, :format
 end

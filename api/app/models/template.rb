@@ -43,11 +43,32 @@ class Template < ApplicationModel
     }
   })
 
+  FORMAT_SCHEMA_SPEC = {
+    "type" => "object",
+    "additionalProperties" => false,
+    "required" => [:type],
+    "properties" => {
+      type: { "type" => "string" },
+      options: {
+        "type" => "array",
+        "items" => {
+          "type" => "object",
+          "additionalProperties" => false,
+          "required" => [:text, :value],
+          "properties" => {
+            text: { "type" => "string" },
+            value: { "type" => "string" }
+          }
+        }
+      }
+    }
+  }
+
   QUESTIONS_SCHEMA = JSONSchemer.schema({
     "type" => "array",
     "items" => {
       "type" => "object",
-      "additionalProperties" => true,
+      "additionalProperties" => false,
       "required" => [:id, :text],
       "properties" => {
         id: { 'type' => 'string' },
@@ -56,7 +77,8 @@ class Template < ApplicationModel
         # NOTE: Forcing the default to be a string is a stop-gap measure
         # It keeps the initial implementation simple as everything is a strings
         # Eventually multiple formats will be supported
-        default: { 'type' => 'string' }
+        default: { 'type' => 'string' },
+        format: FORMAT_SCHEMA_SPEC
       }
     }
   })
