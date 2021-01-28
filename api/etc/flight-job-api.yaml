@@ -1,0 +1,79 @@
+#==============================================================================
+# Copyright (C) 2021-present Alces Flight Ltd.
+#
+# This file is part of Flight Job Service.
+#
+# This program and the accompanying materials are made available under
+# the terms of the Eclipse Public License 2.0 which is available at
+# <https://www.eclipse.org/legal/epl-2.0>, or alternative license
+# terms made available by Alces Flight Ltd - please direct inquiries
+# about licensing to licensing@alces-flight.com.
+#
+# Flight Job Service is distributed in the hope that it will be useful, but
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR
+# IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS
+# OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A
+# PARTICULAR PURPOSE. See the Eclipse Public License 2.0 for more
+# details.
+#
+# You should have received a copy of the Eclipse Public License 2.0
+# along with Flight Job Service. If not, see:
+#
+#  https://opensource.org/licenses/EPL-2.0
+#
+# For more information on Flight Job Service, please visit:
+# https://github.com/openflighthpc/flight-job-service
+#==============================================================================
+
+#-------------------------------------------------------------------------------
+# API Bind Address
+# The address (including port) puma will bind to
+# See: https://github.com/puma/puma#binding-tcp--sockets
+# The environment variable FLIGHT_JOB_API_BIND_ADDRESS takes precedence
+#-------------------------------------------------------------------------------
+# bind_address: tcp://127.0.0.1:921
+
+#-------------------------------------------------------------------------------
+# PID File Path
+# The path to where the PID of the supervisor process should be stored
+# The environment variable FLIGHT_JOB_API_PIDFILE takes precedence
+#
+# The default is relative to the install directory. All overrides should use
+# absolute paths. The behaviour of overrides with relative paths is undefined.
+#-------------------------------------------------------------------------------
+# pidfile: /path/to/flight-job-api/var/puma.pid
+
+#-------------------------------------------------------------------------------
+# Pam Authentication Service
+# Specify the pam service which will be used to authenticate the requests.
+# The environment variable FLIGHT_JOB_API_PAM_SERVICE
+#-------------------------------------------------------------------------------
+# pam_service: login
+
+#-------------------------------------------------------------------------------
+# Data Directory
+# Specify the directory for internal runtime data
+# The environment variable FLIGHT_JOB_API_DATA_DIR takes precedence
+#
+# The default is relative to the install directory. All overrides should use
+# absolute paths. The behaviour of overrides with relative paths is undefined.
+#-------------------------------------------------------------------------------
+# data_dir: /path/to/flight-job-api/usr/share
+
+#-------------------------------------------------------------------------------
+# Log Directory
+# Specify the directory log files are stored within
+# The environment variable FLIGHT_JOB_API_LOG_DIR takes precedence
+#
+# The default is relative to the install directory. All overrides should use
+# absolute paths. The behaviour of overrides with relative paths is undefined.
+#-------------------------------------------------------------------------------
+# log_dir: /path/to/flight-job-api/var/log
+
+#-------------------------------------------------------------------------------
+# Log Level
+# Specify the logging level
+# The environment variable FLIGHT_JOB_API_LOG_LEVEL takes precedence
+# Valid levels are: fatal, error, warn, info, debug
+#-------------------------------------------------------------------------------
+# log_level: info
