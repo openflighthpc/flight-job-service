@@ -80,10 +80,5 @@ module FlightJobScriptAPI
         Loader.new(root, paths).load
       end
     end
-
-    def log_level=(level)
-      @log_level = level
-      FlightJobScriptAPI.logger.send("#{@log_level}!")
-    end
   end
 end

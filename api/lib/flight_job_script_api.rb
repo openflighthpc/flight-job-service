@@ -27,9 +27,6 @@
 #==============================================================================
 
 module FlightJobScriptAPI
-  # Injects the logger into the core module
-  extend Console
-
   autoload(:Configuration, 'flight_job_script_api/configuration')
   autoload(:DefaultsOpenStruct, 'flight_job_script_api/defaults_open_struct')
   autoload(:PamAuth, 'flight_job_script_api/pam_auth')
@@ -45,6 +42,10 @@ module FlightJobScriptAPI
 
     def config
       app.config
+    end
+
+    def logger
+      @logger ||= Logger.new($stdout, level: config.log_level.to_sym)
     end
 
     alias_method :load_configuration, :config

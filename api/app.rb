@@ -98,7 +98,14 @@ class App < Sinatra::Base
     helpers do
       def find(id)
         template = Template.from_id(id)
-        template.valid? ? template : nil
+        if template.valid?
+          template
+        else
+          FlightJobScriptAPI.logger.debug("Template is invalid: #{template.id}\n") do
+            template.errors.full_messages.join("\n")
+          end
+          nil
+        end
       end
     end
 

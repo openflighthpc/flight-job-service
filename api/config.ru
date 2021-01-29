@@ -30,6 +30,8 @@ require_relative 'config/boot'
 
 configure do
   LOGGER = FlightJobScriptAPI.logger
+  use Rack::CommonLogger, LOGGER
+
   enable :logging, :dump_errors
   set :raise_errors, true
 end
