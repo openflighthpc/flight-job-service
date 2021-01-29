@@ -16,7 +16,7 @@ function AuthenticatedDashboard() {
 
       <div className="card-deck">
         <div className="card">
-          <div className="card-body fa-background fa-background-desktop">
+          <div className="card-body fa-background fa-background-file-code-o">
             <h5 className="card-title text-center">
               Create job scripts from predefined templates
             </h5>

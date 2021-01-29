@@ -1,0 +1,20 @@
+.fa-background {
+    position:relative;
+}
+.fa-background:before {
+    color: #2296d9;
+    color: var(--success);
+    font-family: FontAwesome;
+    font-size: 900%;
+    left: 50%;
+    opacity: 0.2;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+.fa-background ~ * {
+    z-index: 100;
+}
+.fa-background-file-code-o:before {
+    content: "\f1c9";
+}
