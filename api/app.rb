@@ -97,11 +97,11 @@ class App < Sinatra::Base
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
-        template = Template.from_id(id)
+        template = Template.new(name: id)
         if template.valid?
           template
         else
-          FlightJobScriptAPI.logger.debug("Template is invalid: #{template.id}\n") do
+          FlightJobScriptAPI.logger.debug("Template is invalid: #{template.name}\n") do
             template.errors.full_messages.join("\n")
           end
           nil
@@ -110,10 +110,21 @@ class App < Sinatra::Base
     end
 
     index do
-      Dir.glob(Template.new(name: '*').template_path).map do |path|
-        id = File.basename(path).chomp('.erb')
-        Template.from_id(id)
-      end.select(&:valid?)
+      # Generates a list of Templates
+      templates = Dir.glob(Template.new(name: '*').template_path).map do |path|
+        Template.new(name: File.basename(path).chomp('.erb'))
+      end
+
+      valid_templates = templates.select do |template|
+        if template.valid?
+          true
+        else
+          FlightJobScriptAPI.logger.error "Rejecting invalid template from index: #{template.id}"
+          false
+        end
+      end
+
+      next valid_templates
     end
 
     show
@@ -152,7 +163,7 @@ class RenderApp < Sinatra::Base
 
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    template = Template.from_id(params['id'])
+    template = Template.new(name: params['id'])
     if template.valid?
       attachment(template.attachment_name, :attachment)
       response.headers['Content-Type'] = 'text/plain'

@@ -96,10 +96,6 @@ class Template < ApplicationModel
 
   attr_accessor :name
 
-  def self.from_id(id)
-    Template.new(name: id)
-  end
-
   # Validates the metadata and questions file
   validate do
     if metadata_file_content
