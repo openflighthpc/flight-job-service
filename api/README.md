@@ -1,4 +1,4 @@
-# Flight Job API
+# Flight Job Script API
 
 ## Overview
 
@@ -9,14 +9,14 @@ API server for rendering job templates
 Run the following to install a local version
 
 ```
-git clone https://github.com/openflighthpc/flight-job-service
-cd flight-job-service/api
+git clone https://github.com/openflighthpc/flight-job-script-service
+cd flight-job-script-service/api
 bundle install
 ```
 
 ## Configuration
 
-See [configuration](etc/flight-job-api.yaml)
+See [configuration](etc/flight-job-script-api.yaml)
 
 ## Operation
 
@@ -48,7 +48,7 @@ or alternative license terms made available by Alces Flight Ltd -
 please direct inquiries about licensing to
 [licensing@alces-flight.com](mailto:licensing@alces-flight.com).
 
-Flight Job Service is distributed in the hope that it will be
+Flight Job Script Service is distributed in the hope that it will be
 useful, but WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER
 EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR
 CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR
