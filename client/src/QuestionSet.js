@@ -2,9 +2,10 @@ import React, { useReducer, useRef } from 'react';
 import classNames from 'classnames';
 import { Button } from 'reactstrap';
 
+import styles from './question.module.css';
 import { CardFooter } from './CardParts';
 import { useDownloadScript } from './api';
-import styles from './question.module.css';
+import { useToast } from './ToastContext';
 
 function shouldAsk(question, state) {
   const ask_when = question.attributes['ask-when'];
@@ -213,7 +214,8 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
 
 function DownloadButton({ answers, className, state, templateId }) {
   const anchorRef = useRef(null);
-  // XXX Remove default handling from here.
+  const { addToast } = useToast();
+
   const flattenedAnswers = answers.reduce((accum, answer) => {
     if (shouldAsk(answer.question, state)) {
       accum[answer.question.id] = answer.valueOrDefault();
@@ -232,6 +234,19 @@ function DownloadButton({ answers, className, state, templateId }) {
           const url = URL.createObjectURL(blob);
           anchorRef.current.href = url;
           anchorRef.current.click();
+        });
+      } else {
+        addToast({
+          body: (
+            <div>
+              Unfortunately there has been a problem rendering your job
+              script.  Please try again and, if problems persist, help us to
+              more quickly rectify the problem by contacting us and letting us
+              know.
+            </div>
+          ),
+          icon: 'danger',
+          header: 'Failed to render template',
         });
       }
     });
