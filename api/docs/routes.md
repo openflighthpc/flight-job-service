@@ -231,6 +231,12 @@ Content-Type: application/vnd.api+json
 
 Renders the template against the provided date.
 
+Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
+1. The client not sending all the required keys, or
+2. The template being misconfigured.
+
+The above errors SHOULD be resolved by the system administrator. The server expects render errors MAY occur and SHALL return in `422 - Unprocessable Entity`. This denotes the error occurred during rendering as opposed to a generic server error.
+
 NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
 
 ```
@@ -261,6 +267,14 @@ HTTP/2 200 OK
 Content-Disposition: attachment; filename="<template_id>"
 Content-Type: text/plain
 ... rendered template ...
+
+
+# When the template fails to render
+GET /render/:template_id
+Authorization: Basic <base64 invalid:invalid>
+Accept: text/plain
+
+HTPP/2 422 Unprocessable Entity
 
 
 # With invalid credentials

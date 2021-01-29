@@ -168,6 +168,7 @@ class RenderApp < Sinatra::Base
         halt
       end
 
+      status 200
       next payload
     else
       status 404
