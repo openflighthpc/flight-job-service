@@ -35,11 +35,11 @@ class Template < ApplicationModel
     # The strict validation is ok for now, but may cause usability issues when
     # switching back and forth between different versions.
     "additionalProperties" => false,
-    "required" => [:synopsis, :version],
+    "required" => ['synopsis', 'version'],
     "properties" => {
-      synopsis: { "type" => 'string' },
-      description: { "type" => 'string' },
-      version: { "type" => 'integer', 'enum' => [0] }
+      'synopsis' => { "type" => 'string' },
+      'description' => { "type" => 'string' },
+      'version' => { "type" => 'integer', 'enum' => [0] }
     }
   }
 
@@ -48,16 +48,16 @@ class Template < ApplicationModel
     "additionalProperties" => false,
     "required" => [:type],
     "properties" => {
-      type: { "type" => "string" },
-      options: {
+      'type' => { "type" => "string" },
+      'options' => {
         "type" => "array",
         "items" => {
           "type" => "object",
           "additionalProperties" => false,
-          "required" => [:text, :value],
+          "required" => ['text', 'value'],
           "properties" => {
-            text: { "type" => "string" },
-            value: { "type" => "string" }
+            'text' => { "type" => "string" },
+            'value' => { "type" => "string" }
           }
         }
       }
@@ -67,10 +67,10 @@ class Template < ApplicationModel
   ASK_WHEN_SPEC = {
     "type" => "object",
     "additionalProperties" => false,
-    "required" => [:value, :eq],
+    "required" => ['value', 'eq'],
     "properties" => {
-      value: { "type" => "string" },
-      eq: { "type" => "string" }
+      'value' => { "type" => "string" },
+      'eq' => { "type" => "string" }
     }
   }
 
@@ -79,17 +79,17 @@ class Template < ApplicationModel
     "items" => {
       "type" => "object",
       "additionalProperties" => false,
-      "required" => [:id, :text],
+      "required" => ['id', 'text'],
       "properties" => {
-        id: { 'type' => 'string' },
-        text: { 'type' => 'string' },
-        description: { 'type' => 'string' },
-        # NOTE: Forcing the default to be a string is a stop-gap measure
+        'id' => { 'type' => 'string' },
+        'text' => { 'type' => 'string' },
+        'description' => { 'type' => 'string' },
+        # NOTE' => Forcing the default to be a string is a stop-gap measure
         # It keeps the initial implementation simple as everything is a strings
         # Eventually multiple formats will be supported
-        default: { 'type' => 'string' },
-        format: FORMAT_SPEC,
-        ask_when: ASK_WHEN_SPEC
+        'default' => { 'type' => 'string' },
+        'format' => FORMAT_SPEC,
+        'ask_when' => ASK_WHEN_SPEC
       }
     }
   }
@@ -97,10 +97,10 @@ class Template < ApplicationModel
   SCHEMA = JSONSchemer.schema({
     "type" => "object",
     "additionalProperties" => false,
-    "required" => [:metadata, :questions],
+    "required" => ['metadata', 'questions'],
     "properties" => {
-      metadata: METADATA_SPEC,
-      questions: QUESTIONS_SPEC
+      'metadata' => METADATA_SPEC,
+      'questions' => QUESTIONS_SPEC
     }
   })
 
@@ -139,17 +139,17 @@ class Template < ApplicationModel
 
   def metadata
     return {} if metadata_file_content.nil?
-    metadata_file_content[:metadata]
+    metadata_file_content['metadata']
   end
 
   def questions_data
     return [] if metadata_file_content.nil?
-    metadata_file_content[:questions]
+    metadata_file_content['questions']
   end
 
   def questions
     @questions ||= questions_data.map do |datum|
-      Question.new(**datum)
+      Question.new(**datum.symbolize_keys)
     end
   end
 
@@ -168,7 +168,7 @@ class Template < ApplicationModel
   # instance should be initialized.
   def metadata_file_content
     @metadata_file_content ||= begin
-      YAML.load(File.read(metadata_path), symbolize_names: true).to_h
+      YAML.load(File.read(metadata_path)).to_h
     end
   rescue Errno::ENOENT
     @errors.add(:metadata, "has not been saved")

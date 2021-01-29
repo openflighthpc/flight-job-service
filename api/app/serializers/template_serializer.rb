@@ -28,9 +28,9 @@
 
 class TemplateSerializer < ApplicationSerializer
   attributes :name
-  attribute(:synposis) { object.metadata[:synopsis] }
-  attribute(:description) { object.metadata[:description] }
-  attribute(:version) { object.metadata[:version] }
+  attribute(:synposis) { object.metadata['synopsis'] }
+  attribute(:description) { object.metadata['description'] }
+  attribute(:version) { object.metadata['version'] }
 
   has_many :questions
 end

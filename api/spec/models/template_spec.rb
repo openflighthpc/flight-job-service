@@ -29,7 +29,9 @@
 require 'spec_helper'
 
 RSpec.describe Template do
-  subject { build(:template) }
+  subject do
+    build(:template)
+  end
 
   it do
     should be_valid
