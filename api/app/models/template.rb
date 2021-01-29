@@ -27,7 +27,7 @@
 #==============================================================================
 
 class Template < ApplicationModel
-  METADATA_SCHEMA = JSONSchemer.schema({
+  METADATA_SPEC = {
     "type" => "object",
     # NOTE: Should the validation be this strict? The serializer hard codes the
     # expected keys, so extraneous details will be ignored.
@@ -41,7 +41,7 @@ class Template < ApplicationModel
       description: { "type" => 'string' },
       version: { "type" => 'integer', 'enum' => [0] }
     }
-  })
+  }
 
   FORMAT_SPEC = {
     "type" => "object",
@@ -74,7 +74,7 @@ class Template < ApplicationModel
     }
   }
 
-  QUESTIONS_SCHEMA = JSONSchemer.schema({
+  QUESTIONS_SPEC = {
     "type" => "array",
     "items" => {
       "type" => "object",
@@ -92,6 +92,16 @@ class Template < ApplicationModel
         ask_when: ASK_WHEN_SPEC
       }
     }
+  }
+
+  SCHEMA = JSONSchemer.schema({
+    "type" => "object",
+    "additionalProperties" => false,
+    "required" => [:metadata, :questions],
+    "properties" => {
+      metadata: METADATA_SPEC,
+      questions: QUESTIONS_SPEC
+    }
   })
 
   attr_accessor :name
@@ -99,18 +109,11 @@ class Template < ApplicationModel
   # Validates the metadata and questions file
   validate do
     if metadata_file_content
-      unless (metadata_errors = METADATA_SCHEMA.validate(metadata).to_a).empty?
-        FlightJobScriptAPI.logger.error "The following file has invalid metadata: #{metadata_path}" do
-          JSON.pretty_generate(metadata_errors)
+      unless (errors = SCHEMA.validate(metadata_file_content).to_a).empty?
+        FlightJobScriptAPI.logger.error "The following metadata file is invalid: #{metadata_path}" do
+          JSON.pretty_generate(errors)
         end
         @errors.add(:metadata, 'is not valid')
-      end
-
-      unless (questions_errors = QUESTIONS_SCHEMA.validate(questions_data).to_a).empty?
-        FlightJobScriptAPI.logger.error "The following file has invalid questions: #{metadata_path}" do
-          JSON.pretty_generate(questions_errors)
-        end
-        @errors.add(:questions, 'is not valid')
       end
     end
   end
