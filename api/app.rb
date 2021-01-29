@@ -157,7 +157,18 @@ class RenderApp < Sinatra::Base
         template: template, answers: params
       )
 
-      next context.render
+      begin
+        payload = context.render
+      rescue
+        FlightJobScriptAPI.logger.error("Failed to render: #{@template.template_path}")
+        FlightJobScriptAPI.logger.debug("Full render error:") do
+          $!.full_message
+        end
+        status 422
+        halt
+      end
+
+      next payload
     else
       status 404
       halt
