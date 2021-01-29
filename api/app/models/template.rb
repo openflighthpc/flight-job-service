@@ -134,10 +134,6 @@ class Template < ApplicationModel
     File.join(FlightJobScriptAPI.config.data_dir, "#{name}.erb")
   end
 
-  def attachment_name
-    File.basename(template_path).chomp('.erb')
-  end
-
   def metadata
     return {} if metadata_file_content.nil?
     metadata_file_content[:metadata]

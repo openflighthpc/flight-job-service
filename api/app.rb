@@ -165,7 +165,7 @@ class RenderApp < Sinatra::Base
   post '/:id' do
     template = Template.new(name: params['id'])
     if template.valid?
-      attachment(template.attachment_name, :attachment)
+      attachment(template.name, :attachment)
       response.headers['Content-Type'] = 'text/plain'
 
       context = FlightJobScriptAPI::RenderContext.new(

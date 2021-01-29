@@ -44,7 +44,7 @@ RSpec.describe '/render' do
         template = build(:template)
         post "/render/#{template.id}", "{}"
         expect(last_response).to be_ok
-        expect(last_response.headers['Content-Disposition']).to eq("attachment; filename=\"#{template.attachment_name}\"")
+        expect(last_response.headers['Content-Disposition']).to eq("attachment; filename=\"#{template.name}\"")
         expect(last_response.headers['Content-Type']).to eq('text/plain')
         expect(last_response.body).to eq(File.read template.template_path)
       end
