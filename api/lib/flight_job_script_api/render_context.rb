@@ -28,40 +28,46 @@
 
 module FlightJobScriptAPI
   # NOTE: The render context has been designed to allow a super-set of question
-  # not defined on the template.
-  RenderContext = Struct.new(:template, :questions_array, :answers_hash) do
+  # not defined on the template
+
+  class RenderContext
+    class AnswerDecorator
+      def initialize(question:, answer:)
+        @question = question
+        @answer = answer
+      end
+
+      def answer
+        @answer || @question.default
+      end
+    end
+
+    def initialize(template:, answers:)
+      @template = template
+      @answers = answers
+    end
+
     def render
-      bind = Hashie::Mash.new(to_h).instance_exec { binding }
-      template.to_erb.result(bind)
+      @template.to_erb.result(binding)
     end
 
-    def to_h
-      {
-        'template' => template_hash,
-        'questions' => questions_hash
-      }
+    def question
+      questions
     end
 
-    private
-
-    def template_hash
-      @template_hash ||= begin
-        sub_questions_hash = template.questions.reduce({}) do |memo, question|
-          id = question.id
-          memo.merge({ id => questions_hash[id] || convert_question(question) })
+    def questions
+      @questions ||= begin
+        questions = @template.questions.reduce({}) do |memo, question|
+          memo.merge({
+            question.id => AnswerDecorator.new(question: @question,
+                                               answer: @answers[question.id])
+          })
         end
-        template.to_h.merge({ 'questions' => sub_questions_hash })
+        DefaultsOpenStruct.new(questions) do |h, k|
+          question = Question.new(id: k)
+          h[k] = AnswerDecorator.new(question: question, answer: nil)
+        end
       end
-    end
-
-    def questions_hash
-      @questions_hash ||= questions_array.reduce({}) do |memo, question|
-        memo.merge({ question.id => convert_question(question) })
-      end
-    end
-
-    def convert_question(question)
-      question.to_h.merge({ 'answer' => answers_hash[question.id] })
     end
   end
 end

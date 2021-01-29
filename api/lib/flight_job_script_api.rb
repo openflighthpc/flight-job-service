@@ -31,6 +31,7 @@ module FlightJobScriptAPI
   extend Console
 
   autoload(:Configuration, 'flight_job_script_api/configuration')
+  autoload(:DefaultsOpenStruct, 'flight_job_script_api/defaults_open_struct')
   autoload(:PamAuth, 'flight_job_script_api/pam_auth')
   autoload(:RenderContext, 'flight_job_script_api/render_context')
 

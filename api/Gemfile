@@ -32,7 +32,6 @@ git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
 gem 'activemodel', require: 'active_model'
 gem 'activesupport', require: 'active_support'
 gem 'console'
-gem 'hashie', require: 'hashie/mash'
 gem 'json_schemer'
 gem 'rack-parser', require: 'rack/parser'
 gem 'rake'

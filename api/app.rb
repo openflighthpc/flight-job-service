@@ -154,7 +154,7 @@ class RenderApp < Sinatra::Base
       response.headers['Content-Type'] = 'text/plain'
 
       context = FlightJobScriptAPI::RenderContext.new(
-        template, template.questions, params
+        template: template, answers: params
       )
 
       next context.render
