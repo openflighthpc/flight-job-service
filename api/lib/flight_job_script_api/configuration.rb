@@ -57,11 +57,6 @@ module FlightJobScriptAPI
         default: ->(root) { root.join('usr/share') }
       },
       {
-        name: 'log_dir',
-        env_var: true,
-        default: ->(root) { root.join('var/log') }
-      },
-      {
         name: 'log_level',
         env_var: true,
         default: 'info'
