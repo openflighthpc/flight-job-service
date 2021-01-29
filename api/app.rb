@@ -119,7 +119,9 @@ class App < Sinatra::Base
         if template.valid?
           true
         else
-          FlightJobScriptAPI.logger.error "Rejecting invalid template from index: #{template.id}"
+          FlightJobScriptAPI.logger.error "Rejecting invalid template from index: #{template.id}\n" do
+            template.errors.full_messages.join("\n")
+          end
           false
         end
       end
