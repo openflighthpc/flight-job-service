@@ -149,10 +149,9 @@ Content-Type: application/vnd.api+json
 {
   "data": {                       # REQUIRED - The TemplateResource object
     "type": "templates",          # REQUIRED - Specifes the response as a template
-    "id": "<name>[.<extension>]", # REQUIRED - The template id comprised of the name and extension
+    "id": "<name>",               # REQUIRED - The template id is equivalent to its name
     "attributes": {               # REQUIRED - Template Attributes
-      "name": STRING,             # REQUIRED - The name of the template
-      "extension": STRING,        # OPTIONAL - The templates extension
+      "name": STRING,             # REQUIRED - The name of the template including the file extension
       "synopsis": STRING,         # REQUIRED - A short summary of the template
       "description": STRING,      # OPTIONAL - A longer description of the template
       "version": 0                # REQUIRED - Species the version used by the template
