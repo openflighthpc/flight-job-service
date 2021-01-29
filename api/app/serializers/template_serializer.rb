@@ -27,8 +27,8 @@
 #==============================================================================
 
 class TemplateSerializer < ApplicationSerializer
-  attributes :name, :extension
-  attribute(:synopsis) { object.metadata[:synopsis] }
+  attributes :name
+  attribute(:synposis) { object.metadata[:synopsis] }
   attribute(:description) { object.metadata[:description] }
   attribute(:version) { object.metadata[:version] }
 

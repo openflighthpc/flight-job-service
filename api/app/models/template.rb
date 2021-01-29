@@ -94,11 +94,10 @@ class Template < ApplicationModel
     }
   })
 
-  attr_accessor :name, :extension
+  attr_accessor :name
 
   def self.from_id(id)
-    name, ext = id.split('.', 2)
-    Template.new(name: name, extension: ext)
+    Template.new(name: id)
   end
 
   # Validates the metadata and questions file
@@ -128,7 +127,7 @@ class Template < ApplicationModel
   end
 
   def id
-    extension ? "#{name}.#{extension}" : name
+    name
   end
 
   def metadata_path
@@ -136,8 +135,7 @@ class Template < ApplicationModel
   end
 
   def template_path
-    basename = extension ? "#{name}.#{extension}.erb" : "#{name}.erb"
-    File.join(FlightJobScriptAPI.config.data_dir, basename)
+    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.erb")
   end
 
   def attachment_name

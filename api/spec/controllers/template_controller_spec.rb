@@ -38,9 +38,10 @@ RSpec.describe '/templates' do
 
     describe '#index' do
       let!(:templates) do
-        10.times
-          .map { [build(:template), build(:template, extension: 'sh')] }
-          .flatten
+        10.times.map do |int|
+          base = "index-foo-script-#{int}"
+          [build(:template, name: base), build(:template, name: "#{base}.sh")]
+        end.flatten
       end
 
       it 'returns a list with the templates' do
@@ -52,11 +53,12 @@ RSpec.describe '/templates' do
     end
 
     describe '#show' do
-      # NOTE: These two templates intentionally share a name!
-      # Whilst this shouldn't happen in practice, nothing is stopping it
-      let!(:template_with_ext) { build(:template, extension: 'sh') }
+      let(:name_base) { 'foo-script' }
+      let!(:template_with_ext) do
+        build(:template, name: "#{name_base}.sh")
+      end
       let!(:template_sans_ext) do
-        build(:template, name: template_with_ext.name, extension: nil)
+        build(:template, name: name_base)
       end
 
       it 'returns 404 if missing' do
@@ -72,12 +74,11 @@ RSpec.describe '/templates' do
         expect(last_response_data[:attributes][:extension]).to be_nil
       end
 
-      it 'can find a template sans extension' do
+      it 'can find a template with an extension' do
         template = template_with_ext
-        get "/templates/#{template.name}.#{template.extension}"
+        get "/templates/#{template.name}"
         expect(last_response).to be_ok
         expect(last_response_data[:attributes][:name]).to eq(template.name)
-        expect(last_response_data[:attributes][:extension]).to eq(template.extension)
       end
     end
   end
