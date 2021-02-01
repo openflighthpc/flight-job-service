@@ -97,19 +97,36 @@ class App < Sinatra::Base
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
-        template = Template.from_id(id)
-        template.valid? ? template : nil
+        template = Template.new(name: id)
+        if template.valid?
+          template
+        else
+          FlightJobScriptAPI.logger.debug("Template is invalid: #{template.name}\n") do
+            template.errors.full_messages.join("\n")
+          end
+          nil
+        end
       end
     end
 
     index do
-      paths_with_ext = Dir.glob(Template.new(name: '*', extension: '*').template_path)
-      paths_sans_ext = Dir.glob(Template.new(name: '*', extension: nil).template_path)
+      # Generates a list of Templates
+      templates = Dir.glob(Template.new(name: '*').template_path).map do |path|
+        Template.new(name: File.basename(path).chomp('.erb'))
+      end
 
-      [*paths_with_ext, *paths_sans_ext].uniq.map do |path|
-        id = File.basename(path).chomp('.erb')
-        Template.from_id(id)
-      end.select(&:valid?)
+      valid_templates = templates.select do |template|
+        if template.valid?
+          true
+        else
+          FlightJobScriptAPI.logger.error "Rejecting invalid template from index: #{template.id}\n" do
+            template.errors.full_messages.join("\n")
+          end
+          false
+        end
+      end
+
+      next valid_templates
     end
 
     show
@@ -148,14 +165,28 @@ class RenderApp < Sinatra::Base
 
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    template = Template.from_id(params['id'])
+    template = Template.new(name: params['id'])
     if template.valid?
-      attachment(template.attachment_name, :attachment)
+      attachment(template.name, :attachment)
       response.headers['Content-Type'] = 'text/plain'
 
-      # TODO: Run the params against an allowed list of keys
-      context = params.map { |k, v| [k.to_sym, v] }.to_h
-      next template.render_template(**context)
+      context = FlightJobScriptAPI::RenderContext.new(
+        template: template, answers: params
+      )
+
+      begin
+        payload = context.render
+      rescue
+        FlightJobScriptAPI.logger.error("Failed to render: #{template.template_path}")
+        FlightJobScriptAPI.logger.debug("Full render error:") do
+          $!.full_message
+        end
+        status 422
+        halt
+      end
+
+      status 200
+      next payload
     else
       status 404
       halt

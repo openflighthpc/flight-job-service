@@ -57,11 +57,6 @@ module FlightJobScriptAPI
         default: ->(root) { root.join('usr/share') }
       },
       {
-        name: 'log_dir',
-        env_var: true,
-        default: ->(root) { root.join('var/log') }
-      },
-      {
         name: 'log_level',
         env_var: true,
         default: 'info'
@@ -79,11 +74,6 @@ module FlightJobScriptAPI
         ]
         Loader.new(root, paths).load
       end
-    end
-
-    def log_level=(level)
-      @log_level = level
-      FlightJobScriptAPI.logger.send("#{@log_level}!")
     end
   end
 end

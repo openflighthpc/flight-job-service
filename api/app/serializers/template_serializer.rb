@@ -27,10 +27,10 @@
 #==============================================================================
 
 class TemplateSerializer < ApplicationSerializer
-  attributes :name, :extension
-  attribute(:synopsis) { object.metadata[:synopsis] }
-  attribute(:description) { object.metadata[:description] }
-  attribute(:version) { object.metadata[:version] }
+  attributes :name
+  attribute(:synopsis) { object.metadata['synopsis'] }
+  attribute(:description) { object.metadata['description'] }
+  attribute(:version) { object.metadata['version'] }
 
   has_many :questions
 end

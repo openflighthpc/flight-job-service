@@ -29,7 +29,9 @@
 require 'spec_helper'
 
 RSpec.describe Template do
-  subject { build(:template) }
+  subject do
+    build(:template)
+  end
 
   it do
     should be_valid
@@ -48,29 +50,5 @@ RSpec.describe Template do
   context 'with invalid YAML metadata' do
     subject { build(:template, save_metadata: '}{') }
     it { should_not be_valid }
-  end
-
-  describe '#render_template' do
-    context 'without any ERB' do
-      subject { build(:template, save_script: 'Foobar Bazz') }
-
-      it 'returns the raw script' do
-        script = File.read subject.template_path
-        expect(subject.render_template(foobiz: 'Foobizz')).to eq(script)
-      end
-    end
-
-    context 'with ERB' do
-      subject { build(:template, save_script: '<%= foobiz %>') }
-
-      it 'returns the rendered erb' do
-        value = 'foobaz'
-        expect(subject.render_template(foobiz: value)).to eq(value)
-      end
-
-      it 'handles missing values' do
-        expect(subject.render_template).to eq('')
-      end
-    end
   end
 end

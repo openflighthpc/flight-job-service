@@ -26,4 +26,12 @@ end
 require "rubygems"
 require "bundler/setup"
 
+begin
+  require_relative '../config/boot.rb'
+rescue Exception
+  $stderr.puts "Failed to require config/boot.rb"
+  $stderr.puts $!
+  $stderr.puts $!.backtrace
+end
+
 load Gem.bin_path("pry", "pry")

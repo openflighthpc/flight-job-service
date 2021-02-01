@@ -27,7 +27,7 @@
 #==============================================================================
 
 class Template < ApplicationModel
-  METADATA_SCHEMA = JSONSchemer.schema({
+  METADATA_SPEC = {
     "type" => "object",
     # NOTE: Should the validation be this strict? The serializer hard codes the
     # expected keys, so extraneous details will be ignored.
@@ -35,29 +35,29 @@ class Template < ApplicationModel
     # The strict validation is ok for now, but may cause usability issues when
     # switching back and forth between different versions.
     "additionalProperties" => false,
-    "required" => [:synopsis, :version],
+    "required" => ['synopsis', 'version'],
     "properties" => {
-      synopsis: { "type" => 'string' },
-      description: { "type" => 'string' },
-      version: { "type" => 'integer', 'enum' => [0] }
+      'synopsis' => { "type" => 'string' },
+      'description' => { "type" => 'string' },
+      'version' => { "type" => 'integer', 'enum' => [0] }
     }
-  })
+  }
 
   FORMAT_SPEC = {
     "type" => "object",
     "additionalProperties" => false,
-    "required" => [:type],
+    "required" => ['type'],
     "properties" => {
-      type: { "type" => "string" },
-      options: {
+      'type' => { "type" => "string" },
+      'options' => {
         "type" => "array",
         "items" => {
           "type" => "object",
           "additionalProperties" => false,
-          "required" => [:text, :value],
+          "required" => ['text', 'value'],
           "properties" => {
-            text: { "type" => "string" },
-            value: { "type" => "string" }
+            'text' => { "type" => "string" },
+            'value' => { "type" => "string" }
           }
         }
       }
@@ -67,55 +67,53 @@ class Template < ApplicationModel
   ASK_WHEN_SPEC = {
     "type" => "object",
     "additionalProperties" => false,
-    "required" => [:value, :eq],
+    "required" => ['value', 'eq'],
     "properties" => {
-      value: { "type" => "string" },
-      eq: { "type" => "string" }
+      'value' => { "type" => "string" },
+      'eq' => { "type" => "string" }
     }
   }
 
-  QUESTIONS_SCHEMA = JSONSchemer.schema({
+  QUESTIONS_SPEC = {
     "type" => "array",
     "items" => {
       "type" => "object",
       "additionalProperties" => false,
-      "required" => [:id, :text],
+      "required" => ['id', 'text'],
       "properties" => {
-        id: { 'type' => 'string' },
-        text: { 'type' => 'string' },
-        description: { 'type' => 'string' },
-        # NOTE: Forcing the default to be a string is a stop-gap measure
+        'id' => { 'type' => 'string' },
+        'text' => { 'type' => 'string' },
+        'description' => { 'type' => 'string' },
+        # NOTE' => Forcing the default to be a string is a stop-gap measure
         # It keeps the initial implementation simple as everything is a strings
         # Eventually multiple formats will be supported
-        default: { 'type' => 'string' },
-        format: FORMAT_SPEC,
-        ask_when: ASK_WHEN_SPEC
+        'default' => { 'type' => 'string' },
+        'format' => FORMAT_SPEC,
+        'ask_when' => ASK_WHEN_SPEC
       }
+    }
+  }
+
+  SCHEMA = JSONSchemer.schema({
+    "type" => "object",
+    "additionalProperties" => false,
+    "required" => ['metadata', 'questions'],
+    "properties" => {
+      'metadata' => METADATA_SPEC,
+      'questions' => QUESTIONS_SPEC
     }
   })
 
-  attr_accessor :name, :extension
-
-  def self.from_id(id)
-    name, ext = id.split('.', 2)
-    Template.new(name: name, extension: ext)
-  end
+  attr_accessor :name
 
   # Validates the metadata and questions file
   validate do
     if metadata_file_content
-      unless (metadata_errors = METADATA_SCHEMA.validate(metadata).to_a).empty?
-        FlightJobScriptAPI.logger.error "The following file has invalid metadata: #{metadata_path}" do
-          JSON.pretty_generate(metadata_errors)
+      unless (errors = SCHEMA.validate(metadata_file_content).to_a).empty?
+        FlightJobScriptAPI.logger.error "The following metadata file is invalid: #{metadata_path}" do
+          JSON.pretty_generate(errors)
         end
         @errors.add(:metadata, 'is not valid')
-      end
-
-      unless (questions_errors = QUESTIONS_SCHEMA.validate(questions_data).to_a).empty?
-        FlightJobScriptAPI.logger.error "The following file has invalid questions: #{metadata_path}" do
-          JSON.pretty_generate(questions_errors)
-        end
-        @errors.add(:questions, 'is not valid')
       end
     end
   end
@@ -128,7 +126,7 @@ class Template < ApplicationModel
   end
 
   def id
-    extension ? "#{name}.#{extension}" : name
+    name
   end
 
   def metadata_path
@@ -136,34 +134,27 @@ class Template < ApplicationModel
   end
 
   def template_path
-    basename = extension ? "#{name}.#{extension}.erb" : "#{name}.erb"
-    File.join(FlightJobScriptAPI.config.data_dir, basename)
-  end
-
-  def render_template(**context)
-    bind = OpenStruct.new(**context).instance_exec { binding }
-    template = File.read(template_path)
-    ERB.new(template, nil, '-').result(bind)
-  end
-
-  def attachment_name
-    File.basename(template_path).chomp('.erb')
+    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.erb")
   end
 
   def metadata
     return {} if metadata_file_content.nil?
-    metadata_file_content[:metadata]
+    metadata_file_content['metadata']
   end
 
   def questions_data
     return [] if metadata_file_content.nil?
-    metadata_file_content[:questions]
+    metadata_file_content['questions']
   end
 
   def questions
     @questions ||= questions_data.map do |datum|
-      Question.new(**datum)
+      Question.new(**datum.symbolize_keys)
     end
+  end
+
+  def to_erb
+    ERB.new(File.read(template_path), nil, '-')
   end
 
   private
@@ -173,7 +164,7 @@ class Template < ApplicationModel
   # instance should be initialized.
   def metadata_file_content
     @metadata_file_content ||= begin
-      YAML.load(File.read(metadata_path), symbolize_names: true).to_h
+      YAML.load(File.read(metadata_path)).to_h
     end
   rescue Errno::ENOENT
     @errors.add(:metadata, "has not been saved")

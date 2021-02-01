@@ -26,8 +26,45 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-require_relative 'boot.rb'
+require 'spec_helper'
 
-bind FlightJobScriptAPI.app.config.bind_address
-log_requests
-pidfile FlightJobScriptAPI.app.config.pidfile
+RSpec.describe FlightJobScriptAPI::DefaultsOpenStruct do
+  shared_examples 'ostruct lookup methods' do
+    let(:value) { (0...8).map { (65 + rand(26)).chr }.join }
+    subject do
+      described_class.new({ key => value }) do |_, k|
+        "default_#{k}"
+      end
+    end
+
+    it 'supports method syntax' do
+      expect(subject.send(key)).to eq(value)
+    end
+
+    it 'supports string lookups' do
+      expect(subject[key.to_s]).to eq(value)
+    end
+
+    it 'supports symbol lookups' do
+      expect(subject[key.to_sym]).to eq(value)
+    end
+
+    it 'supports default keys' do
+      missing_key = "#{key}_missing"
+      missing_value = "default_#{key}_missing"
+      expect(subject.send(missing_key)).to eq(missing_value)
+    end
+  end
+
+  describe 'with a string hash' do
+    let(:key) { 'string_key' }
+
+    include_examples 'ostruct lookup methods'
+  end
+
+  describe 'with a symbol hash' do
+    let(:key) { :symbol_key }
+
+    include_examples 'ostruct lookup methods'
+  end
+end

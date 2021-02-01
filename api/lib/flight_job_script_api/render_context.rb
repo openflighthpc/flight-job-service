@@ -26,8 +26,49 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-require_relative 'boot.rb'
+module FlightJobScriptAPI
+  class RenderContext
+    class AnswerDecorator
+      def initialize(question:, answer:)
+        @question = question
+        @answer = answer
+      end
 
-bind FlightJobScriptAPI.app.config.bind_address
-log_requests
-pidfile FlightJobScriptAPI.app.config.pidfile
+      def answer
+        @answer || @question.default
+      end
+
+      def default
+        @question.default
+      end
+    end
+
+    def initialize(template:, answers:)
+      @template = template
+      @answers = answers
+    end
+
+    def render
+      @template.to_erb.result(binding)
+    end
+
+    def question
+      questions
+    end
+
+    def questions
+      @questions ||= begin
+        questions = @template.questions.reduce({}) do |memo, question|
+          memo.merge({
+            question.id => AnswerDecorator.new(question: question,
+                                               answer: @answers[question.id])
+          })
+        end
+        DefaultsOpenStruct.new(questions) do |h, k|
+          question = Question.new(id: k)
+          h[k] = AnswerDecorator.new(question: question, answer: nil)
+        end
+      end
+    end
+  end
+end

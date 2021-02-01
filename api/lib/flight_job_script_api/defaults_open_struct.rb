@@ -26,8 +26,18 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-require_relative 'boot.rb'
-
-bind FlightJobScriptAPI.app.config.bind_address
-log_requests
-pidfile FlightJobScriptAPI.app.config.pidfile
+module FlightJobScriptAPI
+  class DefaultsOpenStruct < OpenStruct
+    def initialize(opts = {}, &b)
+      if b
+        @table = Hash.new(&b)
+      else
+        @table = {}
+      end
+      @table.define_singleton_method(:key?) { |_| true }
+      opts.each do |k, v|
+        @table[k.to_sym] = v
+      end
+    end
+  end
+end
