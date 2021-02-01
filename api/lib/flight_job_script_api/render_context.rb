@@ -27,9 +27,6 @@
 #==============================================================================
 
 module FlightJobScriptAPI
-  # NOTE: The render context has been designed to allow a super-set of question
-  # not defined on the template
-
   class RenderContext
     class AnswerDecorator
       def initialize(question:, answer:)
