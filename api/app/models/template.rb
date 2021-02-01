@@ -153,10 +153,6 @@ class Template < ApplicationModel
     end
   end
 
-  def to_h
-    TemplateSerializer.new(self).attributes.merge({ 'id' => id }).deep_dup
-  end
-
   def to_erb
     ERB.new(File.read(template_path), nil, '-')
   end
