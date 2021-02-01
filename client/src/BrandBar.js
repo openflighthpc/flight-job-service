@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import { Link } from "react-router-dom";
 
-import Logo from './png_trans_logo-navbar.png';
 import styles from './BrandBar.module.css';
 import { Context as ConfigContext } from './ConfigContext';
 import { Context as CurrentUserContext } from './CurrentUserContext';
+import { BrandbarLogo, BrandbarText } from './Branding';
 
 export default function BrandBar({ className }) {
   return (
@@ -13,12 +13,9 @@ export default function BrandBar({ className }) {
         className="navbar-brand"
         href="/"
       >
-        <img
-          src={Logo}
-          alt="openflightHPC Logo"
-          height="75">
-        </img>
+        <BrandbarLogo />
       </a>
+      <BrandbarText />
 
       <div className="collapse navbar-collapse">
         <ul className="navbar-nav mr-auto">

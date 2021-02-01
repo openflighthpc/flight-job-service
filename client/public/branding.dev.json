@@ -1,0 +1,19 @@
+{
+  "brandbar": {
+    "logo": {
+      "url": "/job-scripts/bigv-uni.png",
+      "alt": "University of BigV logo",
+      "classNames": ""
+    },
+    "text": "University of BigV"
+  },
+  "apps": {
+    "dashboard": {
+      "logo": {
+        "url": "/job-scripts/bigv-uni.png",
+        "alt": "University of BigV logo",
+        "classNames": "mb-4"
+      }
+    }
+  }
+}

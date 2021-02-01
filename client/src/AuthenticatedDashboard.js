@@ -1,19 +1,12 @@
 import { Link } from "react-router-dom";
 
 import { CardFooter } from './CardParts';
-import Logo from './png_trans_logo.png';
+import { DashboardLogo } from './Branding';
 
 function AuthenticatedDashboard() {
   return (
     <div>
-      <img
-        src={Logo}
-        alt="OpenflightHPC Logo"
-        className="center"
-        width="100%"
-      >
-      </img>
-
+      <DashboardLogo />
       <div className="card-deck">
         <div className="card">
           <div className="card-body fa-background fa-background-file-code-o">
