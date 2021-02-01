@@ -4,7 +4,7 @@ import { Jumbotron } from 'reactstrap';
 import TemplateCard from './TemplateCard';
 import Overlay, { OverlayContainer } from './Overlay';
 import Spinner from './Spinner';
-import { errorCode, isObject } from './utils';
+import { errorCode, getResourcesFromResponse } from './utils';
 import UnauthorizedError from './UnauthorizedError';
 import { DefaultErrorMessage } from './ErrorBoundary';
 import { useFetchTemplates } from './api';
@@ -21,7 +21,7 @@ function TemplatesPage() {
       return <DefaultErrorMessage />;
     }
   } else {
-    const templates = getResourceFromResponse(data);
+    const templates = getResourcesFromResponse(data);
     if (templates == null) {
       return <DefaultErrorMessage />;
     } else {
