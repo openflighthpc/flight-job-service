@@ -40,6 +40,10 @@ module FlightJobScriptAPI
       def answer
         @answer || @question.default
       end
+
+      def default
+        @question.default
+      end
     end
 
     def initialize(template:, answers:)
