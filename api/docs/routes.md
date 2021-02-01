@@ -43,7 +43,7 @@ Content-Type: application/vnd.api+json
 The following examples are common error conditions due to missing/ incorrect headers. This section should be consider a guide only and does not apply to all the routes. See the individual route documentation for the required headers.
 
 ```
-# Bad - Request is missing the Accepts header
+# Bad - Request is missing the Accept header
 GET /...
 
 HTTP/2 406 Not Acceptable
@@ -60,7 +60,7 @@ Content-Type: application/vnd.api+json
 
 # Good - Sets the header
 GET /...
-Accepts: application/vnd.api+json
+Accept: application/vnd.api+json
 
 
 # Bad - Making a request to a known route with the incorrect HTTP verb
@@ -91,7 +91,7 @@ Test whether the provided credentials are valid
 ```
 GET /authenticates/user
 Authorization: Basic <base64 username:password>
-Accepts: application/vnd.api+json
+Accept: application/vnd.api+json
 
 HTTP/2 200 OK
 Content-Type: application/vnd.api+json
@@ -118,7 +118,7 @@ Returns a list of all known `templates`
 ```
 GET /templates
 Authorization: Basic <base64 username:password>
-Accepts: application/vnd.api+json
+Accept: application/vnd.api+json
 
 HTTP/2 200 OK
 Content-Type: application/vnd.api+json
@@ -142,7 +142,7 @@ Returns the `template` given by the `id`. The `id` should include the file exten
 ```
 GET /templates/:id
 Authorization: Basic <base64 username:password>
-Accepts: application/vnd.api+json
+Accept: application/vnd.api+json
 
 HTTP/2 200 OK
 Content-Type: application/vnd.api+json
@@ -184,7 +184,7 @@ Return all the `question` resources associated with the given `template` by `tem
 ```
 GET /templates/:template_id
 Authorization: Basic <base64 username:password>
-Accepts: application/vnd.api+json
+Accept: application/vnd.api+json
 
 HTTP/2 200 OK
 Content-Type: application/vnd.api+json
@@ -238,7 +238,7 @@ NOTE: This route does not conform the JSON:API standard and behaves slightly dif
 GET /render/:template_id
 Authorization: Basic <base64 username:password>
 Content-Type: x-www-form-urlencoded
-Accepts: text/plain
+Accept: text/plain
 key=value&...
 
 HTTP/2 200 OK
@@ -251,7 +251,7 @@ Content-Type: text/plain
 GET /render/:template_id
 Authorization: Basic <base64 username:password>
 Content-Type: application/json
-Accepts: text/plain
+Accept: text/plain
 {
   "[key]": "[value]",
   ...
@@ -266,14 +266,14 @@ Content-Type: text/plain
 # With invalid credentials
 GET /render/:template_id
 Authorization: Basic <base64 invalid:invalid>
-Accepts: text/plain
+Accept: text/plain
 
 HTPP/2 403 Forbidden
 
 
 # Without credentials
 GET /render/:template_id
-Accepts: text/plain
+Accept: text/plain
 
 HTTP/2 401 Unauthorized
 ```

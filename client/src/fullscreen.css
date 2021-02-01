@@ -1,0 +1,21 @@
+html:fullscreen .fullscreen-content,
+body.zen-mode .fullscreen-content {
+    /* Subtract card header, card border, #main top and bottom margins.
+     * extra to make things nicer. */
+    height: calc( 100vh - 56px - 2px - 10px - 10px - 0px );
+}
+html:fullscreen nav.navbar,
+html:fullscreen footer,
+body.zen-mode nav.navbar,
+body.zen-mode footer {
+    display: none;
+}
+html:fullscreen .centernav,
+body.zen-mode .centernav {
+    margin: 0 !important;
+}
+html:fullscreen #main,
+body.zen-mode #main {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+}

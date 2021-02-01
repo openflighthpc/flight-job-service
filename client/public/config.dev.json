@@ -1,0 +1,6 @@
+{
+  "clusterName": "Job scripts service test",
+  "clusterDescription": "A description of this cluster.",
+  "clusterLogo": "https://s3.eu-west-2.amazonaws.com/alces-flight-center/logos/Alces_flight_logo_horiz.png",
+  "apiRootUrl": "http://localhost:3000/job-scripts/api/v0"
+}

@@ -1,0 +1,53 @@
+metadata:
+  version: 0
+  synopsis: Simple serial job
+  description: |
+    Submit a single job.  Your job will be allocated a single core on the
+    first available node.
+
+# questions: []
+
+questions:
+  - id: stdout_file
+    text: "Set an output file for STDOUT"
+    description: >
+      Specify a path to a file to contain the output from the standard output
+      stream of your job script.
+    default: $HOME/$JOB_NAME.$JOB_ID.output
+    format:
+      type: text
+
+  - id: merge_stderr_with_stdout
+    text: "Merge STDERR into STDOUT"
+    description: >
+      Enable this option to merge the standard error output stream into
+      standard output - this is usually the best option unless you have a
+      specific need to keep the output streams separated.
+    default: 'yes'
+    format:
+      type: select
+      options:
+        - text: 'Yes'
+          value: 'yes'
+        - text: 'No'
+          value: 'no'
+
+  - id: stderr_file
+    text: "Set an output file for STDERR"
+    description: >
+      Specify a path to a file to contain the output from the standard error
+      stream of your job script.
+    default: $HOME/$JOB_NAME.$JOB_ID.error
+    format:
+      type: text
+    ask_when:
+      value: question.merge_stderr_with_stdout.answer
+      eq: 'no'
+
+  - id: workload
+    text: "Who, or what, should we greet"
+    description: >
+      Who, or what, should we say hello to when your script is ran.
+    default: "World"
+    format:
+      type: text
