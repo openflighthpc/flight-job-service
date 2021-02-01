@@ -1,4 +1,3 @@
 {
-  "clusterName": "bens-test-cluster",
   "apiRootUrl": "https://my.cluster.com/job-scripts"
 }
