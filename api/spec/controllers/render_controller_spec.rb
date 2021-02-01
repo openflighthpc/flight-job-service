@@ -34,7 +34,11 @@ RSpec.describe '/render' do
       header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
     end
 
-    describe 'POST' do
+    describe 'POST - application/json' do
+      before do
+        header 'Content-Type', 'application/json'
+      end
+
       it 'returns 404 for unknown ids' do
         post "/render/missing"
         expect(last_response).to be_not_found
@@ -47,6 +51,17 @@ RSpec.describe '/render' do
         expect(last_response.headers['Content-Disposition']).to eq("attachment; filename=\"#{template.name}\"")
         expect(last_response.headers['Content-Type']).to eq('text/plain')
         expect(last_response.body).to eq(File.read template.template_path)
+      end
+
+      it 'returns 422 on a render error' do
+        template = build(:template)
+        mock_context = FlightJobScriptAPI::RenderContext.new(template: template, answers: {})
+
+        allow(mock_context).to receive(:render) { raise 'A render error has occurred!' }
+        allow(FlightJobScriptAPI::RenderContext).to receive(:new).and_return(mock_context)
+
+        post "/render/#{template.id}", '{}'
+        expect(last_response.status).to be(422)
       end
     end
   end

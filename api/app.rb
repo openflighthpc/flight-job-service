@@ -177,7 +177,7 @@ class RenderApp < Sinatra::Base
       begin
         payload = context.render
       rescue
-        FlightJobScriptAPI.logger.error("Failed to render: #{@template.template_path}")
+        FlightJobScriptAPI.logger.error("Failed to render: #{template.template_path}")
         FlightJobScriptAPI.logger.debug("Full render error:") do
           $!.full_message
         end
