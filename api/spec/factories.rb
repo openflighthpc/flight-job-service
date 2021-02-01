@@ -31,13 +31,12 @@ FactoryBot.define do
     sequence(:name) { |n| "demo-template-#{n}" }
 
     transient do
+      save_metadata_hash { build(:metadata_hash, name: name) }
+      save_questions_array { [] }
       save_metadata do
         YAML.dump({
-          'metadata' => {
-            'synopsis' => "I am a demo metada for #{name}",
-            'version' => 0
-          },
-          'questions' => []
+          'metadata' => save_metadata_hash,
+          'questions' => save_questions_array
         })
       end
       save_script do
@@ -62,6 +61,28 @@ FactoryBot.define do
           File.write(template.template_path, save_script)
         end
       end
+    end
+  end
+
+  factory(:metadata_hash, class: Hash) do
+    transient do
+      sequence(:name) { |n| "random-metadata-#{n}" }
+    end
+
+    synopsis { "I am metadata for #{name}" }
+    version { 0 }
+
+    initialize_with do
+      attributes.transform_keys(&:to_s)
+    end
+  end
+
+  factory(:question_hash, class: Hash) do
+    sequence(:id) { |n| "builder_question#{n}" }
+    text { "What is the answer for #{id}?" }
+
+    initialize_with do
+      attributes.transform_keys(&:to_s)
     end
   end
 end

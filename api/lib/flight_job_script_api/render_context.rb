@@ -60,7 +60,7 @@ module FlightJobScriptAPI
       @questions ||= begin
         questions = @template.questions.reduce({}) do |memo, question|
           memo.merge({
-            question.id => AnswerDecorator.new(question: @question,
+            question.id => AnswerDecorator.new(question: question,
                                                answer: @answers[question.id])
           })
         end
