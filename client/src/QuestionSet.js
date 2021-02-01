@@ -126,10 +126,6 @@ function Question({
       </h5>
       <div className="card-body">
         <p>{question.attributes.description}</p>
-        <p>
-          <span className="font-weight-bold">Default: </span>
-          {question.attributes.default}
-        </p>
         <QuestionInput
           answer={answer}
           onChange={onChange}
@@ -170,10 +166,16 @@ function Question({
 function Summary({ answers, onEditAnswers, state, templateId }) {
   const answerSummary = answers.map((answer, idx) => {
     if (shouldAsk(answer.question, state)) {
+      let formattedAnswer;
+      if (answer.question.attributes.format.type === 'multiline_text') {
+        formattedAnswer = <code><pre>{answer.valueOrDefault()}</pre></code>;
+      } else {
+        formattedAnswer = answer.valueOrDefault();
+      }
       return (
         <React.Fragment key={idx}>
           <dt>{answer.question.attributes.text}</dt>
-          <dd className="mb-3 ml-3">{answer.valueOrDefault()}</dd>
+          <dd className="mb-3 ml-3">{formattedAnswer}</dd>
         </React.Fragment>
       );
     } else {
