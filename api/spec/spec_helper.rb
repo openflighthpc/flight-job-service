@@ -149,5 +149,11 @@ RSpec.configure do |config|
   config.include FakeFS::SpecHelpers::All
   config.before(:all) do
     FakeFS::FileSystem.clone(File.join(__dir__, '..'))
+
+    # Allow Active* to lazy load the translation files
+    glob_path = File.join(ENV['GEM_HOME'], 'gems/active*/lib/active*/locale/en.yml')
+    Dir.glob(glob_path).each do |file|
+      FakeFS::FileSystem.clone(file)
+    end
   end
 end
