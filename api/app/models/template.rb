@@ -46,7 +46,7 @@ class Template < ApplicationModel
   FORMAT_SPEC = {
     "type" => "object",
     "additionalProperties" => false,
-    "required" => [:type],
+    "required" => ['type'],
     "properties" => {
       'type' => { "type" => "string" },
       'options' => {
