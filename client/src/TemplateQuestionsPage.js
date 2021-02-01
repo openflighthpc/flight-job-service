@@ -5,6 +5,7 @@ import { DefaultErrorMessage } from './ErrorBoundary';
 import Overlay from './Overlay';
 import Spinner from './Spinner';
 import QuestionSet from './QuestionSet';
+import { getResourcesFromResponse } from './utils';
 
 function TemplateQuestionsPage() {
   const { id } = useParams();
@@ -19,13 +20,17 @@ function TemplateQuestionsPage() {
   } else if (questionsLoadingError) {
     return <DefaultErrorMessage />;
   } else {
-    // XXX Check that it is an array.
-    return (
-      <QuestionSet
-        templateId={id}
-        questions={data.data}
-      />
-    );
+    const questions = getResourcesFromResponse(data);
+    if ( questions == null) {
+      return <DefaultErrorMessage />;
+    } else {
+      return (
+        <QuestionSet
+          templateId={id}
+          questions={data.data}
+        />
+      );
+    }
   }
 }
 

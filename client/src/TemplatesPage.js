@@ -11,12 +11,6 @@ import { useFetchTemplates } from './api';
 import { useMediaGrouping } from './useMedia';
 import styles from './TemplatesPage.module.css';
 
-function getResourceFromResponse(data) {
-  if (!isObject(data)) { return null; }
-  if (!Array.isArray(data.data)) { return null; }
-  return data.data;
-}
-
 function TemplatesPage() {
   const { data, error, loading } = useFetchTemplates();
 
@@ -28,20 +22,24 @@ function TemplatesPage() {
     }
   } else {
     const templates = getResourceFromResponse(data);
-    return (
-      <React.Fragment>
-        {
-          loading && (
-            <OverlayContainer>
-              <Overlay>
-                <Spinner text="Loading desktops..."/>
-              </Overlay>
-            </OverlayContainer>
-          )
-        }
-        { templates != null && <TemplatesList templates={templates} /> }
-      </React.Fragment>
-    );
+    if (templates == null) {
+      return <DefaultErrorMessage />;
+    } else {
+      return (
+        <React.Fragment>
+          {
+            loading && (
+              <OverlayContainer>
+                <Overlay>
+                  <Spinner text="Loading desktops..."/>
+                </Overlay>
+              </OverlayContainer>
+            )
+          }
+          { templates != null && <TemplatesList templates={templates} /> }
+        </React.Fragment>
+      );
+    }
   }
 }
 
