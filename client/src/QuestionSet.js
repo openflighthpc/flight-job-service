@@ -34,6 +34,9 @@ function initialState(questions) {
       valueOrDefault() {
         return this.value === "" ? this.question.attributes.default : this.value;
       },
+      valueOrNull() {
+        return this.value === "" ? null : this.value;
+      },
     })),
     currentQuestion: 0,
   };
@@ -220,9 +223,7 @@ function DownloadButton({ answers, className, state, templateId }) {
 
   const flattenedAnswers = answers.reduce((accum, answer) => {
     if (shouldAsk(answer.question, state)) {
-      accum[answer.question.id] = answer.valueOrDefault();
-    } else {
-      accum[answer.question.id] = answer.question.attributes.default;
+      accum[answer.question.id] = answer.valueOrNull();
     }
     return accum;
   }, {});
