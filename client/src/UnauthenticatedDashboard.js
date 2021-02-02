@@ -1,20 +1,13 @@
 import React from 'react';
 
 import ClusterOverviewCard from './ClusterOverviewCard';
-import Logo from './png_trans_logo.png';
+import { DashboardLogo } from './Branding';
 import SignInCard from './SignInCard';
 
 function UnauthenticatedDashboard() {
   return (
     <div>
-      <img
-        src={Logo}
-        alt="OpenflightHPC Logo"
-        className="center"
-        width="100%"
-      >
-      </img>
-
+      <DashboardLogo />
       <p>
         The Flight Job Script Service allows you to create customized job
         scripts from predefined templates by answering a few simple questions.

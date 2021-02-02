@@ -2,7 +2,7 @@ import React from 'react';
 
 import SignInForm from './SignInForm';
 
-function SignInCard({ clusterName }) {
+function SignInCard() {
   return (
     <div className="card mb-2">
       <div className="card-body">

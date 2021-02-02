@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import { Link } from "react-router-dom";
 
-import Logo from './png_trans_logo-navbar.png';
 import styles from './BrandBar.module.css';
-import { Context as ConfigContext } from './ConfigContext';
+import { BrandbarLogo, BrandbarText } from './Branding';
 import { Context as CurrentUserContext } from './CurrentUserContext';
+import { useBranding } from './BrandingContext';
 
 export default function BrandBar({ className }) {
   return (
@@ -13,12 +13,9 @@ export default function BrandBar({ className }) {
         className="navbar-brand"
         href="/"
       >
-        <img
-          src={Logo}
-          alt="openflightHPC Logo"
-          height="75">
-        </img>
+        <BrandbarLogo />
       </a>
+      <BrandbarText />
 
       <div className="collapse navbar-collapse">
         <ul className="navbar-nav mr-auto">
@@ -49,7 +46,7 @@ function NavItems() {
         className="nav-link nav-menu-button"
         to="/"
       >
-        Home
+        Job Scripts
       </Link>
     </li>
     <li className="nav-item">
@@ -66,14 +63,18 @@ function NavItems() {
 
 function UserNavItems() {
   const { currentUser, actions } = useContext(CurrentUserContext);
-  const { clusterName } = useContext(ConfigContext);
+  const branding = useBranding();
   if (currentUser == null) { return null; }
+
+  const formattedClusterName = branding('environment.name') ?
+    <span>({branding('environment.name')})</span> :
+    null;
 
   return (
     <>
     <li className="nav-item">
       <span className="nav-link nav-menu-text">
-        {currentUser.username} ({clusterName})
+        {currentUser.username} {formattedClusterName}
       </span>
     </li>
     <li className="nav-item">
