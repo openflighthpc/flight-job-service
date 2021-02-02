@@ -35,7 +35,7 @@ function AuthenticatedDashboard() {
               className="btn btn-success btn-block"
               to="/templates"
             >
-              <i className="fa fa-file mr-1"></i>
+              <i className="fa fa-file-code-o mr-1"></i>
               <span>Browse script templates</span>
             </Link>
           </CardFooter>

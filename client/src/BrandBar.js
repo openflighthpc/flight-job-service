@@ -46,7 +46,7 @@ function NavItems() {
         className="nav-link nav-menu-button"
         to="/"
       >
-        Home
+        Job Scripts
       </Link>
     </li>
     <li className="nav-item">
