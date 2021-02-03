@@ -1,5 +1,6 @@
 # Intentionally has a different name to the directory
 name: tophat-demo
+script_template: tophat.sh
 version: 0
 synopsis: Tophat v2.1.0
 description: |
