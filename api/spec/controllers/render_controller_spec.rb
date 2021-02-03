@@ -86,7 +86,7 @@ RSpec.describe '/render' do
         output = builder.call(default, answer, '')
 
         # Define the template
-        template = build(:template, save_questions_array: [question], save_script: input)
+        template = build(:template, save_generation_questions: [question], save_script: input)
 
         # Check it renders correctly
         post "/render/#{template.id}", { id => answer }.to_json

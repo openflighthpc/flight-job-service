@@ -132,7 +132,7 @@ class App < Sinatra::Base
     show
 
     has_many :questions do
-      fetch { resource.questions }
+      fetch { resource.generation_questions }
     end
   end
 

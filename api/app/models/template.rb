@@ -81,13 +81,13 @@ class Template < ApplicationModel
   SCHEMA = JSONSchemer.schema({
     "type" => "object",
     "additionalProperties" => false,
-    "required" => ['synopsis', 'version', 'questions', 'name'],
+    "required" => ['synopsis', 'version', 'generation_questions', 'name'],
     "properties" => {
       'name' => { "type" => 'string' },
       'synopsis' => { "type" => 'string' },
       'description' => { "type" => 'string' },
       'version' => { "type" => 'integer', 'enum' => [0] },
-      'questions' => QUESTIONS_SPEC
+      'generation_questions' => QUESTIONS_SPEC
     }
   })
 
@@ -143,10 +143,10 @@ class Template < ApplicationModel
 
   def questions_data
     return [] if metadata.nil?
-    metadata['questions']
+    metadata['generation_questions']
   end
 
-  def questions
+  def generation_questions
     @questions ||= questions_data.map do |datum|
       Question.new(**datum.symbolize_keys)
     end

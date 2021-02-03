@@ -31,13 +31,13 @@ FactoryBot.define do
     sequence(:name) { |n| "demo-template-#{n}" }
 
     transient do
-      save_questions_array { [] }
+      save_generation_questions { [] }
       save_metadata do
         YAML.dump({
           'name' => name,
           'synopsis' => "What is the answer for #{name}?",
           'version' => 0,
-          'questions' => save_questions_array
+          'generation_questions' => save_generation_questions
         })
       end
       save_script do
