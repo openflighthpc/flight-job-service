@@ -111,8 +111,8 @@ class App < Sinatra::Base
 
     index do
       # Generates a list of Templates
-      templates = Dir.glob(Template.new(name: '*').template_path).map do |path|
-        Template.new(name: File.basename(path).chomp('.erb'))
+      templates = Dir.glob(Template.new(name: '*').metadata_path).map do |path|
+        Template.new(name: File.basename(File.dirname(path)))
       end
 
       valid_templates = templates.select do |template|

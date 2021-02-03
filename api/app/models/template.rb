@@ -119,11 +119,11 @@ class Template < ApplicationModel
   end
 
   def metadata_path
-    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.yaml")
+    File.join(FlightJobScriptAPI.config.data_dir, name, "metadata.yaml")
   end
 
   def template_path
-    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.erb")
+    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.sh.erb")
   end
 
   # NOTE: The metadata is intentionally cached to prevent excess file reads during
