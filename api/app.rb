@@ -46,7 +46,7 @@ class App < Sinatra::Base
 
   helpers do
     def role
-      case FlightJobScriptAPI::PamAuth.valid?(env['HTTP_AUTHORIZATION'])
+      case FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION']).valid?
       when true
         :user
       when false
@@ -148,7 +148,7 @@ end
 # /:version/render
 class RenderApp < Sinatra::Base
   before do
-    case FlightJobScriptAPI::PamAuth.valid?(env['HTTP_AUTHORIZATION'])
+    case FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION']).valid?
     when false
       status 403
       halt

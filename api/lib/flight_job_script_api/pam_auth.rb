@@ -28,18 +28,17 @@
 
 require 'base64'
 module FlightJobScriptAPI
-  module PamAuth
-    # Returns true, false, or nil:
-    # * true: The username/password are valid
-    # * false: The username/password were decoded but are otherwise invalid
-    # * nil: An error occurred whilst decoding the header
-    def self.valid?(header)
-      return nil unless header
-      match = /\ABasic (.*)\Z/.match(header)
-      return nil unless match
-      encoded = match[1]
-      return nil unless encoded
-      username, password = Base64.decode64(encoded).split(':', 2)
+  PamAuth = Struct.new(:username, :password) do
+    def self.build(header)
+      if match = /\ABasic (.*)\Z/.match(header || '')
+        username, password = Base64.decode64(match[1] || '').split(':', 2)
+        new(username, password)
+      else
+        new(nil, nil)
+      end
+    end
+
+    def valid?
       return nil if password.nil?
       Rpam.auth(username.to_s, password.to_s, service: FlightJobScriptAPI.config.pam_service)
     end
