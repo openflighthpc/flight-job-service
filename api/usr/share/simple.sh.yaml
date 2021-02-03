@@ -1,11 +1,9 @@
-metadata:
-  version: 0
-  synopsis: Simple serial job
-  description: |
-    Submit a single job.  Your job will be allocated a single core on the
-    first available node.
-
-# questions: []
+name: simple-demo
+version: 0
+synopsis: Simple serial job
+description: |
+  Submit a single job.  Your job will be allocated a single core on the
+  first available node.
 
 questions:
   - id: stdout_file
