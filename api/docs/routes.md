@@ -228,7 +228,7 @@ Content-Type: application/vnd.api+json
 
 ## GET - /render/:template_id
 
-Renders the template against the provided date.
+Renders the template against the provided date and saves it to the filesystem. Returns the path to the rendered script.
 
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or
@@ -246,10 +246,9 @@ Content-Type: x-www-form-urlencoded
 Accept: text/plain
 key=value&...
 
-HTTP/2 200 OK
-Content-Disposition: attachment; filename="<template_id>"
+HTTP/2 201 CREATED
 Content-Type: text/plain
-... rendered template ...
+/path/to/rendered/script
 
 
 # With application/json body
@@ -262,10 +261,9 @@ Accept: text/plain
   ...
 }
 
-HTTP/2 200 OK
-Content-Disposition: attachment; filename="<template_id>"
+HTTP/2 201 CREATED
 Content-Type: text/plain
-... rendered template ...
+/path/to/rendered/script
 
 
 # When the template fails to render

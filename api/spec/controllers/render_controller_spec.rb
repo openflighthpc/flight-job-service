@@ -31,7 +31,7 @@ RSpec.describe '/render' do
   context 'with an authenicated user' do
     before do
       allow(Rpam).to receive(:auth).and_return(true)
-      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
+      header 'Authorization', "Basic #{Base64.encode64("#{ENV['USER']}:bar")}"
     end
 
     describe 'POST - application/json' do
@@ -39,29 +39,43 @@ RSpec.describe '/render' do
         header 'Content-Type', 'application/json'
       end
 
-      it 'returns 404 for unknown ids' do
-        post "/render/missing"
-        expect(last_response).to be_not_found
+      context 'with a missing template' do
+        before { post "/render/missing" }
+
+        it 'returns 404 for unknown ids' do
+          expect(last_response).to be_not_found
+        end
       end
 
-      it 'downloads the rendered file' do
-        template = build(:template)
-        post "/render/#{template.id}", "{}"
-        expect(last_response).to be_ok
-        expect(last_response.headers['Content-Disposition']).to eq("attachment; filename=\"#{template.metadata['name']}\"")
-        expect(last_response.headers['Content-Type']).to eq('text/plain')
-        expect(last_response.body).to eq(File.read template.template_path)
+      context 'with a render error' do
+        before do
+          template = build(:template)
+          mock_context = FlightJobScriptAPI::RenderContext.new(template: template, answers: {})
+
+          allow(mock_context).to receive(:render) { raise 'A render error has occurred!' }
+          allow(FlightJobScriptAPI::RenderContext).to receive(:new).and_return(mock_context)
+
+          post "/render/#{template.id}", '{}'
+        end
+
+        it 'returns 422' do
+          expect(last_response.status).to be(422)
+        end
       end
 
-      it 'returns 422 on a render error' do
-        template = build(:template)
-        mock_context = FlightJobScriptAPI::RenderContext.new(template: template, answers: {})
+      context 'with a static template' do
+        let(:template) { build(:template, save_script: "#!/bin/bash\necho foobar") }
 
-        allow(mock_context).to receive(:render) { raise 'A render error has occurred!' }
-        allow(FlightJobScriptAPI::RenderContext).to receive(:new).and_return(mock_context)
+        before { post "/render/#{template.id}", "{}" }
 
-        post "/render/#{template.id}", '{}'
-        expect(last_response.status).to be(422)
+        it 'creates the file' do
+          expect(last_response).to be_created
+        end
+
+        it 'returns the path to the rendered script' do
+          expect(last_response.headers['Content-Type']).to eq('text/plain')
+          expect(File.read last_response.body).to eq(File.read template.template_path)
+        end
       end
     end
   end

@@ -120,8 +120,11 @@ class Template < ApplicationModel
   end
 
   def template_path
-    template = metadata.fetch('script_template', 'script.sh')
-    File.join(FlightJobScriptAPI.config.data_dir, id, "#{template}.erb")
+    File.join(FlightJobScriptAPI.config.data_dir, id, "#{script_template_name}.erb")
+  end
+
+  def script_template_name
+    metadata.fetch('script_template', 'script.sh')
   end
 
   # NOTE: The metadata is intentionally cached to prevent excess file reads during
