@@ -171,32 +171,17 @@ class RenderApp < Sinatra::Base
     template = Template.new(id: params['id'])
     if template.valid?
       response.headers['Content-Type'] = 'text/plain'
-
-      context = FlightJobScriptAPI::RenderContext.new(
-        template: template, answers: params
-      )
+      script = Script.new(template: template, unix_timestamp: Time.now.to_i, user: @current_user)
 
       begin
-        content = context.render
+        script.render_and_save
       rescue
-        FlightJobScriptAPI.logger.error("Failed to render: #{template.template_path}")
-        FlightJobScriptAPI.logger.debug("Full render error:") do
-          $!.full_message
-        end
         status 422
         halt
       end
 
-      # Writes the rendered content down
-      base = File.join('.local/share/flight/job-scripts', template.id, "#{template.script_template_name}-#{Time.now.to_i}")
-      path = File.expand_path(base, Etc.getpwnam(@current_user).dir)
-      FileUtils.mkdir_p File.dirname(path)
-      File.write(path, content)
-      FileUtils.chmod(0700, path)
-      FileUtils.chown(@current_user, @current_user, path)
-
       status 201
-      next path
+      next script.path
     else
       status 404
       halt
