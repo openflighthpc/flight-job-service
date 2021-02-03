@@ -63,36 +63,6 @@ RSpec.describe '/render' do
         post "/render/#{template.id}", '{}'
         expect(last_response.status).to be(422)
       end
-
-      it 'renders the answers and default' do
-        # Define the question, answer, default, and id
-        default = 'the-default'
-        answer = 'the-answer'
-        question = build(:question_hash, default: default)
-        id = question['id']
-
-        # Define the input and output scripts
-        builder = ->(default, answer, missing) do
-          <<~SCRIPT
-            #!/bin/bash
-            echo And the answer is #{answer}!
-            echo And the default is #{default}!
-            echo The missing question is here ->#{missing}<-
-          SCRIPT
-        end
-        input = builder.call("<%= questions.#{id}.default -%>",
-                             "<%= questions.#{id}.answer -%>",
-                             "<%= questions.missing.answer -%>")
-        output = builder.call(default, answer, '')
-
-        # Define the template
-        template = build(:template, save_generation_questions: [question], save_script: input)
-
-        # Check it renders correctly
-        post "/render/#{template.id}", { id => answer }.to_json
-        expect(last_response).to be_ok
-        expect(last_response.body).to eq(output)
-      end
     end
   end
 
