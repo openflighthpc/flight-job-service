@@ -27,6 +27,9 @@
 #==============================================================================
 
 FactoryBot.define do
+  # NOTE: The template object is intentionally uses save_* attributes on build
+  # This is because they cannot be considered "valid" before saving
+  # This can be disabled by passing in false
   factory :template do
     sequence(:id) { |n| "demo-template-#{n}" }
 
@@ -48,6 +51,7 @@ FactoryBot.define do
       end
     end
 
+    skip_create
     initialize_with do
       new(**attributes).tap do |template|
         if (save_metadata || save_script) && !FakeFS.activated?
@@ -61,6 +65,34 @@ FactoryBot.define do
           FileUtils.mkdir_p File.dirname(template.template_path)
           File.write(template.template_path, save_script)
         end
+      end
+    end
+  end
+
+  # NOTE: The script object is intentionally not saved to disk on build
+  # This is because they can be considered "valid" before saving
+  factory(:script) do
+    template
+    user { ENV['USER'] }
+    unix_timestamp { Time.now.to_s }
+
+    # Partially redefines some of the methods to allow for users which
+    # do not exist
+    initialize_with do |attr|
+      new(**attributes).tap do |instance|
+        unless user == ENV['USER']
+          instance.instance_variable_set(:@base_path, File.join('/tmp', user))
+        end
+      end
+    end
+
+    to_create do |instance|
+      if instance.user == ENV['USER']
+        instance.render_and_save
+      else
+        content = instance.render
+        FileUtils.mkdir_p File.dirname(instance.path)
+        File.write(instance.path, content)
       end
     end
   end

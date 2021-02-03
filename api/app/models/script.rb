@@ -28,12 +28,26 @@
 
 class Script < ApplicationModel
   attr_accessor :template, :unix_timestamp, :user
+  attr_writer :path
+
+  # NOTE: The script ID is not technically globally unique. Instead it is
+  # unique for a given user. This currently works as user's can not access
+  # each other's scripts. Review if required
+  def id
+    "#{template.id}-#{unix_timestamp}"
+  end
+
+  # Used to generate the rendered context. Used by the specs to bypass file
+  # permission issues
+  def render(**answers)
+    FlightJobScriptAPI::RenderContext.new(
+      template: template, answers: answers
+    ).render
+  end
 
   # XXX: Eventually the answers will likely be saved with the script
   def render_and_save(**answers)
-    content = FlightJobScriptAPI::RenderContext.new(
-      template: template, answers: answers
-    ).render
+    content = render(**answers)
     FileUtils.mkdir_p File.dirname(path)
     File.write(path, content)
     FileUtils.chmod(0700, path)
@@ -46,10 +60,21 @@ class Script < ApplicationModel
     raise $!
   end
 
+  # Infer the path from the template and user's home directory
+  # NOTE: Maybe overridden in the constructor to ensure existing template paths
+  # are not modified
   def path
     @path ||= File.expand_path(File.join(
-      Etc.getpwnam(user).dir, '.local/share/flight/job-scripts', template.id,
+      base_path, '.local/share/flight/job-scripts', template.id,
       "#{template.script_template_name}-#{unix_timestamp}"
     ))
+  end
+
+  private
+
+  # Helper method for determining the home directory of the user's
+  # NOTE: This method is stubbed in the specs to allow for missing user's
+  def base_path
+    @base_path ||= Etc.getpwnam(user).dir
   end
 end

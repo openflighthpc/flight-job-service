@@ -136,6 +136,10 @@ class App < Sinatra::Base
     end
   end
 
+  resource :scripts do
+    index  { [] }
+  end
+
   freeze_jsonapi
 end
 
