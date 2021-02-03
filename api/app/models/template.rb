@@ -91,7 +91,7 @@ class Template < ApplicationModel
     }
   })
 
-  attr_accessor :name
+  attr_accessor :id
 
   # Validates the metadata and questions file
   validate do
@@ -114,16 +114,12 @@ class Template < ApplicationModel
     end
   end
 
-  def id
-    name
-  end
-
   def metadata_path
-    File.join(FlightJobScriptAPI.config.data_dir, name, "metadata.yaml")
+    File.join(FlightJobScriptAPI.config.data_dir, id, "metadata.yaml")
   end
 
   def template_path
-    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.sh.erb")
+    File.join(FlightJobScriptAPI.config.data_dir, "#{id}.sh.erb")
   end
 
   # NOTE: The metadata is intentionally cached to prevent excess file reads during

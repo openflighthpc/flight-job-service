@@ -28,14 +28,14 @@
 
 FactoryBot.define do
   factory :template do
-    sequence(:name) { |n| "demo-template-#{n}" }
+    sequence(:id) { |n| "demo-template-#{n}" }
 
     transient do
       save_generation_questions { [] }
       save_metadata do
         YAML.dump({
-          'name' => name,
-          'synopsis' => "What is the answer for #{name}?",
+          'name' => "#{id}-name",
+          'synopsis' => "What is the answer for #{id}?",
           'version' => 0,
           'generation_questions' => save_generation_questions
         })
@@ -43,7 +43,7 @@ FactoryBot.define do
       save_script do
         <<~SCRIPT
           #! /bin/bash
-          echo I am the #{name} script
+          echo I am the #{id} script
         SCRIPT
       end
     end
