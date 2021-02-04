@@ -66,6 +66,13 @@ RSpec.describe '/scripts' do
           expect(last_response_data.map { |d| d[:id] }).to include(script.id)
         end
       end
+
+      describe '#show' do
+        specify "accessing the other user's script returns 404" do
+          get "/scripts/#{script.id}"
+          expect(last_response).to be_not_found
+        end
+      end
     end
 
     context "with a user's script" do

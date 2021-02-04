@@ -27,14 +27,47 @@
 #==============================================================================
 
 class Script < ApplicationModel
+  SCHEMA = JSONSchemer.schema({
+    "type" => "object",
+    "additionalProperties" => false,
+    "required" => ['created_at', 'script_name'],
+    "properties" => {
+      'created_at' => { 'type' => 'string', 'format' => 'date-time' },
+      'template_id' => { 'type' => 'string' },
+      'script_name' => { 'type' => 'string' }
+    }
+  })
+
   # Used by the specs to change which directory to store the files in on a per
   # user basis
   def self.base_path(user)
     Etc.getpwnam(user).dir
+  rescue
+    FlightJobScriptAPI.logger.error "Could not locate home directory for: #{user}"
+    return nil
   end
 
   attr_accessor :user
   attr_writer :id, :template
+
+  validate do
+    # Ensure the paths can be determined
+    metadata_path
+    script_path
+
+    if metadata
+      unless (schema_errors = SCHEMA.validate(metadata).to_a).empty?
+        FlightJobScriptAPI.logger.error "The following metadata file is invalid: #{metadata_path}\n" do
+          schema_errors.each_with_index.map do |error, index|
+            "Error #{index + 1}:\n#{JSON.pretty_generate(error)}"
+          end.join("\n")
+        end
+        errors.add(:metadata, 'is not valid')
+      end
+    end
+  end
+
+  validates :user, presence: true
 
   def id
     @id ||= SecureRandom.uuid
@@ -69,43 +102,73 @@ class Script < ApplicationModel
   end
 
   def metadata
-    @metadata ||= if File.exists?(metadata_path)
-      # Prevent inconsistency in the template
-      raise 'An unexpected error has occurred' if @template
-
-      YAML.load File.read(metadata_path)
+    if ! @metadata.nil?
+      @metadata
+    elsif ! metadata_path
+      @metadata = false
+    elsif @template && File.exists?(metadata_path)
+      errors.add(:metadata, 'detected a template conflict')
+      @metadata = false
+    elsif File.exists?(metadata_path)
+      begin
+        YAML.load File.read(metadata_path)
+      rescue Psych::SyntaxError
+        errors.add(:metadata, 'is not valid YAML')
+        @metadata = false
+      end
     elsif @template
-      {
-        'created_at' => Time.now,
+      @metadata = {
+        'created_at' => DateTime.now.rfc3339,
         'template_id' => @template.id,
         'script_name' => @template.script_template_name
       }
     else
-      raise 'An unexpected error has occurred!'
+      errors.add(:template, 'no template provided')
+      @metadata = false
     end
   end
 
   # Allow the template to become invalid/ post creation
   def template
-    @template ||= begin
+    if ! @template.nil?
+      @template
+    elsif template_id = metadata['template_id']
       candidate = Template.new(id: metadata['template_id'])
-      candidate.valid? ? candidate : nil
+      @template = candidate.valid? ? candidate : false
+    else
+      @template = false
     end
   end
 
   def script_name
-    metadata['script_name']
+    (metadata || {})['script_name']
   end
 
   def script_path
-    @script_path ||= File.join(
-      self.class.base_path(user), '.local/share/flight/job-scripts', id, script_name
-    )
+    if ! @script_path.nil?
+      @script_path
+    elsif script_name.nil?
+      @script_path = false
+    elsif base = self.class.base_path(user)
+      @script_path = File.join(
+        base, '.local/share/flight/job-scripts', id, script_name
+      )
+    else
+      errors.add(:script_path, "could not be determined")
+      @script_path = false
+    end
   end
 
   def metadata_path
-    @metadata_path ||= File.join(
-      self.class.base_path(user), '.local/share/flight/job-scripts', id, 'metadata.yaml'
-    )
+    if ! @metadata_path.nil?
+      @metadata_path
+    elsif base = self.class.base_path(user)
+      @metadata_path = File.join(
+        base, '.local/share/flight/job-scripts', id, 'metadata.yaml'
+      )
+    else
+      errors.add(:metadata_path, "could not be determined")
+      @metadata_path =  false
+    end
   end
 end
