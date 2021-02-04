@@ -46,8 +46,10 @@ class App < Sinatra::Base
 
   helpers do
     def role
-      case FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION']).valid?
+      auth = FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION'])
+      case auth.valid?
       when true
+        @current_user = auth.username
         :user
       when false
         :forbidden
@@ -137,7 +139,15 @@ class App < Sinatra::Base
   end
 
   resource :scripts do
-    index  { [] }
+    index do
+      glob_path = Script.new(id: '*', user: @current_user).metadata_path
+      scripts = Dir.glob(glob_path).map do |path|
+        id = File.basename File.dirname(path)
+        Script.new(id: id, user: @current_user)
+      end
+
+      next scripts
+    end
   end
 
   freeze_jsonapi
@@ -175,7 +185,7 @@ class RenderApp < Sinatra::Base
     template = Template.new(id: params['id'])
     if template.valid?
       response.headers['Content-Type'] = 'text/plain'
-      script = Script.new(template: template, unix_timestamp: Time.now.to_i, user: @current_user)
+      script = Script.new(template: template, user: @current_user)
 
       begin
         script.render_and_save
@@ -185,7 +195,7 @@ class RenderApp < Sinatra::Base
       end
 
       status 201
-      next script.path
+      next script.script_path
     else
       status 404
       halt

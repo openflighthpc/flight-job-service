@@ -33,14 +33,56 @@ RSpec.describe '/scripts' do
     before do
       allow(Rpam).to receive(:auth).and_return(true)
       header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64("#{ENV['USER']}:bar")}"
+      header 'Authorization', "Basic #{Base64.encode64("#{ENV['USER']}:bar").chomp}"
     end
 
-    describe '#index' do
-      it "can not find other user's scripts" do
-        script = create(:script, user: 'foobar')
-        get '/scripts'
-        expect(last_response_data.map { |d| d[:id] }).not_to include(script.id)
+    context "with a different user's script" do
+      let(:other_user) { 'foo' }
+      let(:script) { create(:script, user: other_user) }
+
+      before(:each) do
+        allow(Script).to receive(:base_path).and_wrap_original do |m, *args|
+          if other_user == args.first
+            File.join('/tmp', other_user)
+          else
+            m.call(*args)
+          end
+        end
+
+        script # Ensure the script exists
+      end
+
+      describe '#index' do
+        specify "the user can not see the other user's script " do
+          get '/scripts'
+          expect(last_response).to be_ok
+          expect(last_response_data.map { |d| d[:id] }).not_to include(script.id)
+        end
+
+        specify 'the other user can see their script' do
+          header 'Authorization', "Basic #{Base64.encode64("#{other_user}:bar").chomp}"
+          get '/scripts'
+          expect(last_response).to be_ok
+          expect(last_response_data.map { |d| d[:id] }).to include(script.id)
+        end
+      end
+    end
+
+    context "with a user's script" do
+      let!(:script) { create(:script, user: ENV['USER']) }
+
+      describe '#index' do
+        before do
+          get '/scripts'
+        end
+
+        it 'exited ok' do
+          expect(last_response).to be_ok
+        end
+
+        it 'returns the script' do
+          expect(last_response_data.map { |d| d[:id] }).to include(script.id)
+        end
       end
     end
   end

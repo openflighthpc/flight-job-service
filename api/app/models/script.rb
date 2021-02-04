@@ -27,31 +27,39 @@
 #==============================================================================
 
 class Script < ApplicationModel
-  attr_accessor :template, :unix_timestamp, :user
-  attr_writer :path
-
-  # NOTE: The script ID is not technically globally unique. Instead it is
-  # unique for a given user. This currently works as user's can not access
-  # each other's scripts. Review if required
-  def id
-    "#{template.id}-#{unix_timestamp}"
+  # Used by the specs to change which directory to store the files in on a per
+  # user basis
+  def self.base_path(user)
+    Etc.getpwnam(user).dir
   end
 
-  # Used to generate the rendered context. Used by the specs to bypass file
-  # permission issues
-  def render(**answers)
-    FlightJobScriptAPI::RenderContext.new(
-      template: template, answers: answers
-    ).render
+  attr_accessor :user
+  attr_writer :id, :template
+
+  def id
+    @id ||= SecureRandom.uuid
   end
 
   # XXX: Eventually the answers will likely be saved with the script
   def render_and_save(**answers)
-    content = render(**answers)
-    FileUtils.mkdir_p File.dirname(path)
-    File.write(path, content)
-    FileUtils.chmod(0700, path)
-    FileUtils.chown(user, user, path)
+    content = FlightJobScriptAPI::RenderContext.new(
+      template: template, answers: answers
+    ).render
+
+    # Writes the data to disk
+    FileUtils.mkdir_p File.dirname(metadata_path)
+    File.write(metadata_path, YAML.dump(metadata))
+    File.write(script_path, content)
+
+    # Disable chown within tests as the user may not exist
+    unless ENV['RACK_ENV'] == 'test'
+      FileUtils.chown(user, user, script_path)
+      FileUtils.chown(user, user, metadata_path)
+    end
+
+    # Makes the script executable and metadata read/write
+    FileUtils.chmod(0700, script_path)
+    FileUtils.chmod(0600, metadata_path)
   rescue
     FlightJobScriptAPI.logger.error("Failed to render: #{template.template_path}")
     FlightJobScriptAPI.logger.debug("Full render error:") do
@@ -60,21 +68,44 @@ class Script < ApplicationModel
     raise $!
   end
 
-  # Infer the path from the template and user's home directory
-  # NOTE: Maybe overridden in the constructor to ensure existing template paths
-  # are not modified
-  def path
-    @path ||= File.expand_path(File.join(
-      base_path, '.local/share/flight/job-scripts', template.id,
-      "#{template.script_template_name}-#{unix_timestamp}"
-    ))
+  def metadata
+    @metadata ||= if File.exists?(metadata_path)
+      # Prevent inconsistency in the template
+      raise 'An unexpected error has occurred' if @template
+
+      YAML.load File.read(metadata_path)
+    elsif @template
+      {
+        'created_at' => Time.now,
+        'template_id' => @template.id,
+        'script_name' => @template.script_template_name
+      }
+    else
+      raise 'An unexpected error has occurred!'
+    end
   end
 
-  private
+  # Allow the template to become invalid/ post creation
+  def template
+    @template ||= begin
+      candidate = Template.new(id: metadata['template_id'])
+      candidate.valid? ? candidate : nil
+    end
+  end
 
-  # Helper method for determining the home directory of the user's
-  # NOTE: This method is stubbed in the specs to allow for missing user's
-  def base_path
-    @base_path ||= Etc.getpwnam(user).dir
+  def script_name
+    metadata['script_name']
+  end
+
+  def script_path
+    @script_path ||= File.join(
+      self.class.base_path(user), '.local/share/flight/job-scripts', id, script_name
+    )
+  end
+
+  def metadata_path
+    @metadata_path ||= File.join(
+      self.class.base_path(user), '.local/share/flight/job-scripts', id, 'metadata.yaml'
+    )
   end
 end
