@@ -161,6 +161,10 @@ class App < Sinatra::Base
     end
 
     show
+
+    destroy do
+      FileUtils.rm_rf File.dirname(resource.metadata_path)
+    end
   end
 
   freeze_jsonapi
