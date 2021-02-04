@@ -26,37 +26,27 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-ENV['RACK_ENV'] ||= 'development'
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
+class Submission < ApplicationModel
+  attr_reader :script
 
-require 'rubygems'
-require 'bundler'
-require 'yaml'
-require 'json'
-require 'pathname'
-require 'ostruct'
-require 'erb'
-require 'etc'
-require 'logger'
+  validates :script, presence: true
 
-if ENV['RACK_ENV'] == 'development'
-  Bundler.require(:default, :development)
-else
-  Bundler.require(:default)
+  validate do
+    next if script&.valid?
+    # NOTE: This is a bit of a white-lie, the script could exist but is otherwise
+    # invalid. However the API treats scripts in this state as non-existent
+    errors.add(:script, 'does not exist')
+  end
+
+  def id
+    @id ||= SecureRandom.uuid
+  end
+
+  def script=(script)
+    if @script
+      errors.add(:script, 'can not be changed')
+    else
+      @script = script
+    end
+  end
 end
-
-# Shared activesupport libraries
-require 'active_support/core_ext/hash/keys'
-
-# Ensure ApplicationModel::ValidationError is defined in advance
-require 'active_model/validations.rb'
-
-lib = File.expand_path('../lib', __dir__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-
-require 'flight_job_script_api'
-
-# Ensures the config has been loaded
-FlightJobScriptAPI.load_configuration
-
-require_relative '../app'

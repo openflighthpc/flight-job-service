@@ -105,16 +105,16 @@ class Script < ApplicationModel
     if ! @metadata.nil?
       @metadata
     elsif ! metadata_path
-      @metadata = false
+      @metadata = {}
     elsif @template && File.exists?(metadata_path)
       errors.add(:metadata, 'detected a template conflict')
-      @metadata = false
+      @metadata = {}
     elsif File.exists?(metadata_path)
       begin
         YAML.load File.read(metadata_path)
       rescue Psych::SyntaxError
         errors.add(:metadata, 'is not valid YAML')
-        @metadata = false
+        @metadata = {}
       end
     elsif @template
       @metadata = {
@@ -124,7 +124,7 @@ class Script < ApplicationModel
       }
     else
       errors.add(:template, 'no template provided')
-      @metadata = false
+      @metadata = {}
     end
   end
 

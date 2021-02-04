@@ -64,6 +64,13 @@ class App < Sinatra::Base
   end
 
   configure_jsonapi do |c|
+    c.validation_exceptions << ActiveModel::ValidationError
+    c.validation_formatter = ->(e) do
+      e.model.errors.messages.map do |src, msg|
+        [src, msg.join(', ')]
+      end
+    end
+
     # Resource roles
     c.default_roles = {
       index: :user,
@@ -157,13 +164,33 @@ class App < Sinatra::Base
         Script.new(id: id, user: current_user)
       end
 
-      next scripts
+      next scripts.select(&:valid?)
     end
 
     show
 
     destroy do
       FileUtils.rm_rf File.dirname(resource.metadata_path)
+    end
+  end
+
+  resource :submissions, pkre: /[[[:xdigit:]]-]+/ do |attr|
+    helpers do
+      def validate!
+        resource.validate!
+      end
+    end
+
+    create do |attr|
+      sub = Submission.new
+      [sub.id, sub]
+    end
+
+    has_one :script do
+      graft(sideload_on: :create) do |rio|
+        script = Script.new(id: rio[:id], user: @current_user)
+        resource.script = script
+      end
     end
   end
 
