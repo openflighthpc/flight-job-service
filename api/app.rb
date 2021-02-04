@@ -178,6 +178,7 @@ class App < Sinatra::Base
     helpers do
       def validate!
         resource.validate!
+        resource.run
       end
     end
 

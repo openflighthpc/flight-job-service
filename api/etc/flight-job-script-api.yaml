@@ -51,6 +51,13 @@
 # pam_service: login
 
 #-------------------------------------------------------------------------------
+# Scheduler Command
+# Specify the command that will be used to start the submission
+# The environment variable FLIGHT_JOB_SCRIPT_API_SCHEDULER_COMMAND takes precedence
+#-------------------------------------------------------------------------------
+# scheduler_comand: sbatch
+
+#-------------------------------------------------------------------------------
 # Data Directory
 # Specify the directory for internal runtime data
 # The environment variable FLIGHT_JOB_SCRIPT_API_DATA_DIR takes precedence

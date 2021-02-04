@@ -49,4 +49,27 @@ class Submission < ApplicationModel
       @script = script
     end
   end
+
+  def run
+    pid = Kernel.fork do
+      # Establish the command
+      cmd = [
+        FlightJobScriptAPI.config.scheduler_command,
+        script.script_path
+      ]
+      FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
+
+      # Become the user
+      passwd = Etc.getpwnam(script.user)
+      Process::Sys.setgid(passwd.gid)
+      Process::Sys.setuid(passwd.uid)
+      Process.setsid
+
+      # Execute the command
+      # NOTE: What should happen to STDOUT/ STDERR?
+      # Currently they are being redirected to the log file
+      Kernel.exec({}, *cmd, unsetenv_others: true, close_others: true)
+    end
+    Process.detach(pid)
+  end
 end
