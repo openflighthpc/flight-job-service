@@ -36,6 +36,7 @@ require 'json'
 require 'pathname'
 require 'ostruct'
 require 'erb'
+require 'etc'
 require 'logger'
 
 if ENV['RACK_ENV'] == 'development'

@@ -46,7 +46,7 @@ class App < Sinatra::Base
 
   helpers do
     def role
-      case FlightJobScriptAPI::PamAuth.valid?(env['HTTP_AUTHORIZATION'])
+      case FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION']).valid?
       when true
         :user
       when false
@@ -148,7 +148,10 @@ end
 # /:version/render
 class RenderApp < Sinatra::Base
   before do
-    case FlightJobScriptAPI::PamAuth.valid?(env['HTTP_AUTHORIZATION'])
+    auth = FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION'])
+    case auth.valid?
+    when true
+      @current_user = auth.username
     when false
       status 403
       halt
@@ -167,7 +170,6 @@ class RenderApp < Sinatra::Base
   post '/:id' do
     template = Template.new(id: params['id'])
     if template.valid?
-      attachment(template.metadata['name'], :attachment)
       response.headers['Content-Type'] = 'text/plain'
 
       context = FlightJobScriptAPI::RenderContext.new(
@@ -175,7 +177,7 @@ class RenderApp < Sinatra::Base
       )
 
       begin
-        payload = context.render
+        content = context.render
       rescue
         FlightJobScriptAPI.logger.error("Failed to render: #{template.template_path}")
         FlightJobScriptAPI.logger.debug("Full render error:") do
@@ -185,8 +187,16 @@ class RenderApp < Sinatra::Base
         halt
       end
 
-      status 200
-      next payload
+      # Writes the rendered content down
+      base = File.join('.local/share/flight/job-scripts', template.id, "#{template.script_template_name}-#{Time.now.to_i}")
+      path = File.expand_path(base, Etc.getpwnam(@current_user).dir)
+      FileUtils.mkdir_p File.dirname(path)
+      File.write(path, content)
+      FileUtils.chmod(0700, path)
+      FileUtils.chown(@current_user, @current_user, path)
+
+      status 201
+      next path
     else
       status 404
       halt

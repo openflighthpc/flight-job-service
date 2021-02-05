@@ -1,4 +1,4 @@
-import React, { useReducer, useRef } from 'react';
+import React, { useReducer } from 'react';
 import classNames from 'classnames';
 import { Button } from 'reactstrap';
 
@@ -205,7 +205,7 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
             <i className="fa fa-chevron-left mr-1" />
             Back
           </Button>
-          <DownloadButton
+          <SaveButton
             className="ml-2"
             answers={answers}
             state={state}
@@ -217,8 +217,7 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
   );
 }
 
-function DownloadButton({ answers, className, state, templateId }) {
-  const anchorRef = useRef(null);
+function SaveButton({ answers, className, state, templateId }) {
   const { addToast } = useToast();
 
   const flattenedAnswers = answers.reduce((accum, answer) => {
@@ -230,13 +229,25 @@ function DownloadButton({ answers, className, state, templateId }) {
 
   const { loading, post, response } = useDownloadScript(templateId, flattenedAnswers);
 
-  const download = () => {
+  const submit = () => {
     post().then(() => {
       if (response.ok) {
-        response.blob().then(blob => {
-          const url = URL.createObjectURL(blob);
-          anchorRef.current.href = url;
-          anchorRef.current.click();
+        response.text().then((scriptPath) => {
+          addToast({
+            body: (
+              <>
+              <div>
+                Your job script has been saved to <code>{scriptPath}</code>.
+              </div>
+              <div>
+                You can submit your job script by SSHing into the cluster and
+                running <code>sbatch {scriptPath}</code>.
+              </div>
+              </>
+            ),
+            icon: 'success',
+            header: 'Job script saved',
+          });
         });
       } else {
         addToast({
@@ -255,26 +266,19 @@ function DownloadButton({ answers, className, state, templateId }) {
     });
   }
 
-  const buttonText = loading ? 'Downloading...' : 'Download job script';
+  const buttonText = loading ? 'Saving...' : 'Save job script';
 
   return (
     <React.Fragment>
       <Button
         color="primary"
-        onClick={download}
+        onClick={submit}
         className={classNames(className, { 'disabled': loading })}
         disabled={loading}
       >
-        <i className="fa fa-download mr-1" />
+        <i className="fa fa-save mr-1" />
         {buttonText}
       </Button>
-      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <a
-        href={null}
-        download={templateId}
-        ref={anchorRef}
-      >
-      </a>
     </React.Fragment>
   );
 }
