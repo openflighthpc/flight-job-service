@@ -30,5 +30,7 @@ class ScriptSerializer < ApplicationSerializer
   attributes :script_path, :script_name
   attribute(:created_at) { object.metadata['created_at'] }
 
-  has_one :template
+  # The model uses nil/false inter-changeable,
+  # this distinction is hidden by the API
+  has_one(:template) { object.template ? object.template : nil }
 end
