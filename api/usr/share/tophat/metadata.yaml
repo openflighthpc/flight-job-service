@@ -1,10 +1,12 @@
-metadata:
-  version: 0
-  synopsis: Tophat v2.1.0
-  description: |
-    Tophat example script.
+# Intentionally has a different name to the directory
+name: tophat-demo
+script_template: tophat.sh
+version: 0
+synopsis: Tophat v2.1.0
+description: |
+  Tophat example script.
 
-questions:
+generation_questions:
   - id: stdout_file
     text: "Set an output file for STDOUT"
     description: >

@@ -44,11 +44,22 @@ function TemplatesPage() {
 }
 
 function TemplatesList({ templates }) {
+  const sortedTemplates = templates.sort((a, b) => {
+    const aSynopsis = a.attributes.synopsis.toUpperCase();
+    const bSynopsis = b.attributes.synopsis.toUpperCase();
+    if (aSynopsis < bSynopsis) {
+      return -1;
+    } else if (aSynopsis > bSynopsis) {
+      return 1;
+    } else {
+      return 0
+    }
+  });
   const { groupedItems: groupedTemplates } = useMediaGrouping(
     ['(min-width: 1200px)', '(min-width: 992px)', '(min-width: 768px)', '(min-width: 576px)'],
     [3, 2, 2, 1],
     1,
-    templates,
+    sortedTemplates,
   );
   const decks = groupedTemplates.map(
     (group, index) => (

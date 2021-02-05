@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
 #
@@ -26,49 +25,47 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-module FlightJobScriptAPI
-  class RenderContext
-    class AnswerDecorator
-      def initialize(question:, answer:)
-        @question = question
-        @answer = answer
-      end
+require 'spec_helper'
 
-      def answer
-        @answer || @question.default
-      end
-
-      def default
-        @question.default
-      end
+RSpec.describe FlightJobScriptAPI::RenderContext do
+  context 'when rendering general quetions' do
+    let(:default) { 'the-default' }
+    let(:answer) { 'the-answer' }
+    let(:question) { build(:question_hash, default: default) }
+    let(:template) do
+      build(:template,
+            save_generation_questions: [question],
+            save_script: script_template)
     end
 
-    def initialize(template:, answers:)
-      @template = template
-      @answers = answers
-    end
-
-    def render
-      @template.to_erb.result(binding)
-    end
-
-    def generation_question
-      generation_questions
-    end
-
-    def generation_questions
-      @questions ||= begin
-        questions = @template.generation_questions.reduce({}) do |memo, question|
-          memo.merge({
-            question.id => AnswerDecorator.new(question: question,
-                                               answer: @answers[question.id])
-          })
-        end
-        DefaultsOpenStruct.new(questions) do |h, k|
-          question = Question.new(id: k)
-          h[k] = AnswerDecorator.new(question: question, answer: nil)
-        end
+    let(:script_builder) do
+      ->(default, answer, missing) do
+        <<~SCRIPT
+          #!/bin/bash
+          echo And the answer is #{answer}!
+          echo And the default is #{default}!
+          echo The missing question is here ->#{missing}<-
+        SCRIPT
       end
+    end
+    let(:script_template) do
+      script_builder.call(
+        "<%= generation_questions.#{question['id']}.default -%>",
+        "<%= generation_questions.#{question['id']}.answer -%>",
+        "<%= generation_questions.missing.answer -%>"
+      )
+    end
+    let(:script_rendered) do
+      script_builder.call(default, answer, '')
+    end
+
+    subject do
+      described_class.new(template: template,
+                          answers: { question['id'] => answer })
+    end
+
+    it 'renders the general answers into the script' do
+      expect(subject.render).to eq(script_rendered)
     end
   end
 end

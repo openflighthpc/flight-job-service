@@ -40,25 +40,27 @@ RSpec.describe '/templates' do
       let!(:templates) do
         10.times.map do |int|
           base = "index-foo-script-#{int}"
-          [build(:template, name: base), build(:template, name: "#{base}.sh")]
+          # Intentionally creates an ID with a file extension
+          [build(:template, id: base), build(:template, id: "#{base}.sh")]
         end.flatten
       end
 
       it 'returns a list with the templates' do
         get '/templates'
         expect(last_response).to be_ok
-        names = last_response_data.map { |t| t[:attributes][:name] }
-        expect(names).to include(*templates.map(&:name))
+        names = last_response_data.map { |t| t[:id] }
+        expect(names).to include(*templates.map(&:id))
       end
     end
 
     describe '#show' do
       let(:name_base) { 'foo-script' }
+      # Intentionally creates an ID with a file extension
       let!(:template_with_ext) do
-        build(:template, name: "#{name_base}.sh")
+        build(:template, id: "#{name_base}.sh")
       end
       let!(:template_sans_ext) do
-        build(:template, name: name_base)
+        build(:template, id: name_base)
       end
 
       it 'returns 404 if missing' do
@@ -68,17 +70,19 @@ RSpec.describe '/templates' do
 
       it 'can find a template sans extension' do
         template = template_sans_ext
-        get "/templates/#{template.name}"
+        get "/templates/#{template.id}"
         expect(last_response).to be_ok
-        expect(last_response_data[:attributes][:name]).to eq(template.name)
+        expect(last_response_data[:id]).to eq(template.id)
         expect(last_response_data[:attributes][:extension]).to be_nil
       end
 
+      # NOTE: In practice the ID's will no longer contain a file extension
+      # However it is still formally allowed within the specification
       it 'can find a template with an extension' do
         template = template_with_ext
-        get "/templates/#{template.name}"
+        get "/templates/#{template.id}"
         expect(last_response).to be_ok
-        expect(last_response_data[:attributes][:name]).to eq(template.name)
+        expect(last_response_data[:id]).to eq(template.id)
       end
     end
   end

@@ -27,22 +27,6 @@
 #==============================================================================
 
 class Template < ApplicationModel
-  METADATA_SPEC = {
-    "type" => "object",
-    # NOTE: Should the validation be this strict? The serializer hard codes the
-    # expected keys, so extraneous details will be ignored.
-    #
-    # The strict validation is ok for now, but may cause usability issues when
-    # switching back and forth between different versions.
-    "additionalProperties" => false,
-    "required" => ['synopsis', 'version'],
-    "properties" => {
-      'synopsis' => { "type" => 'string' },
-      'description' => { "type" => 'string' },
-      'version' => { "type" => 'integer', 'enum' => [0] }
-    }
-  }
-
   FORMAT_SPEC = {
     "type" => "object",
     "additionalProperties" => false,
@@ -97,23 +81,29 @@ class Template < ApplicationModel
   SCHEMA = JSONSchemer.schema({
     "type" => "object",
     "additionalProperties" => false,
-    "required" => ['metadata', 'questions'],
+    "required" => ['synopsis', 'version', 'generation_questions', 'name'],
     "properties" => {
-      'metadata' => METADATA_SPEC,
-      'questions' => QUESTIONS_SPEC
+      'name' => { "type" => 'string' },
+      'script_template' => { "type" => 'string' },
+      'synopsis' => { "type" => 'string' },
+      'description' => { "type" => 'string' },
+      'version' => { "type" => 'integer', 'enum' => [0] },
+      'generation_questions' => QUESTIONS_SPEC
     }
   })
 
-  attr_accessor :name
+  attr_accessor :id
 
   # Validates the metadata and questions file
   validate do
-    if metadata_file_content
-      unless (errors = SCHEMA.validate(metadata_file_content).to_a).empty?
-        FlightJobScriptAPI.logger.error "The following metadata file is invalid: #{metadata_path}" do
-          JSON.pretty_generate(errors)
+    if metadata
+      unless (schema_errors = SCHEMA.validate(metadata).to_a).empty?
+        FlightJobScriptAPI.logger.error "The following metadata file is invalid: #{metadata_path}\n" do
+          schema_errors.each_with_index.map do |error, index|
+            "Error #{index + 1}:\n#{JSON.pretty_generate(error)}"
+          end.join("\n")
         end
-        @errors.add(:metadata, 'is not valid')
+        errors.add(:metadata, 'is not valid')
       end
     end
   end
@@ -121,33 +111,40 @@ class Template < ApplicationModel
   # Validates the script
   validate do
     unless File.exists? template_path
-      @errors.add(:template, "has not been saved")
+      errors.add(:template, "has not been saved")
     end
   end
 
-  def id
-    name
-  end
-
   def metadata_path
-    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.yaml")
+    File.join(FlightJobScriptAPI.config.data_dir, id, "metadata.yaml")
   end
 
   def template_path
-    File.join(FlightJobScriptAPI.config.data_dir, "#{name}.erb")
+    template = metadata.fetch('script_template', 'script.sh')
+    File.join(FlightJobScriptAPI.config.data_dir, id, "#{template}.erb")
   end
 
+  # NOTE: The metadata is intentionally cached to prevent excess file reads during
+  # serialization. This cache is not intended to be reset, instead a new Template
+  # instance should be initialized.
   def metadata
-    return {} if metadata_file_content.nil?
-    metadata_file_content['metadata']
+    @metadata ||= begin
+      YAML.load(File.read(metadata_path)).to_h
+    end
+  rescue Errno::ENOENT
+    errors.add(:metadata, "has not been saved")
+    {}
+  rescue Psych::SyntaxError
+    errors.add(:metadata, "is not valid YAML")
+    {}
   end
 
   def questions_data
-    return [] if metadata_file_content.nil?
-    metadata_file_content['questions']
+    return [] if metadata.nil?
+    metadata['generation_questions']
   end
 
-  def questions
+  def generation_questions
     @questions ||= questions_data.map do |datum|
       Question.new(**datum.symbolize_keys)
     end
@@ -155,22 +152,5 @@ class Template < ApplicationModel
 
   def to_erb
     ERB.new(File.read(template_path), nil, '-')
-  end
-
-  private
-
-  # NOTE: The metadata is intentionally cached to prevent excess file reads during
-  # serialization. This cache is not intended to be reset, instead a new Template
-  # instance should be initialized.
-  def metadata_file_content
-    @metadata_file_content ||= begin
-      YAML.load(File.read(metadata_path)).to_h
-    end
-  rescue Errno::ENOENT
-    @errors.add(:metadata, "has not been saved")
-    nil
-  rescue Psych::SyntaxError
-    @errors.add(:metadata, "is not valid YAML")
-    nil
   end
 end
