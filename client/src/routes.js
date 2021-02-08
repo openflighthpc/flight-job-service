@@ -1,6 +1,7 @@
 import Dashboard from './Dashboard';
-import TemplatesPage from './TemplatesPage';
+import ScriptsPage from './ScriptsPage';
 import TemplateQuestionsPage from './TemplateQuestionsPage';
+import TemplatesPage from './TemplatesPage';
 import UnconfiguredDashboard from './UnconfiguredDashboard';
 
 const routes = [
@@ -15,6 +16,13 @@ const routes = [
     path: `/templates/:id`,
     name: 'Template',
     Component: TemplateQuestionsPage,
+    authenticated: true,
+    sideNav: true,
+  },
+  {
+    path: '/scripts',
+    name: 'Scripts',
+    Component: ScriptsPage,
     authenticated: true,
     sideNav: true,
   },

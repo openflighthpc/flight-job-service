@@ -1,0 +1,19 @@
+.IntroCard:before {
+    color: var(--success);
+    /* content: "\f108"; */
+    content: "\f0f6";
+    font-family: FontAwesome;
+    opacity: 0.2;
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    bottom: unset;
+    right: 32px;
+    right: unset;
+    transform: translateY(-50%);
+    font-size: 3em;
+}
+
+.IntroCardText {
+    padding-left: 64px;
+}

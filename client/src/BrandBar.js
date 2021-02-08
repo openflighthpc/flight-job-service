@@ -57,6 +57,14 @@ function NavItems() {
         Templates
       </Link>
     </li>
+    <li className="nav-item">
+      <Link
+        className="nav-link nav-menu-button"
+        to="/scripts"
+      >
+        Scripts
+      </Link>
+    </li>
     </>
   );
 }
