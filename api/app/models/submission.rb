@@ -38,12 +38,6 @@ class Submission < ApplicationModel
     errors.add(:script, 'does not exist')
   end
 
-  validate do
-    next unless @status
-    next if @status.success?
-    errors.add(:success, 'failed to run')
-  end
-
   def id
     @id ||= SecureRandom.uuid
   end
