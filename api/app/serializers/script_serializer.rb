@@ -27,7 +27,8 @@
 #==============================================================================
 
 class ScriptSerializer < ApplicationSerializer
-  attributes :script_path, :script_name
+  attribute(:path) { object.script_path }
+  attribute(:name) { object.script_name }
   attribute(:created_at) { object.metadata['created_at'] }
 
   # The model uses nil/false inter-changeable,
