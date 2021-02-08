@@ -72,7 +72,7 @@ class Submission < ApplicationModel
         'USER' => script.user,
         'LOGNAME' => script.user
       }
-      Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true)
+      Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true, chdir: passwd.dir)
     end
 
     # Run the command
