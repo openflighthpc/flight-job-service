@@ -58,6 +58,14 @@
 # scheduler_comand: sbatch
 
 #-------------------------------------------------------------------------------
+# Command PATH
+# The PATH the scheduler command will be executed with. This is a global value
+# for all users.
+# The environment variable FLIGHT_JOB_SCRIPT_COMMAND_PATH takes precedence
+#-------------------------------------------------------------------------------
+# command_path: /usr/sbin:/usr/bin:/sbin:/bin
+
+#-------------------------------------------------------------------------------
 # Data Directory
 # Specify the directory for internal runtime data
 # The environment variable FLIGHT_JOB_SCRIPT_API_DATA_DIR takes precedence

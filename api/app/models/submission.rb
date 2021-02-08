@@ -66,9 +66,13 @@ class Submission < ApplicationModel
       Process.setsid
 
       # Execute the command
-      # NOTE: What should happen to STDOUT/ STDERR?
-      # Currently they are being redirected to the log file
-      Kernel.exec({}, *cmd, unsetenv_others: true, close_others: true)
+      env = {
+        'PATH' => FlightJobScriptAPI.app.config.command_path,
+        'HOME' => passwd.dir,
+        'USER' => script.user,
+        'LOGNAME' => script.user
+      }
+      Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true)
     end
     Process.detach(pid)
   end

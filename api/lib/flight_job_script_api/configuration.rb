@@ -62,6 +62,11 @@ module FlightJobScriptAPI
         default: 'sbatch'
       },
       {
+        name: 'command_path',
+        env_var: true,
+        default: '/usr/sbin:/usr/bin:/sbin:/bin'
+      },
+      {
         name: 'log_level',
         env_var: true,
         default: 'info'
