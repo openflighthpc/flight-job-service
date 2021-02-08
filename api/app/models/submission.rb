@@ -81,13 +81,17 @@ class Submission < ApplicationModel
       Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true)
     end
 
+    # Run the command
     begin
-      _, @status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
+      _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
         Process.wait2(pid)
       end
     rescue Timeout::Error
       Process.kill('TERM', pid)
       retry
     end
+
+    # Report back if it was successful
+    status.success?
   end
 end

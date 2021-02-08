@@ -409,7 +409,7 @@ HTTP/2 204 No Content
 
 ## POST - /submissions
 
-Submit an existing script to the scheduler
+Submit an existing script to the scheduler. Note this route MAY return `503 Service Unavailable` due to the underlining system command failing.
 
 ```
 POST /submissions
@@ -452,6 +452,19 @@ Content-Type: application/vnd.api+json
     "version": "1.0"
   },
   "included": [
+  ]
+}
+
+# When the underlining system command fails
+HTTP/2 503 Service Unavailable
+{
+  "errors": [
+    {
+      "id": ":id",
+      "title": "Service Unavailable",
+      "detail": "could not schedule the script",
+      "status": "503"
+    }
   ]
 }
 ```

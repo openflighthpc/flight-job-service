@@ -30,10 +30,16 @@ require 'sinatra/base'
 require 'sinatra/jsonapi'
 require_relative 'app/autoload'
 
-# Adds 401 Unauthorized error
+# Additional error codes
 module Sinja
   class UnauthorizedError < HttpError
     HTTP_STATUS = 401
+
+    def initialize(*args) super(HTTP_STATUS, *args) end
+  end
+
+  class ServiceUnavailable < HttpError
+    HTTP_STATUS = 503
 
     def initialize(*args) super(HTTP_STATUS, *args) end
   end
@@ -178,10 +184,9 @@ class App < Sinatra::Base
     helpers do
       def validate!
         resource.validate!
-        resource.run
-
-        # Ensure the resource is still valid after execution
-        resource.validate!
+        unless resource.run
+          raise Sinja::ServiceUnavailable, 'could not schedule the script'
+        end
       end
     end
 
