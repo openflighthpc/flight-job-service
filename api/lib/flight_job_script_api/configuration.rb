@@ -67,6 +67,11 @@ module FlightJobScriptAPI
         default: '/usr/sbin:/usr/bin:/sbin:/bin'
       },
       {
+        name: 'command_timeout',
+        env_var: false,
+        default: 5
+      },
+      {
         name: 'log_level',
         env_var: true,
         default: 'info'

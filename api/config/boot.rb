@@ -37,6 +37,7 @@ require 'pathname'
 require 'ostruct'
 require 'erb'
 require 'etc'
+require 'timeout'
 require 'logger'
 
 if ENV['RACK_ENV'] == 'development'

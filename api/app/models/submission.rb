@@ -38,6 +38,12 @@ class Submission < ApplicationModel
     errors.add(:script, 'does not exist')
   end
 
+  validate do
+    next unless @status
+    next if @status.success?
+    errors.add(:success, 'failed to run')
+  end
+
   def id
     @id ||= SecureRandom.uuid
   end
@@ -74,6 +80,14 @@ class Submission < ApplicationModel
       }
       Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true)
     end
-    Process.detach(pid)
+
+    begin
+      _, @status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
+        Process.wait2(pid)
+      end
+    rescue Timeout::Error
+      Process.kill('TERM', pid)
+      retry
+    end
   end
 end

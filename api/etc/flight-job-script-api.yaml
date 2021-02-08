@@ -66,6 +66,13 @@
 # command_path: /usr/sbin:/usr/bin:/sbin:/bin
 
 #-------------------------------------------------------------------------------
+# Command Timeout
+# The maximum time to wait when launching a scheduler command. Commands which
+# take longer then this period will be terminated.
+#-------------------------------------------------------------------------------
+# command_timeout: 5
+
+#-------------------------------------------------------------------------------
 # Data Directory
 # Specify the directory for internal runtime data
 # The environment variable FLIGHT_JOB_SCRIPT_API_DATA_DIR takes precedence

@@ -179,6 +179,9 @@ class App < Sinatra::Base
       def validate!
         resource.validate!
         resource.run
+
+        # Ensure the resource is still valid after execution
+        resource.validate!
       end
     end
 
