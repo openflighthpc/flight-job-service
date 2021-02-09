@@ -99,6 +99,9 @@ generation_questions:
           value: 'FAIL'
         - text: 'All'
           value: 'ALL'
+    ask_when:
+      value: question.notification_wanted.answer
+      eq: 'yes'
 
   - id: max_runtime
     text: Expected RUNTIME
