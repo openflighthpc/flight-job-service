@@ -55,7 +55,7 @@
 # Specify the command that will be used to start the submission
 # The environment variable FLIGHT_JOB_SCRIPT_API_SCHEDULER_COMMAND takes precedence
 #-------------------------------------------------------------------------------
-# scheduler_comand: sbatch
+# scheduler_command: sbatch
 
 #-------------------------------------------------------------------------------
 # Command PATH
