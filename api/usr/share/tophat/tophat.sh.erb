@@ -9,7 +9,7 @@
 # output stream of your job script. If you omit `-e` below,
 # standard error will also be written to this file.
 #
-#SBATCH -o <%= generation_questions.stdout_file.answer %>
+#SBATCH -o <%= questions.stdout_file.answer %>
 
 # Set an output file for STDERR
 #
@@ -19,13 +19,13 @@
 # This is not required if you want to merge both output streams into
 # the file specified above.
 #
-<% if generation_questions.merge_stderr_with_stdout.answer.to_s == 'yes' -%>
-##SBATCH -e <%= generation_questions.stderr_file.default %>
+<% if questions.merge_stderr_with_stdout.answer.to_s == 'yes' -%>
+##SBATCH -e <%= questions.stderr_file.default %>
 <% else -%>
-#SBATCH -e <%= generation_questions.stderr_file.answer %>
+#SBATCH -e <%= questions.stderr_file.answer %>
 <% end -%>
 
 #############################################
 # APPLICATION COMMANDS - change as required
 #############################################
-<%= generation_questions.workload.answer %>
+<%= questions.workload.answer %>
