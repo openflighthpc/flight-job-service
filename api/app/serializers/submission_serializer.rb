@@ -27,8 +27,5 @@
 #==============================================================================
 
 class SubmissionSerializer < ApplicationSerializer
-  # Submissions are only ever created in a successful state, revisit as required
-  attribute(:success) { true }
-
   has_one :script
 end
