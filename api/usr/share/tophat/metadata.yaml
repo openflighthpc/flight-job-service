@@ -12,7 +12,7 @@ generation_questions:
     description: >
       Specify a path to a file to contain the output from the standard output
       stream of your job script.
-    default: $HOME/$JOB_NAME.$JOB_ID.output
+    default: job-%j.output
     format:
       type: text
 
@@ -36,7 +36,7 @@ generation_questions:
     description: >
       Specify a path to a file to contain the output from the standard error
       stream of your job script.
-    default: $HOME/$JOB_NAME.$JOB_ID.error
+    default: job-%j.error
     format:
       type: text
     ask_when:
