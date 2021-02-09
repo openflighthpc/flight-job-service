@@ -73,7 +73,7 @@ export function useFetchQuestions(templateId) {
   );
 }
 
-export function useDownloadScript(templateId, answers) {
+export function useGenerateScript(templateId, answers) {
   const request = useFetch(
     `/render/${templateId}`,
     {

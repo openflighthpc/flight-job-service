@@ -4,7 +4,7 @@ import { Button } from 'reactstrap';
 
 import styles from './question.module.css';
 import { CardFooter } from './CardParts';
-import { useDownloadScript } from './api';
+import { useGenerateScript } from './api';
 import { useToast } from './ToastContext';
 
 function shouldAsk(question, state) {
@@ -227,7 +227,7 @@ function SaveButton({ answers, className, state, templateId }) {
     return accum;
   }, {});
 
-  const { loading, post, response } = useDownloadScript(templateId, flattenedAnswers);
+  const { loading, post, response } = useGenerateScript(templateId, flattenedAnswers);
 
   const submit = () => {
     post().then(() => {
