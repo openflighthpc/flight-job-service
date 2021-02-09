@@ -8,7 +8,7 @@ import { useGenerateScript } from './api';
 import { useToast } from './ToastContext';
 
 function shouldAsk(question, state) {
-  const ask_when = question.attributes['ask-when'];
+  const ask_when = question.attributes.askWhen;
   if (ask_when == null) { return true; }
 
   // `ask_when` is of the format
