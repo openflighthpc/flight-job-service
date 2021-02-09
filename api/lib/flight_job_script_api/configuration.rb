@@ -57,6 +57,21 @@ module FlightJobScriptAPI
         default: ->(root) { root.join('usr/share') }
       },
       {
+        name: 'scheduler_command',
+        env_var: true,
+        default: 'sbatch'
+      },
+      {
+        name: 'command_path',
+        env_var: true,
+        default: '/usr/sbin:/usr/bin:/sbin:/bin'
+      },
+      {
+        name: 'command_timeout',
+        env_var: false,
+        default: 5
+      },
+      {
         name: 'log_level',
         env_var: true,
         default: 'info'

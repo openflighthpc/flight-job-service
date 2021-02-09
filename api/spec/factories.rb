@@ -27,6 +27,9 @@
 #==============================================================================
 
 FactoryBot.define do
+  # NOTE: The template object intentionally uses save_* attributes on build
+  # This is because they cannot be considered "valid" before saving
+  # This can be disabled by passing in false
   factory :template do
     sequence(:id) { |n| "demo-template-#{n}" }
 
@@ -48,6 +51,7 @@ FactoryBot.define do
       end
     end
 
+    skip_create
     initialize_with do
       new(**attributes).tap do |template|
         if (save_metadata || save_script) && !FakeFS.activated?
@@ -62,6 +66,15 @@ FactoryBot.define do
           File.write(template.template_path, save_script)
         end
       end
+    end
+  end
+
+  factory(:script) do
+    template
+    user { ENV['USER'] }
+
+    to_create do |instance|
+      instance.render_and_save
     end
   end
 

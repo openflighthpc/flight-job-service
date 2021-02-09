@@ -30,10 +30,16 @@ require 'sinatra/base'
 require 'sinatra/jsonapi'
 require_relative 'app/autoload'
 
-# Adds 401 Unauthorized error
+# Additional error codes
 module Sinja
   class UnauthorizedError < HttpError
     HTTP_STATUS = 401
+
+    def initialize(*args) super(HTTP_STATUS, *args) end
+  end
+
+  class ServiceUnavailable < HttpError
+    HTTP_STATUS = 503
 
     def initialize(*args) super(HTTP_STATUS, *args) end
   end
@@ -45,8 +51,14 @@ class App < Sinatra::Base
   register Sinatra::JSONAPI
 
   helpers do
+    def current_user
+      @auth = FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION'])
+      @current_user = @auth.username
+    end
+
     def role
-      case FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION']).valid?
+      current_user
+      case @auth.valid?
       when true
         :user
       when false
@@ -58,6 +70,13 @@ class App < Sinatra::Base
   end
 
   configure_jsonapi do |c|
+    c.validation_exceptions << ActiveModel::ValidationError
+    c.validation_formatter = ->(e) do
+      e.model.errors.messages.map do |src, msg|
+        [src, msg.join(', ')]
+      end
+    end
+
     # Resource roles
     c.default_roles = {
       index: :user,
@@ -136,6 +155,54 @@ class App < Sinatra::Base
     end
   end
 
+  resource :scripts, pkre: /[[[:xdigit:]]-]+/ do
+    helpers do
+      def find(id)
+        script = Script.new(id: id, user: current_user)
+        script.valid? ? script : nil
+      end
+    end
+
+    index do
+      glob_path = Script.new(id: '*', user: current_user).metadata_path
+      scripts = Dir.glob(glob_path).map do |path|
+        id = File.basename File.dirname(path)
+        Script.new(id: id, user: current_user)
+      end
+
+      next scripts.select(&:valid?)
+    end
+
+    show
+
+    destroy do
+      FileUtils.rm_rf File.dirname(resource.metadata_path)
+    end
+  end
+
+  resource :submissions, pkre: /[[[:xdigit:]]-]+/ do |attr|
+    helpers do
+      def validate!
+        resource.validate!
+        unless resource.run
+          raise Sinja::ServiceUnavailable, 'could not schedule the script'
+        end
+      end
+    end
+
+    create do |attr|
+      sub = Submission.new
+      [sub.id, sub]
+    end
+
+    has_one :script do
+      graft(sideload_on: :create) do |rio|
+        script = Script.new(id: rio[:id], user: @current_user)
+        resource.script = script
+      end
+    end
+  end
+
   freeze_jsonapi
 end
 
@@ -171,32 +238,23 @@ class RenderApp < Sinatra::Base
     template = Template.new(id: params['id'])
     if template.valid?
       response.headers['Content-Type'] = 'text/plain'
+      script = Script.new(template: template, user: @current_user)
 
-      context = FlightJobScriptAPI::RenderContext.new(
-        template: template, answers: params
-      )
+      # This conditional should not be reached ATM
+      unless script.valid?
+        status 500
+        halt
+      end
 
       begin
-        content = context.render
+        script.render_and_save
       rescue
-        FlightJobScriptAPI.logger.error("Failed to render: #{template.template_path}")
-        FlightJobScriptAPI.logger.debug("Full render error:") do
-          $!.full_message
-        end
         status 422
         halt
       end
 
-      # Writes the rendered content down
-      base = File.join('.local/share/flight/job-scripts', template.id, "#{template.script_template_name}-#{Time.now.to_i}")
-      path = File.expand_path(base, Etc.getpwnam(@current_user).dir)
-      FileUtils.mkdir_p File.dirname(path)
-      File.write(path, content)
-      FileUtils.chmod(0700, path)
-      FileUtils.chown(@current_user, @current_user, path)
-
       status 201
-      next path
+      next script.script_path
     else
       status 404
       halt
