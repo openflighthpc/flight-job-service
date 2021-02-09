@@ -28,4 +28,8 @@
 
 class ApplicationSerializer
   include JSONAPI::Serializer
+
+  def format_name(attribute_name)
+    attribute_name.to_s.camelize(:lower)
+  end
 end

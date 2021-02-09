@@ -73,7 +73,7 @@ export function useFetchQuestions(templateId) {
   );
 }
 
-export function useDownloadScript(templateId, answers) {
+export function useGenerateScript(templateId, answers) {
   const request = useFetch(
     `/render/${templateId}`,
     {
@@ -83,6 +83,57 @@ export function useDownloadScript(templateId, answers) {
         'Content-Type': 'application/json',
       },
       body: answers,
+      cachePolicy: 'no-cache',
+    },
+  );
+  return request;
+}
+
+export function useFetchScripts() {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    "/scripts?include=template",
+    { headers: { Accept: 'application/vnd.api+json' } },
+    [ currentUser.authToken ]);
+}
+
+export function useSubmitScript(script) {
+  const request = useFetch(
+    '/submissions',
+    {
+      method: 'post',
+      headers: {
+        Accept: 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json',
+      },
+      body: {
+        "data": {
+          "type": "submissions",
+          "relationships": {
+            "script": {
+              "data": {
+                "type": "scripts",
+                "id": script.id,
+              }
+            }
+          }
+        }
+      },
+      cachePolicy: 'no-cache',
+    },
+  );
+  return request;
+}
+
+export function useDeleteScript(script) {
+  const request = useFetch(
+    `/scripts/${script.id}`,
+    {
+      method: 'delete',
+      headers: {
+        Accept: 'application/vnd.api+json',
+      //   'Content-Type': 'application/vnd.api+json',
+      },
       cachePolicy: 'no-cache',
     },
   );
