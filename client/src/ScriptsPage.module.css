@@ -1,3 +1,9 @@
+.ScriptsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, max-content));
+  grid-gap: .5rem;
+}
+
 .IntroCard:before {
     color: var(--success);
     /* content: "\f108"; */

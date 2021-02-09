@@ -62,13 +62,13 @@ function MetadataEntry({ name, value, format, valueTitle }) {
   return (
     <>
     <dt
-      className="col-sm-4 text-truncate"
+      className="text-truncate"
       title={name}
     >
       {name}
     </dt>
     <dd
-      className="col-sm-8 text-truncate"
+      className="text-truncate"
       title={valueTitle || formatted}
     >
       {formatted}
