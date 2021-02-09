@@ -7,7 +7,6 @@ import UnauthorizedError from './UnauthorizedError';
 import { DefaultErrorMessage } from './ErrorBoundary';
 import { errorCode, getResourcesFromResponse } from './utils';
 import { useFetchScripts } from './api';
-import { useMediaGrouping } from './useMedia';
 import styles from './ScriptsPage.module.css';
 
 function getScriptsFromResponse(data) {
@@ -83,25 +82,22 @@ function ScriptsList({ reloadScripts, scripts }) {
       return 0
     }
   });
-  const { groupedItems: groupedScripts } = useMediaGrouping(
-    ['(min-width: 1200px)', '(min-width: 992px)', '(min-width: 768px)', '(min-width: 576px)'],
-    [3, 2, 2, 1],
-    1,
-    sortedScripts,
-  );
-  const decks = groupedScripts.map(
-    (group, index) => (
-      <div key={index} className="card-deck">
-        {group.map((script) => <ScriptCard key={script.id} reloadScripts={reloadScripts} script={script} />)}
-      </div>
-    )
-  );
+
+  const cards = sortedScripts.map(script => (
+    <ScriptCard
+      key={script.id}
+      reloadScripts={reloadScripts}
+      script={script}
+    />
+  ));
 
   return (
-    <React.Fragment>
-      <IntroCard scripts={scripts} />
-      {decks}
-    </React.Fragment>
+    <>
+    <IntroCard scripts={scripts} />
+    <div className={`card-deck ${styles.ScriptsList}`}>
+      {cards}
+    </div>
+    </>
   );
 }
 

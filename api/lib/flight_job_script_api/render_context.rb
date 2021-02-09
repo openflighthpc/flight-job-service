@@ -38,6 +38,10 @@ module FlightJobScriptAPI
         @answer || @question.default
       end
 
+      def answered?
+        !@answer.nil?
+      end
+
       def default
         @question.default
       end
@@ -52,11 +56,11 @@ module FlightJobScriptAPI
       @template.to_erb.result(binding)
     end
 
-    def generation_question
-      generation_questions
+    def question
+      questions
     end
 
-    def generation_questions
+    def questions
       @questions ||= begin
         questions = @template.generation_questions.reduce({}) do |memo, question|
           memo.merge({

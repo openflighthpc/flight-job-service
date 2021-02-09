@@ -247,8 +247,9 @@ class RenderApp < Sinatra::Base
       end
 
       begin
-        script.render_and_save
+        script.render_and_save(**params)
       rescue
+        FlightJobScriptAPI.logger.debug("Rendering script failed") { $! }
         status 422
         halt
       end

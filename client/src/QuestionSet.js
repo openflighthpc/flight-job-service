@@ -1,6 +1,7 @@
 import React, { useReducer } from 'react';
 import classNames from 'classnames';
 import { Button } from 'reactstrap';
+import { Link } from "react-router-dom";
 
 import styles from './question.module.css';
 import { CardFooter } from './CardParts';
@@ -235,15 +236,10 @@ function SaveButton({ answers, className, state, templateId }) {
         response.text().then((scriptPath) => {
           addToast({
             body: (
-              <>
               <div>
-                Your job script has been saved to <code>{scriptPath}</code>.
+                Your job script has been saved.  You can view or submit it
+                from the <Link to="/scripts">scripts page</Link>.
               </div>
-              <div>
-                You can submit your job script by SSHing into the cluster and
-                running <code>sbatch {scriptPath}</code>.
-              </div>
-              </>
             ),
             icon: 'success',
             header: 'Job script saved',
