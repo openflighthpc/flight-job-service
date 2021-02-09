@@ -8,7 +8,6 @@ import { errorCode, getResourcesFromResponse } from './utils';
 import UnauthorizedError from './UnauthorizedError';
 import { DefaultErrorMessage } from './ErrorBoundary';
 import { useFetchTemplates } from './api';
-import { useMediaGrouping } from './useMedia';
 import styles from './TemplatesPage.module.css';
 
 function TemplatesPage() {
@@ -36,14 +35,14 @@ function TemplatesPage() {
               </OverlayContainer>
             )
           }
-          { templates != null && <TemplatesList templates={templates} /> }
+          { templates != null && <TemplateCardDeck templates={templates} /> }
         </React.Fragment>
       );
     }
   }
 }
 
-function TemplatesList({ templates }) {
+function TemplateCardDeck({ templates }) {
   const sortedTemplates = templates.sort((a, b) => {
     const aSynopsis = a.attributes.synopsis.toUpperCase();
     const bSynopsis = b.attributes.synopsis.toUpperCase();
@@ -55,19 +54,13 @@ function TemplatesList({ templates }) {
       return 0
     }
   });
-  const { groupedItems: groupedTemplates } = useMediaGrouping(
-    ['(min-width: 1200px)', '(min-width: 992px)', '(min-width: 768px)', '(min-width: 576px)'],
-    [3, 2, 2, 1],
-    1,
-    sortedTemplates,
-  );
-  const decks = groupedTemplates.map(
-    (group, index) => (
-      <div key={index} className="card-deck">
-        {group.map((template) => <TemplateCard key={template.id} template={template} />)}
-      </div>
-    )
-  );
+
+  const cards = sortedTemplates.map(template => (
+    <TemplateCard
+      key={template.id}
+      template={template}
+    />
+  ));
 
   return (
     <React.Fragment>
@@ -83,7 +76,9 @@ function TemplatesList({ templates }) {
           <li>Submit your script to the cluster's scheduler.</li>
         </ul>
       </Jumbotron>
-      {decks}
+      <div className={`card-deck ${styles.TemplateCardDeck}`}>
+        {cards}
+      </div>
     </React.Fragment>
   );
 }

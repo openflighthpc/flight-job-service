@@ -105,7 +105,7 @@ function IntroCard({ scripts }) {
   const scriptOrScripts = scripts.length === 1 ? 'script' : 'scripts';
 
   return (
-    <div className={`${styles.IntroCard} card card-body mb-2`}>
+    <div className={`${styles.IntroCard} card card-body mb-4`}>
       <p className={`${styles.IntroCardText} card-text`}>
         You have {scripts.length} saved{' '}{scriptOrScripts}.  Use the
         {' '}<i>Submit</i> button to submit a script to your cluster.

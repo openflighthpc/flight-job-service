@@ -16,7 +16,7 @@ function timestampFormat(timestampFormat) {
 
 function ScriptCard({ reloadScripts, script }) {
   return (
-    <div className="card border-primary mb-2">
+    <div className="card border-primary">
       <h5
         className="card-header bg-primary text-light text-truncate"
         title={script.attributes.name}

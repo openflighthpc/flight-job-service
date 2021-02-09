@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import { Link } from "react-router-dom";
 
 import { CardFooter } from './CardParts';
@@ -6,11 +5,7 @@ import { CardFooter } from './CardParts';
 function TemplateCard({ template }) {
 
   return (
-    <div
-      className={
-        classNames('card border-primary mb-2')
-      }
-    >
+    <div className="card border-primary">
       <h5
         className="card-header bg-primary text-light text-truncate"
         title={template.attributes.synopsis}
