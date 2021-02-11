@@ -3,20 +3,22 @@ import classNames from 'classnames';
 import DefaultBrandbarLogo from './png_trans_logo-navbar.png';
 import DefaultDashboardLogo from './png_trans_logo.png';
 import styles from './Branding.module.css';
-import { useBranding } from './BrandingContext';
+import { useBranding, useEnvironment } from './BrandingContext';
 
 export function BrandbarLogo() {
   const branding = useBranding();
   const logo = branding('brandbar.logo') || {
     url: DefaultBrandbarLogo,
     alt: "OpenflightHPC Logo",
+    height: "75"
   };
 
   return (
     <img
       alt={logo.alt}
-      className={classNames(styles.BrandingBrandbarLogo, logo.classNames)}
+      className={classNames(logo.classNames, 'branding-brandbar-logo')}
       src={logo.url}
+      height={logo.height}
     />
   );
 }
@@ -26,8 +28,8 @@ export function BrandbarText() {
 
   if (branding('brandbar.text')) {
     return (
-      <div className={styles.BrandingTextWrapper}>
-        <span className={styles.BrandingText}>
+      <div className="branding-brandbar-text-wrapper">
+        <span className="branding-brandbar-text">
           {branding('brandbar.text')}
         </span>
       </div>
@@ -45,17 +47,22 @@ export function DashboardLogo() {
   };
 
   return (
-    <img
-      alt={logo.alt}
-      className={classNames(styles.BrandingDashboardLogo, logo.classNames)}
-      src={logo.url}
-    />
+    <div class="branding-apps-dashboard-logo-wrapper">
+      <img
+        alt={logo.alt}
+        className={classNames(
+          logo.classNames,
+          'branding-apps-dashboard-logo'
+        )}
+        src={logo.url}
+      />
+    </div>
   );
 }
 
 export function ClusterDescription() {
-  const branding = useBranding();
-  const description = branding('environment.description');
+  const environment = useEnvironment();
+  const description = environment('environment.description');
 
   if (description) {
     return <p>{description}</p>;
@@ -65,8 +72,8 @@ export function ClusterDescription() {
 }
 
 export function ClusterLogo() {
-  const branding = useBranding();
-  const logo = branding('environment.logo');
+  const environment = useEnvironment();
+  const logo = environment('environment.logo');
 
   if (logo) {
     return (

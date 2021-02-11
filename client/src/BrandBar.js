@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import styles from './BrandBar.module.css';
 import { BrandbarLogo, BrandbarText } from './Branding';
 import { Context as CurrentUserContext } from './CurrentUserContext';
-import { useBranding } from './BrandingContext';
+import { useEnvironment } from './BrandingContext';
 
 export default function BrandBar({ className }) {
   return (
@@ -66,11 +66,11 @@ function NavItems() {
 
 function UserNavItems() {
   const { currentUser, actions } = useContext(CurrentUserContext);
-  const branding = useBranding();
+  const environment = useEnvironment();
   if (currentUser == null) { return null; }
 
-  const formattedClusterName = branding('environment.name') ?
-    <span>({branding('environment.name')})</span> :
+  const formattedClusterName = environment('environment.name') ?
+    <span>({environment('environment.name')})</span> :
     null;
 
   return (

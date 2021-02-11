@@ -1,13 +1,13 @@
 import styles from './ClusterOverviewCard.module.css';
 import { ClusterDescription, ClusterLogo } from './Branding';
-import { useBranding } from './BrandingContext';
+import { useEnvironment } from './BrandingContext';
 
 function ClusterName({ children }) {
   return <h5 className={styles.ClusterName}>{children}</h5>;
 }
 
 function ClusterCard() {
-  const branding = useBranding();
+  const environment = useEnvironment();
 
   return (
     <div className="card mb-2">
@@ -16,7 +16,7 @@ function ClusterCard() {
         </h5>
         <ClusterLogo />
         <div className="text-center mb-3">
-          <ClusterName>{branding('environment.name')}</ClusterName>
+          <ClusterName>{environment('environment.name')}</ClusterName>
         </div>
         <ClusterDescription />
       </div>
