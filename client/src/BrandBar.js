@@ -24,11 +24,6 @@ export default function BrandBar({ className }) {
         <ul className="navbar-nav">
           <UserNavItems />
         </ul>
-        <div className="my-2 my-lg-0">
-          <a href="https://github.com/openflighthpc">
-            <span className="fa fa-3x fa-github"></span>
-          </a>
-        </div>
       </div>
 
     </nav>
