@@ -1,14 +1,14 @@
 import React, { useContext } from 'react';
 import { Link } from "react-router-dom";
+import classNames from 'classnames';
 
-import styles from './BrandBar.module.css';
 import { BrandbarLogo, BrandbarText } from './Branding';
 import { Context as CurrentUserContext } from './CurrentUserContext';
 import { useEnvironment } from './BrandingContext';
 
 export default function BrandBar({ className }) {
   return (
-    <nav className={`navbar navbar-expand-lg navbar-light bg-white border-bottom ${styles.BrandBar} ${className}`}>
+    <nav className={classNames('navbar navbar-expand-lg navbar-light bg-white', className)}>
       <a
         className="navbar-brand"
         href="/"

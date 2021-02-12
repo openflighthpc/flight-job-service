@@ -2,7 +2,6 @@ import classNames from 'classnames';
 
 import DefaultBrandbarLogo from './png_trans_logo-navbar.png';
 import DefaultDashboardLogo from './png_trans_logo.png';
-import styles from './Branding.module.css';
 import { useBranding, useEnvironment } from './BrandingContext';
 
 export function BrandbarLogo() {
@@ -51,6 +50,7 @@ export function DashboardLogo() {
       <img
         alt={logo.alt}
         className={classNames(
+          'logo',
           logo.classNames,
           'branding-apps-dashboard-logo'
         )}
@@ -79,7 +79,7 @@ export function ClusterLogo() {
     return (
       <img
         alt={logo.alt}
-        className={classNames(styles.BrandingClusterLogo, logo.classNames)}
+        className={classNames('logo', logo.classNames)}
         src={logo.url}
       />
     );

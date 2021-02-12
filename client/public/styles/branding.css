@@ -1,0 +1,44 @@
+/*------------------------------------------------
+ * Example branding styles.
+ *
+ * When installed alongside Flight Landing Page, the branding would typically
+ * be loaded from Flight Landing Page.  When installed differently, these
+ * branding styles can be used.
+ * ----------------------------------------------- */
+body {
+
+  background-color: #e4f5fd;
+}
+#main {
+    margin-bottom: 60px;
+    position: relative;
+    padding-bottom: 1rem;
+}
+.nav-menu-text {
+    font-size: larger;
+}
+.navbar-light .navbar-nav .nav-menu-text:hover {
+    color: rgba(0,0,0,.5);
+}
+.navbar-brand {
+    padding-left: 4rem;
+}
+.navbar-right {
+    padding-right: 4rem;
+}
+.nav-menu-button {
+    font-weight: bold;
+    font-size: larger;
+}
+.navbar li {
+    padding-top: 1rem;
+}
+footer {
+    background-color: white;
+    bottom: 0;
+    height: 60px;
+    line-height: 60px;
+    position: fixed;
+    width: 100%;
+    z-index: 100;
+}
