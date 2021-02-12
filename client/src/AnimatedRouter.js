@@ -34,7 +34,7 @@ function AnimatedRouter({ exact, routes, sideNav }) {
                   <div className="page row" ref={pageRef}>
                     <ErrorBoundary>
                       { sideNav ? <SideNav /> : null }
-                      <div className="centernav col mt-4">
+                      <div className="centernav col-12 col-md-9 col-lg-8 offset-md-0 offset-lg-0 mt-4">
                         <Component />
                       </div>
                       { sideNav ? <SideNav /> : null }
