@@ -1,14 +1,14 @@
 import React, { useContext } from 'react';
 import { Link } from "react-router-dom";
+import classNames from 'classnames';
 
-import styles from './BrandBar.module.css';
 import { BrandbarLogo, BrandbarText } from './Branding';
 import { Context as CurrentUserContext } from './CurrentUserContext';
-import { useBranding } from './BrandingContext';
+import { useEnvironment } from './BrandingContext';
 
 export default function BrandBar({ className }) {
   return (
-    <nav className={`navbar navbar-expand-lg navbar-light bg-white border-bottom ${styles.BrandBar} ${className}`}>
+    <nav className={classNames('navbar navbar-expand-lg navbar-light bg-white', className)}>
       <a
         className="navbar-brand"
         href="/"
@@ -24,11 +24,6 @@ export default function BrandBar({ className }) {
         <ul className="navbar-nav">
           <UserNavItems />
         </ul>
-        <div className="my-2 my-lg-0">
-          <a href="https://github.com/openflighthpc">
-            <span className="fa fa-3x fa-github"></span>
-          </a>
-        </div>
       </div>
 
     </nav>
@@ -71,11 +66,11 @@ function NavItems() {
 
 function UserNavItems() {
   const { currentUser, actions } = useContext(CurrentUserContext);
-  const branding = useBranding();
+  const environment = useEnvironment();
   if (currentUser == null) { return null; }
 
-  const formattedClusterName = branding('environment.name') ?
-    <span>({branding('environment.name')})</span> :
+  const formattedClusterName = environment('environment.name') ?
+    <span>({environment('environment.name')})</span> :
     null;
 
   return (
