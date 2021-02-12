@@ -50,9 +50,9 @@ RSpec.describe FlightJobScriptAPI::RenderContext do
     end
     let(:script_template) do
       script_builder.call(
-        "<%= generation_questions.#{question['id']}.default -%>",
-        "<%= generation_questions.#{question['id']}.answer -%>",
-        "<%= generation_questions.missing.answer -%>"
+        "<%= questions.#{question['id']}.default -%>",
+        "<%= questions.#{question['id']}.answer -%>",
+        "<%= questions.missing.answer -%>"
       )
     end
     let(:script_rendered) do
