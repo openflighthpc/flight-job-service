@@ -33,7 +33,7 @@ function AppLayout() {
 
 function SideNav() {
   return (
-    <div className="col-sm-2 sidenav"></div>
+    <div className="sidenav col-sm-2"></div>
   );
 }
 
