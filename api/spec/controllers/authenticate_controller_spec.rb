@@ -31,9 +31,8 @@ require 'spec_helper'
 RSpec.describe '/authenticates' do
   context 'with an authenticated user' do
     before do
-      allow(Rpam).to receive(:auth).and_return(true)
       header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
+      header 'Authorization', "Bearer #{build(:jwt)}"
     end
 
     describe '/authenticates/user' do

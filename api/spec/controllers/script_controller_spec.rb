@@ -31,9 +31,8 @@ require 'spec_helper'
 RSpec.describe '/scripts' do
   context 'with an authenticated user' do
     before do
-      allow(Rpam).to receive(:auth).and_return(true)
       header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64("#{ENV['USER']}:bar").chomp}"
+      header 'Authorization', "Bearer #{build(:jwt)}"
     end
 
     context "with a different user's script" do
@@ -60,7 +59,7 @@ RSpec.describe '/scripts' do
         end
 
         specify 'the other user can see their script' do
-          header 'Authorization', "Basic #{Base64.encode64("#{other_user}:bar").chomp}"
+          header 'Authorization', "Bearer #{build(:jwt, username: other_user)}"
           get '/scripts'
           expect(last_response).to be_ok
           expect(last_response_data.map { |d| d[:id] }).to include(script.id)

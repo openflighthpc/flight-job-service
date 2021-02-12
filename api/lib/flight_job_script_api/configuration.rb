@@ -47,9 +47,9 @@ module FlightJobScriptAPI
         default: ->(root) { root.join('var/puma.pid') }
       },
       {
-        name: 'pam_service',
+        name: 'shared_secret_path',
         env_var: true,
-        default: 'login'
+        default: ->(root) { root.join('etc/shared-secret.conf') }
       },
       {
         name: 'data_dir',
@@ -89,6 +89,10 @@ module FlightJobScriptAPI
         ]
         Loader.new(root, paths).load
       end
+    end
+
+    def shared_secret
+      @shared_secret ||= File.read(shared_secret_path)
     end
   end
 end

@@ -39,6 +39,7 @@ require 'erb'
 require 'etc'
 require 'timeout'
 require 'logger'
+require 'securerandom'
 
 if ENV['RACK_ENV'] == 'development'
   Bundler.require(:default, :development)
@@ -57,7 +58,11 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'flight_job_script_api'
 
-# Ensures the config has been loaded
-FlightJobScriptAPI.load_configuration
+# Ensures the shared secret exists
+unless File.exists? FlightJobScriptAPI.config.shared_secret_path
+  FileUtils.mkdir_p File.dirname(FlightJobScriptAPI.config.shared_secret_path)
+  File.write(FlightJobScriptAPI.config.shared_secret_path, SecureRandom.alphanumeric(40))
+  FileUtils.chmod 0400, FlightJobScriptAPI.config.shared_secret_path
+end
 
 require_relative '../app'

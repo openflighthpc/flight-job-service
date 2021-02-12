@@ -26,21 +26,43 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-require 'base64'
 module FlightJobScriptAPI
-  PamAuth = Struct.new(:username, :password) do
+  Auth = Struct.new(:encoded) do
     def self.build(header)
-      if match = /\ABasic (.*)\Z/.match(header || '')
-        username, password = Base64.decode64(match[1] || '').split(':', 2)
-        new(username, password)
+      if match = /\ABearer (.*)\Z/.match(header || '')
+        new(match[1])
       else
-        new(nil, nil)
+        new('')
       end
     end
 
     def valid?
-      return nil if password.nil?
-      Rpam.auth(username.to_s, password.to_s, service: FlightJobScriptAPI.config.pam_service)
+      !decoded[:invalid]
+    end
+
+    def forbidden?
+      decoded[:forbidden]
+    end
+
+    def username
+      decoded['username']
+    end
+
+    private
+
+    def decoded
+      @decoded ||= begin
+        JWT.decode(encoded, FlightJobScriptAPI.config.shared_secret, true, { algorithm: 'HS256' }).first.tap do |hash|
+          unless hash['username']
+            hash[:invalid] = true
+            hash[:forbidden] = true
+          end
+        end
+      rescue JWT::VerificationError
+        { invalid: true, forbidden: true }
+      rescue JWT::DecodeError
+        { invalid: true }
+      end
     end
   end
 end

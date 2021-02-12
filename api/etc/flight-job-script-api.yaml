@@ -44,13 +44,6 @@
 # pidfile: /path/to/flight-job-script-api/var/puma.pid
 
 #-------------------------------------------------------------------------------
-# Pam Authentication Service
-# Specify the pam service which will be used to authenticate the requests.
-# The environment variable FLIGHT_JOB_SCRIPT_API_PAM_SERVICE
-#-------------------------------------------------------------------------------
-# pam_service: login
-
-#-------------------------------------------------------------------------------
 # Scheduler Command
 # Specify the command that will be used to start the submission
 # The environment variable FLIGHT_JOB_SCRIPT_API_SCHEDULER_COMMAND takes precedence

@@ -38,10 +38,10 @@ RSpec.shared_examples 'shared_auth_spec' do
     end
   end
 
-  context 'with invalid Authorization Basic encoding' do
+  context 'with invalid Authorization encoding' do
     before do
       header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64('foo-bar')}"
+      header 'Authorization', "Bearer foobar"
     end
 
     it 'returns 401' do
@@ -53,7 +53,7 @@ RSpec.shared_examples 'shared_auth_spec' do
   context 'with an invalid authorization scheme' do
     before do
       header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Foobar #{Base64.encode64('foo:bar')}"
+      header 'Authorization', "Foobar foobar"
     end
 
     it 'returns 401' do
@@ -62,11 +62,48 @@ RSpec.shared_examples 'shared_auth_spec' do
     end
   end
 
-  context 'with invalid Basic credentials' do
+  context 'with an expired token' do
     before do
-      allow(Rpam).to receive(:auth).and_return(false)
       header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
+      exp = Time.now.to_i - 1
+      header 'Authorization', "Foobar #{build(:jwt, iat: exp - 1, exp: exp)}"
+    end
+
+    it 'returns 401' do
+      make_request
+      expect(last_response).to be_unauthorized
+    end
+  end
+
+  context 'with a future issued token' do
+    before do
+      header 'Accept', 'application/vnd.api+json'
+      iat = Time.now.to_i + 30
+      header 'Authorization', "Foobar #{build(:jwt, iat: iat)}"
+    end
+
+    it 'returns 401' do
+      make_request
+      expect(last_response).to be_unauthorized
+    end
+  end
+
+  context 'with a missing username' do
+    before do
+      header 'Accept', 'application/vnd.api+json'
+      header 'Authorization', "Bearer #{build(:jwt, username: nil)}"
+    end
+
+    it 'returns 403' do
+      make_request
+      expect(last_response).to be_forbidden
+    end
+  end
+
+  context 'with the incorrect shared secret' do
+    before do
+      header 'Accept', 'application/vnd.api+json'
+      header 'Authorization', "Bearer #{build(:jwt, shared_secret: 'foobar')}"
     end
 
     it 'returns 403' do

@@ -51,17 +51,18 @@ class App < Sinatra::Base
   register Sinatra::JSONAPI
 
   helpers do
+    def auth
+      @auth ||= FlightJobScriptAPI::Auth.build(env['HTTP_AUTHORIZATION'])
+    end
+
     def current_user
-      @auth = FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION'])
-      @current_user = @auth.username
+      auth.username
     end
 
     def role
-      current_user
-      case @auth.valid?
-      when true
+      if auth.valid?
         :user
-      when false
+      elsif auth.forbidden?
         :forbidden
       else
         raise Sinja::UnauthorizedError, 'Could not authenticate your authorization credentials'
@@ -215,14 +216,14 @@ end
 # /:version/render
 class RenderApp < Sinatra::Base
   before do
-    auth = FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION'])
-    case auth.valid?
-    when true
+    auth ||= FlightJobScriptAPI::Auth.build(env['HTTP_AUTHORIZATION'])
+
+    if auth.valid?
       @current_user = auth.username
-    when false
+    elsif auth.forbidden?
       status 403
       halt
-    when nil
+    else
       status 401
       halt
     end
