@@ -26,7 +26,12 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-ENV['RACK_ENV'] ||= 'development'
+if defined?(Puma)
+  env = Puma.cli_config.environment
+  ENV['RACK_ENV'] ||= env.respond_to?(:call) ? env.call : env
+else
+  ENV['RACK_ENV'] ||= 'development'
+end
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
 require 'rubygems'
