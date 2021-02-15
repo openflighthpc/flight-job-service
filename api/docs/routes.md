@@ -130,12 +130,12 @@ Content-Type: application/vnd.api+json
       "version": 0                # REQUIRED - Species the version used by the template
     },
     "links": {                    # REQUIRED - Self reference to the resource
-      "self": "/templates/<id>"
+      "self": "/v0/templates/<id>"
     },
     "relationships": {
       "questions": {              # REQUIRED - References to the template's questions
         "links": {
-          "related": "/templates/:id/questions"
+          "related": "/v0/templates/:id/questions"
         }
       }
     }
@@ -184,7 +184,7 @@ Content-Type: application/vnd.api+json
         }
       },
       "links": {                # REQUIRED  - Self reference to the resource
-        "self": "/questions/<question_id>"
+        "self": "/v0/questions/<question_id>"
       }
     },
     ...
@@ -273,7 +273,7 @@ content-type: application/vnd.api+json
     "relationships": {
       "template": {             # REQUIRED - The related template resource links
         "links": {
-          "related": "/scripts/:id/template"
+          "related": "/v0/scripts/:id/template"
         }
       }
     }
@@ -311,7 +311,7 @@ Content-Type: application/vnd.api+json
     "relationships": {
       "template": {
         "links": {
-          "related": "/scripts/:id/template"
+          "related": "/v0/scripts/:id/template"
         },
         "data": {
           "type": "template"      # REQUIRED - Specifies the related resource is a template
@@ -345,13 +345,12 @@ Content-Type: application/vnd.api+json
       ...
     },
     "links": {
-      "self": "/scripts/:id"
+      "self": "/v0/scripts/:id"
     },
     "relationships": {
       "template": {
         "links": {
-          "self": "/scripts/:id/relationships/template",
-          "related": "/scripts/:id/template"
+          "related": "/v0/scripts/:id/template"
         },
         "data": null
       }
@@ -407,12 +406,12 @@ Content-Type: application/vnd.api+json
     "type": "submissions",      # REQUIRED - Specifies a submission has been created
     "id": STRING,               # REQUIRED - The ID of the submission
     "links": {
-      "self": "/submissions/:id"
+      "self": "/v0/submissions/:id"
     },
     "relationships": {
       "script": {
         "links": {
-          "related": "/submissions/:id/script"
+          "related": "/v0/submissions/:id/script"
         }
       }
     }
