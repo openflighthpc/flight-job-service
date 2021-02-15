@@ -30,6 +30,8 @@ module FlightJobScriptAPI
   class Configuration
     autoload(:Loader, 'flight_job_script_api/configuration/loader')
 
+    API_VERSION = 'v0'
+
     PRODUCTION_PATH = 'etc/flight-job-script-api.yaml'
     PATH_GENERATOR = ->(env) { "etc/flight-job-script-api.#{env}.yaml" }
 
@@ -45,6 +47,11 @@ module FlightJobScriptAPI
         name: 'pidfile',
         env_var: true,
         default: ->(root) { root.join('var/puma.pid') }
+      },
+      {
+        name: 'base_url',
+        env_var: true,
+        default: '/'
       },
       {
         name: 'shared_secret_path',
