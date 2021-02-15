@@ -32,4 +32,8 @@ class ApplicationSerializer
   def format_name(attribute_name)
     attribute_name.to_s.camelize(:lower)
   end
+
+  def relationship_self_link(attribute_name)
+    nil
+  end
 end

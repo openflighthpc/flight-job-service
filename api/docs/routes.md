@@ -162,7 +162,6 @@ Content-Type: application/vnd.api+json
     "relationships": {
       "questions": {              # REQUIRED - References to the template's questions
         "links": {
-          "self": "/templates/:id/relationships/questions",
           "related": "/templates/:id/questions"
         }
       }
@@ -301,7 +300,6 @@ content-type: application/vnd.api+json
     "relationships": {
       "template": {             # REQUIRED - The related template resource links
         "links": {
-          "self": "/scripts/:id/relationships/template",
           "related": "/scripts/:id/template"
         }
       }
@@ -340,7 +338,6 @@ Content-Type: application/vnd.api+json
     "relationships": {
       "template": {
         "links": {
-          "self": "/scripts/:id/relationships/template",
           "related": "/scripts/:id/template"
         },
         "data": {
@@ -442,7 +439,6 @@ Content-Type: application/vnd.api+json
     "relationships": {
       "script": {
         "links": {
-          "self": "/submissions/:id/relationships/script",
           "related": "/submissions/:id/script"
         }
       }
