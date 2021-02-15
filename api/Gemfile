@@ -38,8 +38,12 @@ gem 'rack-parser', require: 'rack/parser'
 gem 'rake'
 gem 'jwt'
 gem 'puma'
-gem 'sinatra'
+gem 'sinatra', require: 'sinatra/base'
 gem 'sinja', '~> 1.3'
+
+group 'cli' do
+  gem 'slop'
+end
 
 group :development, :test do
   gem 'pry'
