@@ -27,6 +27,7 @@
 #==============================================================================
 
 require_relative 'config/boot'
+require 'sinatra'
 
 configure do
   LOGGER = FlightJobScriptAPI.logger
