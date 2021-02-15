@@ -32,6 +32,7 @@ module FlightJobScriptAPI
 
     root_path File.expand_path('../..', __dir__)
     application_name 'flight-job-script-api'
+    API_VERSION = 'v0'
 
     class ConfigError < StandardError; end
 
@@ -40,6 +41,11 @@ module FlightJobScriptAPI
         name: 'bind_address',
         env_var: true,
         default: 'tcp://127.0.0.1:921'
+      },
+      {
+        name: 'base_url',
+        env_var: true,
+        default: '/'
       },
       {
         name: 'shared_secret_path',
