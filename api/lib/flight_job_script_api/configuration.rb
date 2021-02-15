@@ -92,7 +92,11 @@ module FlightJobScriptAPI
     end
 
     def shared_secret
-      @shared_secret ||= File.read(shared_secret_path)
+      @shared_secret ||= if File.exists?(shared_secret_path)
+        File.read(shared_secret_path)
+      else
+        raise ConfigError, 'The shared_secret_path does not exist!'
+      end
     end
   end
 end

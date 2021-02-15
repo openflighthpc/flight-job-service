@@ -59,10 +59,6 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'flight_job_script_api'
 
 # Ensures the shared secret exists
-unless File.exists? FlightJobScriptAPI.config.shared_secret_path
-  FileUtils.mkdir_p File.dirname(FlightJobScriptAPI.config.shared_secret_path)
-  File.write(FlightJobScriptAPI.config.shared_secret_path, SecureRandom.alphanumeric(40))
-  FileUtils.chmod 0400, FlightJobScriptAPI.config.shared_secret_path
-end
+FlightJobScriptAPI.config.shared_secret
 
 require_relative '../app'
