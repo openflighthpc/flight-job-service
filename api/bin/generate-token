@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 # frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
@@ -25,33 +26,48 @@
 # For more information on Flight Job Script Service, please visit:
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
-source 'https://rubygems.org'
 
-git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
-
-gem 'activemodel', require: 'active_model'
-gem 'activesupport', require: 'active_support'
-gem 'json_schemer'
-gem 'rack-parser', require: 'rack/parser'
-gem 'rake'
-gem 'jwt'
-gem 'puma'
-gem 'sinatra', require: 'sinatra/base'
-gem 'sinja', '~> 1.3'
-
-group 'cli' do
-  gem 'slop'
+if ENV['RACK_ENV'] == 'production'
+  raise 'The generate-token script is a development only tool!'
 end
 
-group :development, :test do
-  gem 'pry'
-  gem 'pry-byebug'
+ENV['RACK_ENV'] ||= 'development'
+ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
+
+require 'rubygems'
+require 'bundler'
+require 'securerandom'
+require 'time'
+Bundler.require(:default, :cli)
+
+lib = File.expand_path('../lib', __dir__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'active_support/core_ext/hash/keys'
+require 'flight_job_script_api'
+
+require 'slop'
+slop = Slop.parse(ARGV) do |o|
+  o.bool '--secret', 'generate and save a new shared secret'
+  o.string '--user', 'sets the username field in the token', default: ENV['USER']
+  o.integer '--expiry', 'how long the tokens are valid for in days', default: 1
+  o.on '--help', 'display this help' do
+    puts o
+    exit
+  end
 end
 
-group :test do
-  gem 'factory_bot'
-  gem 'fakefs', require: 'fakefs/spec_helpers'
-  gem 'rack-test'
-  gem 'rspec'
-  gem 'rspec-collection_matchers'
+if slop.secret?
+  File.write(FlightJobScriptAPI.config.shared_secret_path, SecureRandom.alphanumeric(45))
+  FileUtils.chmod(0400, FlightJobScriptAPI.config.shared_secret_path)
 end
+
+now = Time.now
+payload = {
+  username: slop[:user],
+  iss: 'job-script-api',
+  iat: now.to_i,
+  nbf: now.to_i,
+  exp: now.to_i + slop[:expiry] * 86400
+}
+puts JWT.encode(payload, FlightJobScriptAPI.config.shared_secret, 'HS256')
