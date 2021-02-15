@@ -130,6 +130,7 @@ DEPENDENCIES
   rspec-collection_matchers
   sinatra
   sinja (~> 1.3)
+  slop
 
 BUNDLED WITH
    2.1.4
