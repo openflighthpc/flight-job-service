@@ -44,6 +44,15 @@
 # pidfile: /path/to/flight-job-script-api/var/puma.pid
 
 #-------------------------------------------------------------------------------
+# Base Url
+# The URL to where the API is being hosted. Used in the serialized responses.
+# The environment variable FLIGHT_JOB_SCRIPT_BASE_URL takes precedence
+#
+# NOTE: Do not include the version prefix, as this will be added implicitly
+#-------------------------------------------------------------------------------
+# base_url: '/'
+
+#-------------------------------------------------------------------------------
 # Scheduler Command
 # Specify the command that will be used to start the submission
 # The environment variable FLIGHT_JOB_SCRIPT_API_SCHEDULER_COMMAND takes precedence
