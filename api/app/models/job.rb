@@ -27,10 +27,47 @@
 #==============================================================================
 
 class Job < ApplicationModel
-  attr_reader :script
-  attr_writer :id, :user
+  def self.metadata_path(user, id)
+    File.join(FlightJobScriptAPI.config.internal_data_dir, user, id, 'metadata.yaml')
+  end
 
-  validates :script, presence: true
+  def self.from_metadata_path(path)
+    unless File.exists? path
+      FlightJobScriptAPI.logger.error "Failed to locate job metadata path: #{path}"
+      return nil
+    end
+    match = match_regex.match(path)
+
+    if match.nil?
+      FlightJobScriptAPI.logger.error "Failed to parse job metadata path: #{path}"
+      return nil
+    end
+
+    job = new(
+      user: match['user'],
+      id: match['id']
+    )
+
+    # Ensure the job is valid
+    if job.valid?
+      job
+    else
+      FlightJobScriptAPI.logger.error "A validation error occurred when loading job: #{path}"
+      FlightJobScriptAPI.logger.debug(job.full_messages)
+      return nil
+    end
+  end
+
+  def self.match_regex
+    @match_regex ||= Regexp.new(
+      metadata_path('(?<user>[^/]+)', '(?<id>[^/]+)')
+    )
+  end
+
+  attr_reader :script
+  attr_accessor :id, :user
+
+  validates :id, :user, presence: true
 
   validate on: :submit do
     script_valid = script&.valid?
@@ -41,10 +78,6 @@ class Job < ApplicationModel
       # invalid. However the API treats scripts in this state as non-existent
       errors.add(:script, 'does not exist')
     end
-  end
-
-  def id
-    @id ||= SecureRandom.uuid
   end
 
   def submitted?
@@ -59,16 +92,8 @@ class Job < ApplicationModel
     end
   end
 
-  # Default the user to be the same as the associated script
-  # This makes restoring the Job from cache easier
-  def user
-    @user ||= script&.user
-  end
-
   def metadata_path
-    @metadata_path ||= begin
-      File.join(FlightJobScriptAPI.config.internal_data_dir, user, id, 'metadata.yaml')
-    end
+    @metadata_path ||= self.class.metadata_path(user, id)
   end
 
   def submit
