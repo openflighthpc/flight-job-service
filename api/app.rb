@@ -195,7 +195,7 @@ class App < Sinatra::Base
     end
 
     create do |attr|
-      sub = Submission.new
+      sub = Submission.new(id: SecureRandom.uuid, user: current_user)
       [sub.id, sub]
     end
 
@@ -210,10 +210,15 @@ class App < Sinatra::Base
   freeze_jsonapi
 end
 
-class ActiveApp < Sinatra::Base
+class HistoryApp < Sinatra::Base
   include SharedJSONAPI
 
-  resource 'jobs' do
+  resource 'jobs', pkre: /[[[:xdigit:]]-]+/ do
+    index do
+      Dir.glob(Job.metadata_path(current_user, '*')).map do |path|
+        Job.from_metadata_path(path)
+      end.reject(&:nil?)
+    end
   end
 end
 
