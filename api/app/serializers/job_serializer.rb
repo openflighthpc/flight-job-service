@@ -26,10 +26,11 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-# NOTE: The Job model is part of the "Active Jobs" API and must not link or be
-# linked to the other models. This effectively disables the "includes" directive
+# NOTE: The Job model is part of the "History Jobs" API and must not reference or be
+# referenced to the other models. This effectively disables the "includes" directive
 # and limits the coupling between the APIs
 #
 # Additional "links" MAY be provided as a form of loose coupling
 class JobSerializer < ApplicationSerializer
+  include HistorySerializerHelper
 end
