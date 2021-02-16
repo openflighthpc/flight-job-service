@@ -87,6 +87,7 @@ module FlightJobScriptAPI
         config_definition = Configuration::ATTRIBUTES.detect do |h|
           h[:name].to_s == key.to_s
         end
+        return value unless config_definition
         if config_definition[:transform]
           config_definition[:transform].call(value)
         else
