@@ -63,6 +63,13 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'flight_job_script_api'
 
+# Ensure the cache directory can only be opened by the server process owner
+if Dir.exists? FlightJobScriptAPI.config.internal_data_dir
+  FileUtils.chmod(0700, FlightJobScriptAPI.config.internal_data_dir)
+else
+  FileUtils.mkdir_p(FlightJobScriptAPI.config.internal_data_dir, mode: 0700)
+end
+
 # Ensures the shared secret exists
 FlightJobScriptAPI.config.auth_decoder
 
