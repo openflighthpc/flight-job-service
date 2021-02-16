@@ -259,7 +259,7 @@ Accept: application/vnd.api+json
 HTTP/2 200 OK
 Content-Type: application/vnd.api+json
 {
-  "data": {                     # REQUIRED - The ScreiptResource
+  "data": {                     # REQUIRED - The ScriptResource
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The script's ID
     "attributes": {
@@ -268,7 +268,7 @@ Content-Type: application/vnd.api+json
       "created-at": STRING      # REQUIRED - The creation date-time in RFC3339 format
     },
     "links": {
-      "self": "/scripts/a70d5782-1271-4429-a82d-1221bc06dd2d"
+      "self": "/v0/scripts/:id"
     },
     "relationships": {
       "template": {             # REQUIRED - The related template resource links
@@ -453,6 +453,35 @@ Content-Type: application/vnd.api+json
     JobResource,
     ...
   ],
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## GET - /history/jobs/:id
+
+Return the `job` given by the `id`. The returned object is referred to as a `JobResource` object within this document.
+
+```
+GET /v0/history/jobs/:id
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": {                     # REQUIRED - The JobResource
+    "type": "jobs",             # REQUIRED - Specfies the resource is a script
+    "id": STRING,               # REQUIRED - The job's ID
+    "attributes": {
+    },
+    "links": {
+      "self": "/v0/history/jobs/:id"
+    }
+  },
   "jsonapi": {
     "version": "1.0"
   },
