@@ -26,44 +26,8 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-if defined?(Puma)
-  env = Puma.cli_config.environment
-  ENV['RACK_ENV'] ||= env.respond_to?(:call) ? env.call : env
-else
-  ENV['RACK_ENV'] ||= 'development'
+class Submission < SimpleDelegator
+  def initialize(**attr)
+    super(Job.new(**attr))
+  end
 end
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
-
-require 'rubygems'
-require 'bundler'
-require 'yaml'
-require 'json'
-require 'pathname'
-require 'ostruct'
-require 'erb'
-require 'etc'
-require 'timeout'
-require 'logger'
-require 'delegate'
-
-if ENV['RACK_ENV'] == 'development'
-  Bundler.require(:default, :development)
-else
-  Bundler.require(:default)
-end
-
-# Shared activesupport libraries
-require 'active_support/core_ext/hash/keys'
-
-# Ensure ApplicationModel::ValidationError is defined in advance
-require 'active_model/validations.rb'
-
-lib = File.expand_path('../lib', __dir__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-
-require 'flight_job_script_api'
-
-# Ensures the shared secret exists
-FlightJobScriptAPI.config.auth_decoder
-
-require_relative '../app'

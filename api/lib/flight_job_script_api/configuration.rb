@@ -60,6 +60,12 @@ module FlightJobScriptAPI
         transform: relative_to(root_path)
       },
       {
+        name: 'internal_data_dir',
+        env_var: true,
+        default: 'var/lib',
+        transform: relative_to(root_path)
+      },
+      {
         name: 'scheduler_command',
         env_var: true,
         default: 'sbatch'
