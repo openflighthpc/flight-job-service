@@ -499,7 +499,9 @@ Content-Type: application/vnd.api+json
     "id": STRING,               # REQUIRED - The job's ID
     "attributes":{
       "success": BOOLEAN,       # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
-      "createdAt": DATETIME     # REQUIRED - The date-time the job was created
+      "createdAt": DATETIME,    # REQUIRED - The date-time the job was created
+      "stdout_path": STRING,    # RECOMMENDED - The path where the job's STDOUT was redirected
+      "stderr_path": STRING,    # RECOMMENDED - The path where the job's STDERR was redirected
     },
     "links": {
       "self": "/v0/history/jobs/:id"
