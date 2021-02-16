@@ -32,5 +32,14 @@
 #
 # Additional "links" MAY be provided as a form of loose coupling
 class JobSerializer < ApplicationSerializer
+  module SharedSubmissionAttributes
+    extend ActiveSupport::Concern
+
+    included do
+      attribute(:success) { object.successful? }
+    end
+  end
+
   include HistorySerializerHelper
+  include SharedSubmissionAttributes
 end

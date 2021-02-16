@@ -27,6 +27,12 @@
 #==============================================================================
 
 class Job < ApplicationModel
+  METADATA_KEYS = ['exitstatus', 'stdout', 'stderr', 'script']
+
+  def self.mutexes
+    @mutexes ||= Hash.new { |h, k| h[k] = Mutex.new }
+  end
+
   def self.metadata_path(user, id)
     File.join(FlightJobScriptAPI.config.internal_data_dir, user, id, 'metadata.yaml')
   end
@@ -43,9 +49,11 @@ class Job < ApplicationModel
       return nil
     end
 
+    data = (YAML.load(File.read(path)) || {}).slice(*METADATA_KEYS)
     job = new(
       user: match['user'],
-      id: match['id']
+      id: match['id'],
+      **data.map { |k, v| [k.to_sym, v] }.to_h
     )
 
     # Ensure the job is valid
@@ -65,7 +73,7 @@ class Job < ApplicationModel
   end
 
   attr_reader :script
-  attr_accessor :id, :user
+  attr_accessor :id, :user, *METADATA_KEYS
 
   validates :id, :user, presence: true
 
@@ -84,6 +92,11 @@ class Job < ApplicationModel
     File.exists? metadata_path
   end
 
+  def successful?
+    return nil if exitstatus.nil?
+    exitstatus == 0
+  end
+
   def script=(script)
     if @script
       errors.add(:script, 'can not be changed')
@@ -96,46 +109,83 @@ class Job < ApplicationModel
     @metadata_path ||= self.class.metadata_path(user, id)
   end
 
+  def to_h
+    {
+      'script' => script.id,
+      'stdout' => stdout,
+      'stderr' => stderr,
+      'exitstatus' => exitstatus
+    }
+  end
+
   def submit
-    FileUtils.mkdir_p File.dirname(metadata_path)
-    FileUtils.touch metadata_path
+    # Establish pipes for stdout/stderr
+    # NOTE: Must be first due to the ensure block
+    out_read, out_write = IO.pipe
+    err_read, err_write = IO.pipe
 
-    pid = Kernel.fork do
-      # Establish the command
-      cmd = [
-        FlightJobScriptAPI.config.submit_script_path,
-        script.script_path
-      ]
-      FlightJobScriptAPI.logger.info("Submitting Job: #{id}")
-      FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
+    self.class.mutexes[id].synchronize do
+      # Persist the job
+      FileUtils.mkdir_p File.dirname(metadata_path)
+      File.write metadata_path, YAML.dump(to_h)
 
-      # Become the user
-      passwd = Etc.getpwnam(script.user)
-      Process::Sys.setgid(passwd.gid)
-      Process::Sys.setuid(passwd.uid)
-      Process.setsid
+      # Launch the submission process
+      pid = Kernel.fork do
+        # Close the read pipes
+        out_read.close
+        err_read.close
 
-      # Execute the command
-      env = {
-        'PATH' => FlightJobScriptAPI.app.config.command_path,
-        'HOME' => passwd.dir,
-        'USER' => script.user,
-        'LOGNAME' => script.user
-      }
-      Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true, chdir: passwd.dir)
-    end
+        # Establish the command
+        cmd = [
+          FlightJobScriptAPI.config.submit_script_path,
+          script.script_path
+        ]
+        FlightJobScriptAPI.logger.info("Submitting Job: #{id}")
+        FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
 
-    # Run the command
-    begin
-      _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
-        Process.wait2(pid)
+        # Become the user
+        passwd = Etc.getpwnam(script.user)
+        Process::Sys.setgid(passwd.gid)
+        Process::Sys.setuid(passwd.uid)
+        Process.setsid
+
+        # Execute the command
+        env = {
+          'PATH' => FlightJobScriptAPI.app.config.command_path,
+          'HOME' => passwd.dir,
+          'USER' => script.user,
+          'LOGNAME' => script.user
+        }
+        Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true,
+                    chdir: passwd.dir, out: out_write, err: err_write)
       end
-    rescue Timeout::Error
-      Process.kill('TERM', pid)
-      retry
-    end
 
-    # Report back if it was successful
-    status.success?
+      # Close the write pipes
+      out_write.close
+      err_write.close
+
+      # Run the command
+      begin
+        _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
+          Process.wait2(pid)
+        end
+      rescue Timeout::Error
+        Process.kill('TERM', pid)
+        retry
+      end
+
+      # set the status/stdout/stderr
+      self.exitstatus = status.exitstatus
+      self.stdout = out_read.read
+      self.stderr = err_read.read
+
+      # Save the metadata
+      File.write(metadata_path, YAML.dump(to_h))
+    end
+  ensure
+    out_read.close unless out_read.closed?
+    out_write.close unless out_write.closed?
+    err_read.close unless err_read.closed?
+    err_write.close unless err_write.closed?
   end
 end

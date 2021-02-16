@@ -27,5 +27,7 @@
 #==============================================================================
 
 class SubmissionSerializer < ApplicationSerializer
+  include JobSerializer::SharedSubmissionAttributes
+
   has_one :script
 end
