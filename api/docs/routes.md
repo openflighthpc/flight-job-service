@@ -2,6 +2,8 @@
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [BCP 14](https://tools.ietf.org/html/bcp14) [[RFC2119](https://tools.ietf.org/html/rfc2119)] [[RFC8174](https://tools.ietf.org/html/rfc8174)] when, and only when, they appear in all capitals, as shown here.
 
+All `DATETIME` fields SHALL use the date-time format described in [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.6).
+
 ## Authentication
 
 All request SHOULD set the `Authorization` using the `Bearer` authentication strategy with there issued `jwt`. Please contact your system administrator to be issued with a token.
@@ -434,7 +436,8 @@ Content-Type: application/vnd.api+json
     "type": "submissions",      # REQUIRED - Specifies a submission has been created
     "id": STRING,               # REQUIRED - The ID of the submission
     "attributes":{
-      "success": BOOLEAN        # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
+      "success": BOOLEAN,       # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
+      "createdAt": DATETIME     # REQUIRED - The date-time the submission was created
     },
     "links": {
       "self": "/v0/submissions/:id"
@@ -495,7 +498,8 @@ Content-Type: application/vnd.api+json
     "type": "jobs",             # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The job's ID
     "attributes":{
-      "success": BOOLEAN        # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
+      "success": BOOLEAN,       # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
+      "createdAt": DATETIME     # REQUIRED - The date-time the job was created
     },
     "links": {
       "self": "/v0/history/jobs/:id"
