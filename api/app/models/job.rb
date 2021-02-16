@@ -27,15 +27,19 @@
 #==============================================================================
 
 class Job < ApplicationModel
-  METADATA_KEYS = ['exitstatus', 'stdout', 'stderr', 'script_id', 'created_at', 'scheduler_id']
+  METADATA_KEYS = [
+    'exitstatus', 'stdout', 'stderr', 'script_id', 'created_at', 'scheduler_id',
+    'stdout_path', 'stderr_path'
+  ]
 
   SUBMIT_RESPONSE_SCHEMA = JSONSchemer.schema({
     "type" => "object",
     "additionalProperties" => false,
-    "required" => ["id"],
+    "required" => ["id", "stdout", "stderr"],
     "properties" => {
       "id" => { "type" => "string" },
-      "status" => { "status" => "string" }
+      "stdout" => { "type" => "string" },
+      "stderr" => { "type" => "string" }
     }
   })
 
@@ -184,6 +188,14 @@ class Job < ApplicationModel
       self.stdout = out_read.read
       self.stderr = err_read.read
 
+      FlightJobScriptAPI.logger.debug <<~LOG
+        STATUS: #{exitstatus}
+        STDOUT:
+        #{stdout}
+        STDERR:
+        #{stderr}
+      LOG
+
       # Parse the STDOUT if exited zero
       if self.exitstatus == 0
         begin
@@ -191,6 +203,8 @@ class Job < ApplicationModel
           errors = SUBMIT_RESPONSE_SCHEMA.validate(data).to_a
           if errors.empty?
             self.scheduler_id = data['id']
+            self.stdout_path = data['stdout']
+            self.stderr_path = data['stderr']
           else
             FlightJobScriptAPI.logger.error "The job output is invalid: #{id}" do
               JSON.pretty_generate(errors)
