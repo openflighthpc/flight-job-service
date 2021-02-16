@@ -89,7 +89,7 @@ POST /render/:id
 Test whether the provided credentials are valid
 
 ```
-GET /authenticates/user
+GET /v0/authenticates/user
 Authorization: Beaer <jwt>
 Accept: application/vnd.api+json
 
@@ -116,7 +116,7 @@ Content-Type: application/vnd.api+json
 Returns a list of all known `templates`
 
 ```
-GET /templates
+GET /v0/templates
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -140,7 +140,7 @@ Content-Type: application/vnd.api+json
 Returns the `template` given by the `id`. The returned object is referred to as a `TemplateResource` within this document.
 
 ```
-GET /templates/:id
+GET /v0/templates/:id
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -180,7 +180,7 @@ Content-Type: application/vnd.api+json
 Return all the `question` resources associated with the given `template` by `template_id`
 
 ```
-GET /templates/:template_id
+GET /v0/templates/:template_id
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -230,7 +230,7 @@ Content-Type: application/vnd.api+json
 Return a list of all `scripts` for the given user.
 
 ```
-GET /scripts
+GET /v0/scripts
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -253,7 +253,7 @@ Return the same list with all the related templates.
 NOTE: Templates which the user has not used will not be included in the response
 
 ```
-GET /scripts?include=template
+GET /v0/scripts?include=template
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -279,12 +279,12 @@ Content-Type: application/vnd.api+json
 Return the `script` given by the `id`. The returned object is referred to as a `ScriptResource` object within this document.
 
 ```
-get /scripts/:id
-authorization: basic <base64 username:password>
-accept: application/vnd.api+json
+GET /v0/scripts/:id
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
 
-http/2 200 ok
-content-type: application/vnd.api+json
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
 {
   "data": {                     # REQUIRED - The ScreiptResource
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
@@ -318,7 +318,7 @@ NOTE: All `script` SHOULD have a related `template`, but this is not guaranteed.
 
 ```
 # Retrieving the related template
-GET /scripts/:id?include=template
+GET /v0/scripts/:id?include=template
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -357,7 +357,7 @@ Content-Type: application/vnd.api+json
 
 
 # When the related template is missing
-GET /scripts/:id?include=template
+GET /v0/scripts/:id?include=template
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -396,7 +396,7 @@ Content-Type: application/vnd.api+json
 Permanently remove a script
 
 ```
-DELETE /scripts/:id
+DELETE /v0/scripts/:id
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -408,7 +408,7 @@ HTTP/2 204 No Content
 Submit an existing script to the scheduler. Note this route MAY return `503 Service Unavailable` due to the underlining system command failing.
 
 ```
-POST /submissions
+POST /v0/submissions
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 Content-Type: application/vnd.api+json
@@ -464,6 +464,30 @@ HTTP/2 503 Service Unavailable
 }
 ```
 
+## GET - /history/jobs
+
+Return a list of previously submitted jobs
+
+```
+GET /v0/history/jobs
+Authorization: Bearer <jwt>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": [
+    JobResource,
+    ...
+  ],
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
 ## GET - /render/:template_id
 
 Renders the template against the provided date and saves it to the filesystem. Returns the path to the rendered script.
@@ -478,7 +502,7 @@ NOTE: This route does not conform the JSON:API standard and behaves slightly dif
 
 ```
 # With x-www-form-urlencoded body
-GET /render/:template_id
+GET /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: x-www-form-urlencoded
 Accept: text/plain
@@ -490,7 +514,7 @@ Content-Type: text/plain
 
 
 # With application/json body
-GET /render/:template_id
+GET /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: application/json
 Accept: text/plain
@@ -505,7 +529,7 @@ Content-Type: text/plain
 
 
 # When the template fails to render
-GET /render/:template_id
+GET /v0/render/:template_id
 Authorization: Bearer <jwt>
 Accept: text/plain
 
@@ -513,7 +537,7 @@ HTPP/2 422 Unprocessable Entity
 
 
 # With invalid credentials
-GET /render/:template_id
+GET /v0/render/:template_id
 Authorization: Bearer <jwt>
 Accept: text/plain
 
@@ -521,7 +545,7 @@ HTPP/2 403 Forbidden
 
 
 # Without credentials
-GET /render/:template_id
+GET /v0/render/:template_id
 Accept: text/plain
 
 HTTP/2 401 Unauthorized
