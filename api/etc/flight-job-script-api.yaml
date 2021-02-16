@@ -43,11 +43,11 @@
 # base_url: '/'
 
 #-------------------------------------------------------------------------------
-# Scheduler Command
-# Specify the command that will be used to start the submission
-# The environment variable flight_JOB_SCRIPT_API_scheduler_command takes precedence
+# Scheduler
+# Specify which scheduler should be used
+# The environment variable flight_JOB_SCRIPT_API_scheduler takes precedence
 #-------------------------------------------------------------------------------
-# scheduler_command: sbatch
+# scheduler: slurm
 
 #-------------------------------------------------------------------------------
 # Command PATH
@@ -74,6 +74,24 @@
 # absolute paths. The behaviour of overrides with relative paths is undefined.
 #-------------------------------------------------------------------------------
 # data_dir: /path/to/flight-job-script-api/usr/share
+
+#-------------------------------------------------------------------------------
+# Script Directory
+# Specify where scheduler script will be stored.
+# The environment variable FLIGHT_JOB_SCRIPT_API_SCRIPT_DIR takes precedence.
+#
+# The directory should have the following structure:
+# <scheduler>
+#   /submit.sh
+#   /monitor.sh
+#
+# The monitor and submit scripts must exist and be globally executable for the
+# selected scheduler.
+#
+# The default is relative to the install directory. All overrides should use
+# absolute paths. The behaviour of overrides with relative paths is undefined.
+#-------------------------------------------------------------------------------
+# script_dir: /path/to/flight-job-script-api/libexec
 
 #-------------------------------------------------------------------------------
 # Internal Data Directory

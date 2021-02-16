@@ -66,9 +66,15 @@ module FlightJobScriptAPI
         transform: relative_to(root_path)
       },
       {
-        name: 'scheduler_command',
+        name: 'script_dir',
         env_var: true,
-        default: 'sbatch'
+        default: 'libexec',
+        transform: relative_to(root_path)
+      },
+      {
+        name: 'scheduler',
+        env_var: true,
+        default: 'slurm'
       },
       {
         name: 'command_path',
@@ -94,6 +100,37 @@ module FlightJobScriptAPI
 
     def auth_decoder
       @auth_decoder ||= FlightAuth::Builder.new(shared_secret_path)
+    end
+
+    def submit_script_path
+      @submit_script_path ||= File.join(script_dir, scheduler, 'submit.sh')
+      @submit_script_path.tap do |path|
+        unless File.exists?(path)
+          raise ConfigError, <<~ERROR
+            The submit.sh script does not exist: #{path}
+          ERROR
+        end
+        unless [1, 5, 7].include?(File.stat(path).mode % 10)
+          raise ConfigError, <<~ERROR
+            The submit.sh script must be globally executable: #{path}
+          ERROR
+        end
+      end
+    end
+
+    def monitor_script_path
+      @monitor_script_path ||= File.join(script_dir, scheduler, 'monitor.sh').tap do |path|
+        unless File.exists?(path)
+          raise ConfigError, <<~ERROR
+            The monitor.sh script does not exist: #{path}
+          ERROR
+        end
+        unless [1, 5, 7].include?(File.stat(path).mode % 10)
+          raise ConfigError, <<~ERROR
+            The monitor.sh script must be globally executable: #{path}
+          ERROR
+        end
+      end
     end
   end
 end
