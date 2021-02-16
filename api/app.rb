@@ -214,11 +214,20 @@ class HistoryApp < Sinatra::Base
   include SharedJSONAPI
 
   resource 'jobs', pkre: /[[[:xdigit:]]-]+/ do
+    helpers do
+      def find(id)
+        path = Job.metadata_path(current_user, id)
+        File.exists?(path) ? Job.from_metadata_path(path) : nil
+      end
+    end
+
     index do
       Dir.glob(Job.metadata_path(current_user, '*')).map do |path|
         Job.from_metadata_path(path)
       end.reject(&:nil?)
     end
+
+    show
   end
 end
 
