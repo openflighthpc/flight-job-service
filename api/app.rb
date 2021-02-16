@@ -188,14 +188,14 @@ class App < Sinatra::Base
     helpers do
       def validate!
         resource.validate!
-        unless resource.run
+        unless resource.submit
           raise Sinja::ServiceUnavailable, 'could not schedule the script'
         end
       end
     end
 
     create do |attr|
-      sub = Submission.new
+      sub = Job.new
       [sub.id, sub]
     end
 
@@ -208,6 +208,13 @@ class App < Sinatra::Base
   end
 
   freeze_jsonapi
+end
+
+class ActiveApp < Sinatra::Base
+  include SharedJSONAPI
+
+  resource 'jobs' do
+  end
 end
 
 # NOTE: The render route is implemented independently because:
