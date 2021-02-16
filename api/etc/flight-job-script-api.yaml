@@ -65,14 +65,24 @@
 # command_timeout: 5
 
 #-------------------------------------------------------------------------------
-# Data Directory
-# Specify the directory for internal runtime data
+# Template Data Directory
+# Specify the directory where the templates will be stored.
 # The environment variable FLIGHT_JOB_SCRIPT_API_DATA_DIR takes precedence
 #
 # The default is relative to the install directory. All overrides should use
 # absolute paths. The behaviour of overrides with relative paths is undefined.
 #-------------------------------------------------------------------------------
 # data_dir: /path/to/flight-job-script-api/usr/share
+
+#-------------------------------------------------------------------------------
+# Internal Data Directory
+# Specify the directory for internal runtime data
+# The environment variable FLIGHT_JOB_SCRIPT_API_DATA_DIR takes precedence
+#
+# The default is relative to the install directory. All overrides should use
+# absolute paths. The behaviour of overrides with relative paths is undefined.
+#-------------------------------------------------------------------------------
+# internal_data_dir: /path/to/flight-job-script-api/var/lib
 
 #-------------------------------------------------------------------------------
 # Log Level
