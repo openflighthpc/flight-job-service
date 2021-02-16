@@ -188,9 +188,7 @@ class App < Sinatra::Base
     helpers do
       def validate!
         resource.validate!(:submit)
-        unless resource.submit
-          raise Sinja::ServiceUnavailable, 'could not schedule the script'
-        end
+        resource.submit
       end
     end
 
