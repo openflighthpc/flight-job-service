@@ -37,6 +37,7 @@ class JobSerializer < ApplicationSerializer
 
     included do
       attribute(:success) { object.successful? }
+      attributes :created_at
     end
   end
 
