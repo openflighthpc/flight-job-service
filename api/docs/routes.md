@@ -407,8 +407,6 @@ HTTP/2 204 No Content
 
 Submit an existing script to the scheduler. Note this route MAY return `503 Service Unavailable` due to the underlining system command failing.
 
-NOTE: This end point returns a resource of types `jobs` deliberately. This provides an integration point between the templating and active jobs APIs.
-
 ```
 POST /submissions
 Authorization: Bearer <jwt>
@@ -432,10 +430,17 @@ HTTP/2 201 Created
 Content-Type: application/vnd.api+json
 {
   "data": {
-    "type": "jobs",             # REQUIRED - Specifies a job has been created
+    "type": "submissions",      # REQUIRED - Specifies a submission has been created
     "id": STRING,               # REQUIRED - The ID of the submission
     "links": {
-      "self": "/v0/jobs/:id"
+      "self": "/v0/submissions/:id"
+    },
+    "relationships": {
+      "script": {
+        "links": {
+          "related": "/v0/submissions/:id/script"
+        }
+      }
     }
   },
   "jsonapi": {

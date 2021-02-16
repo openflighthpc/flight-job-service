@@ -28,18 +28,27 @@
 
 class Job < ApplicationModel
   attr_reader :script
+  attr_writer :id, :user
 
   validates :script, presence: true
 
-  validate do
-    next if script&.valid?
-    # NOTE: This is a bit of a white-lie, the script could exist but is otherwise
-    # invalid. However the API treats scripts in this state as non-existent
-    errors.add(:script, 'does not exist')
+  validate on: :submit do
+    script_valid = script&.valid?
+    if script_valid && submitted?
+      errors.add(:submitted, 'the job has already been submitted')
+    elsif ! script_valid
+      # NOTE: This is a bit of a white-lie, the script could exist but is otherwise
+      # invalid. However the API treats scripts in this state as non-existent
+      errors.add(:script, 'does not exist')
+    end
   end
 
   def id
     @id ||= SecureRandom.uuid
+  end
+
+  def submitted?
+    File.exists? metadata_path
   end
 
   def script=(script)
@@ -50,7 +59,22 @@ class Job < ApplicationModel
     end
   end
 
-  def run
+  # Default the user to be the same as the associated script
+  # This makes restoring the Job from cache easier
+  def user
+    @user ||= script&.user
+  end
+
+  def metadata_path
+    @metadata_path ||= begin
+      File.join(FlightJobScriptAPI.config.internal_data_dir, user, id, 'metadata.yaml')
+    end
+  end
+
+  def submit
+    FileUtils.mkdir_p File.dirname(metadata_path)
+    FileUtils.touch metadata_path
+
     pid = Kernel.fork do
       # Establish the command
       cmd = [
