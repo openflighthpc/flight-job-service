@@ -46,68 +46,76 @@ module Sinja
   end
 end
 
+module SharedJSONAPI
+  extend ActiveSupport::Concern
+
+  included do
+    register Sinatra::JSONAPI
+    helpers Sinatra::Cookies
+
+    helpers do
+      def auth
+        @auth ||= FlightJobScriptAPI::Auth.build(
+          cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
+          env['HTTP_AUTHORIZATION'],
+        )
+      end
+
+      def current_user
+        auth.username
+      end
+
+      def role
+        if auth.valid?
+          :user
+        elsif auth.forbidden?
+          :forbidden
+        else
+          raise Sinja::UnauthorizedError, 'Could not authenticate your authorization credentials'
+        end
+      end
+    end
+
+    configure_jsonapi do |c|
+      c.validation_exceptions << ActiveModel::ValidationError
+      c.validation_formatter = ->(e) do
+        e.model.errors.messages.map do |src, msg|
+          [src, msg.join(', ')]
+        end
+      end
+
+      # Resource roles
+      c.default_roles = {
+        index: :user,
+        show: :user,
+        create: :user,
+        update: :user,
+        destroy: :user
+      }
+
+      # To-one relationship roles
+      c.default_has_one_roles = {
+        pluck: :user,
+        prune: :user,
+        graft: :user
+      }
+
+      # To-many relationship roles
+      c.default_has_many_roles = {
+        fetch: :user,
+        clear: :user,
+        replace: :user,
+        merge: :user,
+        subtract: :user
+      }
+    end
+  end
+end
+
 # The base JSON:API for most interactions. Mounted in rack under
 # /:version
 class App < Sinatra::Base
-  register Sinatra::JSONAPI
-  helpers Sinatra::Cookies
-
-  helpers do
-    def auth
-      @auth ||= FlightJobScriptAPI::Auth.build(
-        cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
-        env['HTTP_AUTHORIZATION'],
-      )
-    end
-
-    def current_user
-      auth.username
-    end
-
-    def role
-      if auth.valid?
-        :user
-      elsif auth.forbidden?
-        :forbidden
-      else
-        raise Sinja::UnauthorizedError, 'Could not authenticate your authorization credentials'
-      end
-    end
-  end
-
-  configure_jsonapi do |c|
-    c.validation_exceptions << ActiveModel::ValidationError
-    c.validation_formatter = ->(e) do
-      e.model.errors.messages.map do |src, msg|
-        [src, msg.join(', ')]
-      end
-    end
-
-    # Resource roles
-    c.default_roles = {
-      index: :user,
-      show: :user,
-      create: :user,
-      update: :user,
-      destroy: :user
-    }
-
-    # To-one relationship roles
-    c.default_has_one_roles = {
-      pluck: :user,
-      prune: :user,
-      graft: :user
-    }
-
-    # To-many relationship roles
-    c.default_has_many_roles = {
-      fetch: :user,
-      clear: :user,
-      replace: :user,
-      merge: :user,
-      subtract: :user
-    }
-  end
+  include SharedJSONAPI
 
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
