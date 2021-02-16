@@ -27,7 +27,17 @@
 #==============================================================================
 
 class Job < ApplicationModel
-  METADATA_KEYS = ['exitstatus', 'stdout', 'stderr', 'script_id', 'created_at']
+  METADATA_KEYS = ['exitstatus', 'stdout', 'stderr', 'script_id', 'created_at', 'scheduler_id']
+
+  SUBMIT_RESPONSE_SCHEMA = JSONSchemer.schema({
+    "type" => "object",
+    "additionalProperties" => false,
+    "required" => ["id"],
+    "properties" => {
+      "id" => { "type" => "string" },
+      "status" => { "status" => "string" }
+    }
+  })
 
   def self.mutexes
     @mutexes ||= Hash.new { |h, k| h[k] = Mutex.new }
@@ -93,8 +103,7 @@ class Job < ApplicationModel
   end
 
   def successful?
-    return nil if exitstatus.nil?
-    exitstatus == 0
+    ! scheduler_id.nil?
   end
 
   def script=(script)
@@ -174,6 +183,24 @@ class Job < ApplicationModel
       self.exitstatus = status.exitstatus
       self.stdout = out_read.read
       self.stderr = err_read.read
+
+      # Parse the STDOUT if exited zero
+      if self.exitstatus == 0
+        begin
+          data = JSON.parse(self.stdout.split("\n").last)
+          errors = SUBMIT_RESPONSE_SCHEMA.validate(data).to_a
+          if errors.empty?
+            self.scheduler_id = data['id']
+          else
+            FlightJobScriptAPI.logger.error "The job output is invalid: #{id}" do
+              JSON.pretty_generate(errors)
+            end
+          end
+        rescue
+          FlightJobScriptAPI.logger.error "Failed to parse the output for job: #{id}"
+          FlightJobScriptAPI.logger.debug($!.message)
+        end
+      end
 
       # Save the metadata
       File.write(metadata_path, YAML.dump(to_h))
