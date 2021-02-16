@@ -187,7 +187,7 @@ class App < Sinatra::Base
   resource :submissions, pkre: /[[[:xdigit:]]-]+/ do |attr|
     helpers do
       def validate!
-        resource.validate!
+        resource.validate!(:submit)
         unless resource.submit
           raise Sinja::ServiceUnavailable, 'could not schedule the script'
         end
@@ -195,7 +195,7 @@ class App < Sinatra::Base
     end
 
     create do |attr|
-      sub = Job.new
+      sub = Submission.new
       [sub.id, sub]
     end
 
