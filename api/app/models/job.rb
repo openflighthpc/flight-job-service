@@ -103,9 +103,10 @@ class Job < ApplicationModel
     pid = Kernel.fork do
       # Establish the command
       cmd = [
-        FlightJobScriptAPI.config.scheduler_command,
+        FlightJobScriptAPI.config.submit_script_path,
         script.script_path
       ]
+      FlightJobScriptAPI.logger.info("Submitting Job: #{id}")
       FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
 
       # Become the user
