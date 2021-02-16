@@ -378,7 +378,8 @@ HTTP/2 204 No Content
 
 ## POST - /submissions
 
-Submit an existing script to the scheduler. Note this route MAY return `503 Service Unavailable` due to the underlining system command failing.
+Submit an existing script to the scheduler.
+NOTE: The API will respond 201 create if it successfully makes a record of the job. This does not mean the job was submitted correctly. Check the `success` flag to determine if the scheduler accepted the job correctly.
 
 ```
 POST /v0/submissions
@@ -405,6 +406,9 @@ Content-Type: application/vnd.api+json
   "data": {
     "type": "submissions",      # REQUIRED - Specifies a submission has been created
     "id": STRING,               # REQUIRED - The ID of the submission
+    "attributes":{
+      "success": BOOLEAN        # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
+    },
     "links": {
       "self": "/v0/submissions/:id"
     },
@@ -420,19 +424,6 @@ Content-Type: application/vnd.api+json
     "version": "1.0"
   },
   "included": [
-  ]
-}
-
-# When the underlining system command fails
-HTTP/2 503 Service Unavailable
-{
-  "errors": [
-    {
-      "id": ":id",
-      "title": "Service Unavailable",
-      "detail": "could not schedule the script",
-      "status": "503"
-    }
   ]
 }
 ```
@@ -476,7 +467,8 @@ Content-Type: application/vnd.api+json
   "data": {                     # REQUIRED - The JobResource
     "type": "jobs",             # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The job's ID
-    "attributes": {
+    "attributes":{
+      "success": BOOLEAN        # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
     },
     "links": {
       "self": "/v0/history/jobs/:id"
