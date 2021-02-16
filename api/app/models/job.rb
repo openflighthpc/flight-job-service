@@ -27,7 +27,7 @@
 #==============================================================================
 
 class Job < ApplicationModel
-  METADATA_KEYS = ['exitstatus', 'stdout', 'stderr', 'script']
+  METADATA_KEYS = ['exitstatus', 'stdout', 'stderr', 'script_id', 'created_at']
 
   def self.mutexes
     @mutexes ||= Hash.new { |h, k| h[k] = Mutex.new }
@@ -101,6 +101,7 @@ class Job < ApplicationModel
     if @script
       errors.add(:script, 'can not be changed')
     else
+      @script_id = script.id
       @script = script
     end
   end
@@ -110,12 +111,7 @@ class Job < ApplicationModel
   end
 
   def to_h
-    {
-      'script' => script.id,
-      'stdout' => stdout,
-      'stderr' => stderr,
-      'exitstatus' => exitstatus
-    }
+    METADATA_KEYS.map { |k| [k, send(k)] }.to_h
   end
 
   def submit

@@ -193,7 +193,7 @@ class App < Sinatra::Base
     end
 
     create do |attr|
-      sub = Submission.new(id: SecureRandom.uuid, user: current_user)
+      sub = Submission.new(id: SecureRandom.uuid, user: current_user, created_at: DateTime.now.rfc3339)
       [sub.id, sub]
     end
 
