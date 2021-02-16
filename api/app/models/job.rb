@@ -26,7 +26,7 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class Submission < ApplicationModel
+class Job < ApplicationModel
   attr_reader :script
 
   validates :script, presence: true
