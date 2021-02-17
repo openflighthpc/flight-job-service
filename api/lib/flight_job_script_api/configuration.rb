@@ -89,6 +89,11 @@ module FlightJobScriptAPI
         default: 5
       },
       {
+        name: 'monitor_interval',
+        env_var: false,
+        default: 300
+      },
+      {
         name: 'log_level',
         env_var: true,
         default: 'info'

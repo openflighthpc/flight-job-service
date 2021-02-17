@@ -78,4 +78,25 @@ FlightJobScriptAPI.config.shared_secret
 FlightJobScriptAPI.config.submit_script_path
 FlightJobScriptAPI.config.monitor_script_path
 
+# Start the timer task unless running the tests
+unless ENV['RACK_ENV'] == 'test'
+  FlightJobScriptAPI.logger.info "Starting monitor thread"
+  opts = { execution_interval: FlightJobScriptAPI.config.monitor_interval }
+  Concurrent::TimerTask.new(**opts) do
+    FlightJobScriptAPI.logger.info "Running monitor tasks"
+    Dir.glob(Job.active_path('*', '*')).each do |path|
+      FlightJobScriptAPI.logger.debug("Dectected active job: #{path}")
+      job = Job.from_active_path(path)
+      if job.nil?
+        FlightJobScriptAPI.logger.error "Could not resolve active job: #{path}"
+      elsif job.valid?(:monitor)
+        job.monitor
+      else
+        FlightJobScriptAPI.logger.error "Job not in monitorable state: #{job.id}"
+        FileUtils.rm_f path
+      end
+    end
+  end.execute
+end
+
 require_relative '../app'

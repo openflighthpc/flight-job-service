@@ -98,6 +98,7 @@ PLATFORMS
 DEPENDENCIES
   activemodel
   activesupport
+  concurrent-ruby
   factory_bot
   fakefs
   json_schemer
