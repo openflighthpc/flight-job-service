@@ -27,6 +27,8 @@
 #==============================================================================
 
 class Job < ApplicationModel
+  STATES = ['PENDING_SUBMISSION', 'PENDING', 'RUNNING', 'FAILED', 'COMPLETED', 'UNKNOWN']
+
   METADATA_KEYS = [
     'exitstatus', 'submit_stdout', 'submit_stderr', 'script_id', 'created_at',
     'scheduler_id', 'stdout_path', 'stderr_path', 'state'
@@ -128,6 +130,15 @@ class Job < ApplicationModel
     else
       @script_id = script.id
       @script = script
+    end
+  end
+
+  def state=(input)
+    if STATES.include?(input)
+      @state = input
+    else
+      FlightJobScriptAPI.logger.error("Received unknown state: #{input} (job: #{id})")
+      @state = 'UNKNOWN'
     end
   end
 
