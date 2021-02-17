@@ -36,6 +36,7 @@
 # Ensure jq is on the path
 set -e
 which "jq"
+set +e
 
 # Specify the template for the JSON response
 read -r -d '' template <<'TEMPLATE' || true
@@ -60,7 +61,6 @@ if [[ "$exit_status" -eq 0 ]]; then
   end_time=$(echo "$control" | grep -E ".*EndTime=" | sed "s/.*EndTime=\([^ ]*\).*/\1/g" )
 
   # Confirm times are in the right format and reject Unknown
-  set +e
   format='^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d$'
   if echo "$start_time" | grep -P "$format" ; then
     start_time="$start_time$(date +%:z)"
@@ -72,8 +72,6 @@ if [[ "$exit_status" -eq 0 ]]; then
   else
     end_time=""
   fi
-  set -e
-
 elif [[ "$control" == "slurm_load_jobs error: Invalid job id specified" ]]; then
   state="UNKNOWN"
   start_time=''
