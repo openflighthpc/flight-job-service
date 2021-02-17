@@ -73,10 +73,7 @@ if [[ "$exit_status" -eq 0 ]]; then
   set -e
 
 elif [[ "$control" == "slurm_load_jobs error: Invalid job id specified" ]]; then
-  # The job either was never submitted correctly or slurm has cleaned up the
-  # response before it could be fetched
-  # NOTE: Should this be an UNKNOWN terminal state?
-  state="FAILED"
+  state="UNKNOWN"
   start_time=''
   end_time=''
 else
