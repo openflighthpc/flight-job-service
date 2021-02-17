@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+#!/bin/bash
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
 #
@@ -26,29 +26,38 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-module FlightJobScriptAPI
-  autoload(:Configuration, 'flight_job_script_api/configuration')
-  autoload(:DefaultsOpenStruct, 'flight_job_script_api/defaults_open_struct')
-  autoload(:RenderContext, 'flight_job_script_api/render_context')
+#-------------------------------------------------------------------------------
+# WARNING - README
+#
+# This is an internally managed file, any changes maybe lost on the next update!
+# Please clone the entire 'slurm' directory in order to modify this file.
+#-------------------------------------------------------------------------------
 
-  class UnexpectedError < StandardError; end
+# Ensure jq is on the path
+set -e
+which "jq"
 
-  class << self
-    def app
-      # XXX: Eventually extract this to a Application object when the need arises
-      @app ||= Struct.new(:config).new(
-        Configuration.load
-      )
-    end
+# Specify the template for the JSON response
+read -r -d '' template <<'TEMPLATE' || true
+{
+  state: ($state)
+}
+TEMPLATE
 
-    def config
-      app.config
-    end
+# Fetch the state of the job
+control=$(scontrol show job "$1" 2>&1)
+exit_status="$?"
+if [[ "$exit_status" -eq 0 ]]; then
+  state=$(echo "$control" | grep -E "\s*JobState=" | sed "s/^\s*JobState=\([^ ]*\).*/\1/g")
+elif [[ "$control" == "slurm_load_jobs error: Invalid job id specified" ]]; then
+  # The job either was never submitted correctly or slurm has cleaned up the
+  # response before it could be fetched
+  # NOTE: Should this be an UNKNOWN terminal state?
+  state="FAILED"
+else
+  echo "$control" >&2
+  exit "$exit_status"
+fi
 
-    def logger
-      @logger ||= Logger.new($stdout, level: config.log_level.to_sym)
-    end
-
-    alias_method :load_configuration, :config
-  end
-end
+# Render and return the payload
+echo '{}' | jq --arg state "$state" "$template" | tr -d "\n"

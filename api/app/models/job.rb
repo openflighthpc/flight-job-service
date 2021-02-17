@@ -28,8 +28,8 @@
 
 class Job < ApplicationModel
   METADATA_KEYS = [
-    'exitstatus', 'stdout', 'stderr', 'script_id', 'created_at', 'scheduler_id',
-    'stdout_path', 'stderr_path'
+    'exitstatus', 'submit_stdout', 'submit_stderr', 'script_id', 'created_at',
+    'scheduler_id', 'stdout_path', 'stderr_path', 'state'
   ]
 
   SUBMIT_RESPONSE_SCHEMA = JSONSchemer.schema({
@@ -40,6 +40,15 @@ class Job < ApplicationModel
       "id" => { "type" => "string" },
       "stdout" => { "type" => "string" },
       "stderr" => { "type" => "string" }
+    }
+  })
+
+  MONITOR_RESPONSE_SCHEMA = JSONSchemer.schema({
+    "type" => "object",
+    "additionalProperties" => false,
+    "required" => ["state"],
+    "properties" => {
+      "state" => { "type" => "string" }
     }
   })
 
@@ -91,6 +100,9 @@ class Job < ApplicationModel
 
   validates :id, :user, presence: true
 
+  # Ensure the script_id has been set when monitoring a job
+  validates :script_id, presence: true, on: :monitor
+
   validate on: :submit do
     script_valid = script&.valid?
     if script_valid && submitted?
@@ -128,97 +140,143 @@ class Job < ApplicationModel
   end
 
   def submit
+    self.class.mutexes[id].synchronize do
+      # Persist the job
+      self.state = 'PENDING_SUBMISSION'
+      FileUtils.mkdir_p File.dirname(metadata_path)
+      File.write metadata_path, YAML.dump(to_h)
+
+      FlightJobScriptAPI.logger.info("Submitting Job: #{id}")
+      cmd = [
+        FlightJobScriptAPI.config.submit_script_path,
+        script.script_path
+      ]
+
+      execute_command(*cmd) do |status, out, err|
+        # set the status/stdout/stderr
+        self.exitstatus = status.exitstatus
+        self.submit_stdout = out
+        self.submit_stderr = err
+
+        # Parser stdout on successful commands
+        process_output('submit', status, out) do |data|
+          self.scheduler_id = data['id']
+          self.stdout_path = data['stdout']
+          self.stderr_path = data['stderr']
+        end
+
+        # Save the metadata
+        File.write(metadata_path, YAML.dump(to_h))
+      end
+    end
+
+    # Run the monitor after submission
+    monitor
+  end
+
+  def monitor
+    FlightJobScriptAPI.logger.info("Monitoring Job: #{id}")
+    cmd = [FlightJobScriptAPI.config.monitor_script_path, scheduler_id]
+    execute_command(*cmd) do |status, stdout, stderr|
+      process_output('monitor', status, stdout) do |data|
+        self.class.mutexes[id].synchronize do
+          self.state = data['state']
+          File.write(metadata_path, YAML.dump(to_h))
+        end
+      end
+    end
+  end
+
+  private
+
+  def process_output(type, status, out)
+    schema = case type
+             when 'submit'
+               SUBMIT_RESPONSE_SCHEMA
+             when 'monitor'
+               MONITOR_RESPONSE_SCHEMA
+             else
+               raise UnexpectedError, "Unknown command type: #{type}"
+             end
+
+    if status.success?
+      string = out.split("\n").last
+      begin
+        data = JSON.parse(string)
+        errors = schema.validate(data).to_a
+        if errors.empty?
+          yield(data) if block_given?
+        else
+          FlightJobScriptAPI.logger.error("Invalid #{type} response for job: #{id}")
+          FlightJobScriptAPI.logger.debug(JSON.pretty_generate(errors))
+        end
+      rescue JSON::ParserError
+        FlightJobScriptAPI.logger.error("Failed to parse #{type} JSON for job: #{id}")
+        FlightJobScriptAPI.logger.debug($!.message)
+      end
+    else
+      FlightJobScriptAPI.logger.error("Failed to #{type} job: #{id}")
+    end
+  end
+
+  def execute_command(*cmd)
     # Establish pipes for stdout/stderr
     # NOTE: Must be first due to the ensure block
     out_read, out_write = IO.pipe
     err_read, err_write = IO.pipe
 
-    self.class.mutexes[id].synchronize do
-      # Persist the job
-      FileUtils.mkdir_p File.dirname(metadata_path)
-      File.write metadata_path, YAML.dump(to_h)
+    # Launch the submission process
+    pid = Kernel.fork do
+      # Close the read pipes
+      out_read.close
+      err_read.close
 
-      # Launch the submission process
-      pid = Kernel.fork do
-        # Close the read pipes
-        out_read.close
-        err_read.close
+      # Become the user
+      passwd = Etc.getpwnam(script.user)
+      Process::Sys.setgid(passwd.gid)
+      Process::Sys.setuid(passwd.uid)
+      Process.setsid
 
-        # Establish the command
-        cmd = [
-          FlightJobScriptAPI.config.submit_script_path,
-          script.script_path
-        ]
-        FlightJobScriptAPI.logger.info("Submitting Job: #{id}")
-        FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
-
-        # Become the user
-        passwd = Etc.getpwnam(script.user)
-        Process::Sys.setgid(passwd.gid)
-        Process::Sys.setuid(passwd.uid)
-        Process.setsid
-
-        # Execute the command
-        env = {
-          'PATH' => FlightJobScriptAPI.app.config.command_path,
-          'HOME' => passwd.dir,
-          'USER' => script.user,
-          'LOGNAME' => script.user
-        }
+      # Execute the command
+      FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
+      env = {
+        'PATH' => FlightJobScriptAPI.app.config.command_path,
+        'HOME' => passwd.dir,
+        'USER' => script.user,
+        'LOGNAME' => script.user
+      }
+      Bundler.with_unbundled_env do
         Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true,
                     chdir: passwd.dir, out: out_write, err: err_write)
       end
-
-      # Close the write pipes
-      out_write.close
-      err_write.close
-
-      # Run the command
-      begin
-        _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
-          Process.wait2(pid)
-        end
-      rescue Timeout::Error
-        Process.kill('TERM', pid)
-        retry
-      end
-
-      # set the status/stdout/stderr
-      self.exitstatus = status.exitstatus
-      self.stdout = out_read.read
-      self.stderr = err_read.read
-
-      FlightJobScriptAPI.logger.debug <<~LOG
-        STATUS: #{exitstatus}
-        STDOUT:
-        #{stdout}
-        STDERR:
-        #{stderr}
-      LOG
-
-      # Parse the STDOUT if exited zero
-      if self.exitstatus == 0
-        begin
-          data = JSON.parse(self.stdout.split("\n").last)
-          errors = SUBMIT_RESPONSE_SCHEMA.validate(data).to_a
-          if errors.empty?
-            self.scheduler_id = data['id']
-            self.stdout_path = data['stdout']
-            self.stderr_path = data['stderr']
-          else
-            FlightJobScriptAPI.logger.error "The job output is invalid: #{id}" do
-              JSON.pretty_generate(errors)
-            end
-          end
-        rescue
-          FlightJobScriptAPI.logger.error "Failed to parse the output for job: #{id}"
-          FlightJobScriptAPI.logger.debug($!.message)
-        end
-      end
-
-      # Save the metadata
-      File.write(metadata_path, YAML.dump(to_h))
     end
+
+    # Close the write pipes
+    out_write.close
+    err_write.close
+
+    # Run the command
+    begin
+      _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
+        Process.wait2(pid)
+      end
+    rescue Timeout::Error
+      Process.kill('TERM', pid)
+      retry
+    end
+
+    cmd_stdout = out_read.read
+    cmd_stderr = err_read.read
+
+    FlightJobScriptAPI.logger.debug <<~DEBUG
+      STATUS: #{status.exitstatus}
+      STDOUT:
+      #{cmd_stdout}
+      STDERR:
+      #{cmd_stderr}
+    DEBUG
+
+    yield(status, cmd_stdout, cmd_stderr)
   ensure
     out_read.close unless out_read.closed?
     out_write.close unless out_write.closed?
