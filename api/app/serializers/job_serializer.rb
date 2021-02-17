@@ -32,17 +32,7 @@
 #
 # Additional "links" MAY be provided as a form of loose coupling
 class JobSerializer < ApplicationSerializer
-  module SharedSubmissionAttributes
-    extend ActiveSupport::Concern
-
-    included do
-      attribute(:success) { object.successful? }
-      attributes :created_at
-    end
-  end
-
   include HistorySerializerHelper
-  include SharedSubmissionAttributes
 
-  attributes :stdout_path, :stderr_path, :state, :reason, :start_time, :end_time, :scheduler_id
+  attributes :created_at, :stdout_path, :stderr_path, :state, :reason, :start_time, :end_time, :scheduler_id
 end

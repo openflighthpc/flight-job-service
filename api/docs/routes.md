@@ -410,7 +410,6 @@ Content-Type: application/vnd.api+json
     "id": STRING,               # REQUIRED - The ID of the submission
     "attributes":{
       "success": BOOLEAN,       # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
-      "createdAt": DATETIME     # REQUIRED - The date-time the submission was created
     },
     "links": {
       "self": "/v0/submissions/:id"
@@ -471,7 +470,6 @@ Content-Type: application/vnd.api+json
     "type": "jobs",             # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The job's ID
     "attributes":{
-      "success": BOOLEAN,       # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
       "createdAt": DATETIME,    # REQUIRED - The date-time the job was created
       "schedulerId": "STRING",  # RECOMMENDED - The ID used by the underlining scheduler
       "stdoutPath": STRING,     # RECOMMENDED - The path where the job's STDOUT was redirected
