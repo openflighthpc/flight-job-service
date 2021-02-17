@@ -55,6 +55,9 @@ if [[ "$exit_status" -eq 0 ]]; then
   # Determine the state and reason
   state=$(echo "$control" | grep -E "\s*JobState=" | sed "s/^\s*JobState=\([^ ]*\).*/\1/g")
   reason=$(echo "$control" | grep -E "Reason=" | sed "s/.*Reason=\(.*\)\sDependency=.*/\1/g")
+  if [[ "$reason" == "None" ]]; then
+    reason=""
+  fi
 
   # Extract the times
   start_time=$(echo "$control" | grep -E ".*StartTime=" | sed "s/.*StartTime=\([^ ]*\).*/\1/g" )
