@@ -27,7 +27,8 @@
 #==============================================================================
 
 class Job < ApplicationModel
-  STATES = ['PENDING_SUBMISSION', 'PENDING', 'RUNNING', 'FAILED', 'COMPLETED', 'UNKNOWN']
+  TERMINAL_STATES = ['FAILED', 'COMPLETED', 'UNKNOWN']
+  STATES = ['PENDING_SUBMISSION', 'PENDING', 'RUNNING', *TERMINAL_STATES]
 
   METADATA_KEYS = [
     'exitstatus', 'submit_stdout', 'submit_stderr', 'script_id', 'created_at',
@@ -95,6 +96,15 @@ class Job < ApplicationModel
     @match_regex ||= Regexp.new(
       metadata_path('(?<user>[^/]+)', '(?<id>[^/]+)')
     )
+  end
+
+  def self.active_path(user, id)
+    File.expand_path('../active', metadata_path(user, id))
+  end
+
+  def self.from_active_path(path)
+    metadata_path = File.expand_path('../metadata.yaml', path)
+    from_metadata_path(metadata_path)
   end
 
   attr_reader :script
@@ -182,7 +192,7 @@ class Job < ApplicationModel
     end
 
     # Run the monitor after submission
-    monitor
+    monitor if valid?(:monitor)
   end
 
   def monitor
@@ -195,6 +205,13 @@ class Job < ApplicationModel
           File.write(metadata_path, YAML.dump(to_h))
         end
       end
+    end
+  ensure
+    active_path = self.class.active_path(user, id)
+    if TERMINAL_STATES.include?(self.state)
+      FileUtils.rm_f active_path
+    else
+      FileUtils.touch active_path
     end
   end
 
@@ -243,7 +260,7 @@ class Job < ApplicationModel
       err_read.close
 
       # Become the user
-      passwd = Etc.getpwnam(script.user)
+      passwd = Etc.getpwnam(user)
       Process::Sys.setgid(passwd.gid)
       Process::Sys.setuid(passwd.uid)
       Process.setsid
@@ -253,8 +270,8 @@ class Job < ApplicationModel
       env = {
         'PATH' => FlightJobScriptAPI.app.config.command_path,
         'HOME' => passwd.dir,
-        'USER' => script.user,
-        'LOGNAME' => script.user
+        'USER' => user,
+        'LOGNAME' => user
       }
       Bundler.with_unbundled_env do
         Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true,
