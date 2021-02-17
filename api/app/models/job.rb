@@ -32,7 +32,7 @@ class Job < ApplicationModel
 
   METADATA_KEYS = [
     'exitstatus', 'submit_stdout', 'submit_stderr', 'script_id', 'created_at',
-    'scheduler_id', 'stdout_path', 'stderr_path', 'state', "start_time", "end_time"
+    'scheduler_id', 'stdout_path', 'stderr_path', 'state', 'reason', "start_time", "end_time"
   ]
 
   SUBMIT_RESPONSE_SCHEMA = JSONSchemer.schema({
@@ -52,6 +52,7 @@ class Job < ApplicationModel
     "required" => ["state"],
     "properties" => {
       "state" => { "type" => "string" },
+      "reason" => { "type" => ["string", "null"] },
       "start_time" => { "type" => ["string", "null"], "format" => "date-time" },
       "end_time" => { "type" => ["string", "null"], "format" => "date-time" }
     }
@@ -209,6 +210,11 @@ class Job < ApplicationModel
           self.state = data['state']
           self.start_time = data['start_time'] if data['start_time']
           self.end_time = data['end_time'] if data['end_time']
+          if data['reason'] == ''
+            self.reason = nil
+          elsif data['reason']
+            self.reason = data['reason']
+          end
           File.write(metadata_path, YAML.dump(to_h))
         end
       end
