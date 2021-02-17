@@ -46,7 +46,7 @@ export function DashboardLogo() {
   };
 
   return (
-    <div class="branding-apps-dashboard-logo-wrapper">
+    <div className="branding-apps-dashboard-logo-wrapper">
       <img
         alt={logo.alt}
         className={classNames(
