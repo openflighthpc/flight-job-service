@@ -225,7 +225,10 @@ class HistoryApp < Sinatra::Base
       end.reject(&:nil?)
     end
 
-    show
+    show do
+      resource.monitor if resource.valid?(:monitor)
+      resource
+    end
   end
 end
 
