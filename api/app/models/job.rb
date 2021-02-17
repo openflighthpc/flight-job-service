@@ -32,7 +32,7 @@ class Job < ApplicationModel
 
   METADATA_KEYS = [
     'exitstatus', 'submit_stdout', 'submit_stderr', 'script_id', 'created_at',
-    'scheduler_id', 'stdout_path', 'stderr_path', 'state'
+    'scheduler_id', 'stdout_path', 'stderr_path', 'state', "start_time", "end_time"
   ]
 
   SUBMIT_RESPONSE_SCHEMA = JSONSchemer.schema({
@@ -51,7 +51,9 @@ class Job < ApplicationModel
     "additionalProperties" => false,
     "required" => ["state"],
     "properties" => {
-      "state" => { "type" => "string" }
+      "state" => { "type" => "string" },
+      "start_time" => { "type" => ["string", "null"], "format" => "date-time" },
+      "end_time" => { "type" => ["string", "null"], "format" => "date-time" }
     }
   })
 
@@ -205,6 +207,8 @@ class Job < ApplicationModel
       process_output('monitor', status, stdout) do |data|
         self.class.mutexes[id].synchronize do
           self.state = data['state']
+          self.start_time = data['start_time'] if data['start_time']
+          self.end_time = data['end_time'] if data['end_time']
           File.write(metadata_path, YAML.dump(to_h))
         end
       end
