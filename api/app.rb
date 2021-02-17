@@ -220,9 +220,17 @@ class HistoryApp < Sinatra::Base
     end
 
     index do
-      Dir.glob(Job.metadata_path(current_user, '*')).map do |path|
+      jobs = Dir.glob(Job.metadata_path(current_user, '*')).map do |path|
         Job.from_metadata_path(path)
       end.reject(&:nil?)
+
+      jobs.sort_by do |j|
+        if j.created_at.is_a? String
+          -DateTime.rfc3339(j.created_at).to_time.to_i
+        else
+          0
+        end
+      end
     end
 
     show do
