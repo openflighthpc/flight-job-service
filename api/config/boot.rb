@@ -76,6 +76,6 @@ FlightJobScriptAPI.config.shared_secret
 
 # Ensure the scripts exist
 FlightJobScriptAPI.config.submit_script_path
-# TOTDO: FlightJobScriptAPI.config.monitor_script_path
+FlightJobScriptAPI.config.monitor_script_path
 
 require_relative '../app'
