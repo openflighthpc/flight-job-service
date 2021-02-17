@@ -27,6 +27,7 @@
 #==============================================================================
 
 require 'sinatra/base'
+require 'sinatra/cookies'
 require 'sinatra/jsonapi'
 require_relative 'app/autoload'
 
@@ -49,10 +50,14 @@ end
 # /:version
 class App < Sinatra::Base
   register Sinatra::JSONAPI
+  helpers Sinatra::Cookies
 
   helpers do
     def auth
-      @auth ||= FlightJobScriptAPI::Auth.build(env['HTTP_AUTHORIZATION'])
+      @auth ||= FlightJobScriptAPI::Auth.build(
+        cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
+        env['HTTP_AUTHORIZATION'],
+      )
     end
 
     def current_user
@@ -216,7 +221,10 @@ end
 # /:version/render
 class RenderApp < Sinatra::Base
   before do
-    auth ||= FlightJobScriptAPI::Auth.build(env['HTTP_AUTHORIZATION'])
+    auth ||= FlightJobScriptAPI::Auth.build(
+      request.cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
+      env['HTTP_AUTHORIZATION'],
+    )
 
     if auth.valid?
       @current_user = auth.username

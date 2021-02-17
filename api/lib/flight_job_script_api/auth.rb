@@ -28,8 +28,10 @@
 
 module FlightJobScriptAPI
   Auth = Struct.new(:encoded) do
-    def self.build(header)
-      if match = /\ABearer (.*)\Z/.match(header || '')
+    def self.build(cookie, header)
+      if cookie
+        new(cookie)
+      elsif match = /\ABearer (.*)\Z/.match(header || '')
         new(match[1])
       else
         new('')
@@ -52,7 +54,12 @@ module FlightJobScriptAPI
 
     def decoded
       @decoded ||= begin
-        JWT.decode(encoded, FlightJobScriptAPI.config.shared_secret, true, { algorithm: 'HS256' }).first.tap do |hash|
+        JWT.decode(
+          encoded,
+          FlightJobScriptAPI.config.shared_secret,
+          true,
+          { algorithm: 'HS256' },
+        ).first.tap do |hash|
           unless hash['username']
             hash[:invalid] = true
             hash[:forbidden] = true
