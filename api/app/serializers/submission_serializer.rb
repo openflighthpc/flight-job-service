@@ -27,7 +27,6 @@
 #==============================================================================
 
 class SubmissionSerializer < ApplicationSerializer
-  include JobSerializer::SharedSubmissionAttributes
-
+  attribute(:success) { object.successful? }
   has_one :script
 end
