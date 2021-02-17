@@ -44,5 +44,5 @@ class JobSerializer < ApplicationSerializer
   include HistorySerializerHelper
   include SharedSubmissionAttributes
 
-  attributes :stdout_path, :stderr_path, :state
+  attributes :stdout_path, :stderr_path, :state, :start_time, :end_time
 end

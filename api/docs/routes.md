@@ -475,7 +475,9 @@ Content-Type: application/vnd.api+json
       "createdAt": DATETIME,    # REQUIRED - The date-time the job was created
       "stdout_path": STRING,    # RECOMMENDED - The path where the job's STDOUT was redirected
       "stderr_path": STRING,    # RECOMMENDED - The path where the job's STDERR was redirected
-      "state": STRING           # REQUIRED - The current point in the job's life cycle
+      "state": STRING,          # REQUIRED - The current point in the job's life cycle
+      "startTime": DATETIME,    # OPTIONAL - The actual (or predicted) time the job started running
+      "endTime": DATETIME       # OPTIONAL - The actual (or predicted) time the job will finish running
     },
     "links": {
       "self": "/v0/history/jobs/:id"
