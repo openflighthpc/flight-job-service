@@ -293,10 +293,8 @@ class Job < ApplicationModel
         'USER' => user,
         'LOGNAME' => user
       }
-      Bundler.with_unbundled_env do
-        Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true,
-                    chdir: passwd.dir, out: out_write, err: err_write)
-      end
+      Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true,
+                  chdir: passwd.dir, out: out_write, err: err_write)
     end
 
     # Close the write pipes
