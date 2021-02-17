@@ -41,6 +41,7 @@ which "jq"
 read -r -d '' template <<'TEMPLATE' || true
 {
   state: ($state),
+  reason: ($reason),
   start_time: (if $start_time == "" then null else $start_time end),
   end_time: (if $end_time == "" then null else $end_time end)
 }
@@ -50,8 +51,9 @@ TEMPLATE
 control=$(scontrol show job "$1" 2>&1)
 exit_status="$?"
 if [[ "$exit_status" -eq 0 ]]; then
-  # Determine the state
+  # Determine the state and reason
   state=$(echo "$control" | grep -E "\s*JobState=" | sed "s/^\s*JobState=\([^ ]*\).*/\1/g")
+  reason=$(echo "$control" | grep -E "Reason=" | sed "s/.*Reason=\(.*\)\sDependency=.*/\1/g")
 
   # Extract the times
   start_time=$(echo "$control" | grep -E ".*StartTime=" | sed "s/.*StartTime=\([^ ]*\).*/\1/g" )
@@ -76,6 +78,7 @@ elif [[ "$control" == "slurm_load_jobs error: Invalid job id specified" ]]; then
   state="UNKNOWN"
   start_time=''
   end_time=''
+  reason=''
 else
   echo "$control" >&2
   exit "$exit_status"
@@ -83,6 +86,7 @@ fi
 
 # Render and return the payload
 echo '{}' | jq  --arg state "$state" \
+                --arg reason "$reason" \
                 --arg start_time "$start_time" \
                 --arg end_time "$end_time" \
                 "$template" | tr -d "\n"
