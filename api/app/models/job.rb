@@ -27,7 +27,7 @@
 #==============================================================================
 
 class Job < ApplicationModel
-  TERMINAL_STATES = ['FAILED', 'COMPLETED', 'UNKNOWN']
+  TERMINAL_STATES = ['FAILED', 'COMPLETED', 'CANCELLED', 'UNKNOWN']
   STATES = ['PENDING_SUBMISSION', 'PENDING', 'RUNNING', *TERMINAL_STATES]
 
   METADATA_KEYS = [
