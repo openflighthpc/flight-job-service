@@ -112,8 +112,11 @@ class Job < ApplicationModel
 
   validates :id, :user, presence: true
 
-  # Ensure the script_id has been set when monitoring a job
+  # Only monitor jobs with a script_id in a non-terminal state
   validates :script_id, presence: true, on: :monitor
+  validates :state, on: :monitor, exclusion: {
+    in: TERMINAL_STATES, message: 'can not monitor terminal jobs'
+  }
 
   validate on: :submit do
     script_valid = script&.valid?
