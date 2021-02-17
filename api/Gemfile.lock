@@ -114,6 +114,7 @@ PLATFORMS
 DEPENDENCIES
   activemodel
   activesupport
+  concurrent-ruby
   factory_bot
   fakefs
   flight_auth!
