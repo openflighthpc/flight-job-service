@@ -66,6 +66,12 @@
 # command_timeout: 5
 
 #-------------------------------------------------------------------------------
+# Monitor Interval
+# Specify the time interval between running the monitor tasks in seconds.
+#-------------------------------------------------------------------------------
+# monitor_interval: 300
+
+#-------------------------------------------------------------------------------
 # Template Data Directory
 # Specify the directory where the templates will be stored.
 # The environment variable flight_JOB_SCRIPT_API_data_dir takes precedence
