@@ -500,8 +500,9 @@ Content-Type: application/vnd.api+json
     "attributes":{
       "success": BOOLEAN,       # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
       "createdAt": DATETIME,    # REQUIRED - The date-time the job was created
-      "stdout_path": STRING,    # RECOMMENDED - The path where the job's STDOUT was redirected
-      "stderr_path": STRING,    # RECOMMENDED - The path where the job's STDERR was redirected
+      "schedulerId": "STRING",  # RECOMMENDED - The ID used by the underlining scheduler
+      "stdoutPath": STRING,     # RECOMMENDED - The path where the job's STDOUT was redirected
+      "stderrPath": STRING,     # RECOMMENDED - The path where the job's STDERR was redirected
       "state": STRING,          # REQUIRED - The current point in the job's life cycle
       "reason": STRING,         # OPTIONAL - Additional information about the state
       "startTime": DATETIME,    # OPTIONAL - The actual (or predicted) time the job started running
