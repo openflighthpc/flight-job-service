@@ -141,7 +141,7 @@ class Job < ApplicationModel
   end
 
   def script=(script)
-    if @script
+    if @script_id
       errors.add(:script, 'can not be changed')
     else
       @script_id = script.id
