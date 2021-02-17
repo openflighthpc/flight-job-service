@@ -115,8 +115,8 @@ class Job < ApplicationModel
 
   validates :id, :user, presence: true
 
-  # Only monitor jobs with a script_id in a non-terminal state
-  validates :script_id, presence: true, on: :monitor
+  # Only monitor jobs with a scheduler_id in a non-terminal state
+  validates :scheduler_id, presence: true, on: :monitor
   validates :state, on: :monitor, exclusion: {
     in: TERMINAL_STATES, message: 'can not monitor terminal jobs'
   }
@@ -197,8 +197,15 @@ class Job < ApplicationModel
       end
     end
 
-    # Run the monitor after submission
-    monitor if valid?(:monitor)
+    # Start the monitor or flag the job as failed if not terminal
+    if valid?(:monitor)
+      monitor
+    elsif ! TERMINAL_STATES.include?(self.state)
+      self.class.mutexes[id].synchronize do
+        self.state = 'FAILED'
+        File.write(metadata_path, YAML.dump(to_h))
+      end
+    end
   end
 
   def monitor
