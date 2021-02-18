@@ -1,6 +1,6 @@
 import React from 'react';
 
-import ClusterOverviewCard from './ClusterOverviewCard';
+import ClusterOverview from './ClusterOverview';
 import { DashboardLogo } from './Branding';
 
 function UnauthenticatedDashboard() {
@@ -17,7 +17,7 @@ function UnauthenticatedDashboard() {
       </p>
 
       <div className="card-deck">
-        <ClusterOverviewCard />
+        <ClusterOverview />
       </div>
     </div>
   );
