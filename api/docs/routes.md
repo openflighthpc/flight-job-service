@@ -84,33 +84,6 @@ GET /templates/:id
 POST /render/:id
 ```
 
-## GET - /authenticates/user
-
-Test whether the provided credentials are valid
-
-```
-GET /authenticates/user
-Authorization: Beaer <jwt>
-Accept: application/vnd.api+json
-
-HTTP/2 200 OK
-Content-Type: application/vnd.api+json
-{
-  "data": {
-    "type": "authenticates",
-    "id": "user",
-    "links": {
-      "self": "/authenticates/user"
-    }
-  },
-  "jsonapi": {
-    "version": "1.0"
-  },
-  "included": [
-  ]
-}
-```
-
 ## GET - /templates
 
 Returns a list of all known `templates`
