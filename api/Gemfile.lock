@@ -28,6 +28,7 @@ GEM
       uri_template (~> 0.7)
     jsonapi-serializers (1.0.1)
       activesupport
+    jwt (2.2.2)
     method_source (1.0.0)
     minitest (5.14.3)
     multi_json (1.15.0)
@@ -51,7 +52,6 @@ GEM
       rack (>= 1.0, < 3)
     rake (13.0.3)
     regexp_parser (2.0.3)
-    rpam-ruby19 (1.2.1)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
       rspec-expectations (~> 3.10.0)
@@ -100,13 +100,13 @@ DEPENDENCIES
   factory_bot
   fakefs
   json_schemer
+  jwt
   pry
   pry-byebug
   puma
   rack-parser
   rack-test
   rake
-  rpam-ruby19
   rspec
   rspec-collection_matchers
   sinatra

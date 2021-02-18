@@ -27,6 +27,7 @@
 #==============================================================================
 
 require 'sinatra/base'
+require 'sinatra/cookies'
 require 'sinatra/jsonapi'
 require_relative 'app/autoload'
 
@@ -49,19 +50,24 @@ end
 # /:version
 class App < Sinatra::Base
   register Sinatra::JSONAPI
+  helpers Sinatra::Cookies
 
   helpers do
+    def auth
+      @auth ||= FlightJobScriptAPI::Auth.build(
+        cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
+        env['HTTP_AUTHORIZATION'],
+      )
+    end
+
     def current_user
-      @auth = FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION'])
-      @current_user = @auth.username
+      auth.username
     end
 
     def role
-      current_user
-      case @auth.valid?
-      when true
+      if auth.valid?
         :user
-      when false
+      elsif auth.forbidden?
         :forbidden
       else
         raise Sinja::UnauthorizedError, 'Could not authenticate your authorization credentials'
@@ -101,16 +107,6 @@ class App < Sinatra::Base
       merge: :user,
       subtract: :user
     }
-  end
-
-  resource :authenticates, pkre: /user/ do
-    helpers do
-      def find(id)
-        Authenticate.new(id: id)
-      end
-    end
-
-    show
   end
 
   resource :templates, pkre: /[\w.-]+/ do
@@ -197,7 +193,7 @@ class App < Sinatra::Base
 
     has_one :script do
       graft(sideload_on: :create) do |rio|
-        script = Script.new(id: rio[:id], user: @current_user)
+        script = Script.new(id: rio[:id], user: current_user)
         resource.script = script
       end
     end
@@ -215,14 +211,17 @@ end
 # /:version/render
 class RenderApp < Sinatra::Base
   before do
-    auth = FlightJobScriptAPI::PamAuth.build(env['HTTP_AUTHORIZATION'])
-    case auth.valid?
-    when true
+    auth ||= FlightJobScriptAPI::Auth.build(
+      request.cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
+      env['HTTP_AUTHORIZATION'],
+    )
+
+    if auth.valid?
       @current_user = auth.username
-    when false
+    elsif auth.forbidden?
       status 403
       halt
-    when nil
+    else
       status 401
       halt
     end
@@ -247,7 +246,7 @@ class RenderApp < Sinatra::Base
       end
 
       begin
-        script.render_and_save(**params)
+        script.render_and_save(**params.to_h.transform_keys(&:to_sym))
       rescue
         FlightJobScriptAPI.logger.debug("Rendering script failed") { $! }
         status 422

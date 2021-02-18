@@ -26,30 +26,50 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-require 'spec_helper'
-
-RSpec.describe '/authenticates' do
-  context 'with an authenticated user' do
-    before do
-      allow(Rpam).to receive(:auth).and_return(true)
-      header 'Accept', 'application/vnd.api+json'
-      header 'Authorization', "Basic #{Base64.encode64('foo:bar')}"
+module FlightJobScriptAPI
+  Auth = Struct.new(:encoded) do
+    def self.build(cookie, header)
+      if cookie
+        new(cookie)
+      elsif match = /\ABearer (.*)\Z/.match(header || '')
+        new(match[1])
+      else
+        new('')
+      end
     end
 
-    describe '/authenticates/user' do
-      it 'returns 200' do
-        get '/authenticates/user'
-        expect(last_response).to be_ok
+    def valid?
+      !decoded[:invalid]
+    end
+
+    def forbidden?
+      decoded[:forbidden]
+    end
+
+    def username
+      decoded['username']
+    end
+
+    private
+
+    def decoded
+      @decoded ||= begin
+        JWT.decode(
+          encoded,
+          FlightJobScriptAPI.config.shared_secret,
+          true,
+          { algorithm: 'HS256' },
+        ).first.tap do |hash|
+          unless hash['username']
+            hash[:invalid] = true
+            hash[:forbidden] = true
+          end
+        end
+      rescue JWT::VerificationError
+        { invalid: true, forbidden: true }
+      rescue JWT::DecodeError
+        { invalid: true }
       end
     end
   end
-
-  describe '/authenticates/user' do
-    def make_request
-      get '/authenticates/user'
-    end
-
-    include_examples 'shared_auth_spec'
-  end
 end
-

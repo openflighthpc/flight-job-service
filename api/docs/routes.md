@@ -4,12 +4,12 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Authentication
 
-All request SHOULD set the `Authorization` using the `Basic` authentication strategy with there `username` and `password`. The system by default will use the `pam` configuration for the `login` service but MAY be configured differently.
+All request SHOULD set the `Authorization` using the `Bearer` authentication strategy with there issued `jwt`. Please contact your system administrator to be issued with a token.
 
 Failed authentication requests will return one of two following response unless otherwise stated.
 
 ```
-# Requests where the Authorization Basic header isn't set or otherwise can not be decoded
+# Requests where the Authorization Bearer header isn't set, couldn't be decoded, or the token has expired.
 HTTP/2 401 Unauthorized
 Content-Type: application/vnd.api+json
 {
@@ -23,7 +23,7 @@ Content-Type: application/vnd.api+json
   ]
 }
 
-# Requsts where the Authorization Basic header was correctly decoded but failed the username/password check
+# Requsts where the Authorization bearer header was correctly decoded but failed the signature or user check.
 HTTP/2 403 Forbidden
 Content-Type: application/vnd.api+json
 {
@@ -84,40 +84,13 @@ GET /templates/:id
 POST /render/:id
 ```
 
-## GET - /authenticates/user
-
-Test whether the provided credentials are valid
-
-```
-GET /authenticates/user
-Authorization: Basic <base64 username:password>
-Accept: application/vnd.api+json
-
-HTTP/2 200 OK
-Content-Type: application/vnd.api+json
-{
-  "data": {
-    "type": "authenticates",
-    "id": "user",
-    "links": {
-      "self": "/authenticates/user"
-    }
-  },
-  "jsonapi": {
-    "version": "1.0"
-  },
-  "included": [
-  ]
-}
-```
-
 ## GET - /templates
 
 Returns a list of all known `templates`
 
 ```
 GET /templates
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 200 OK
@@ -141,7 +114,7 @@ Returns the `template` given by the `id`. The returned object is referred to as 
 
 ```
 GET /templates/:id
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 200 OK
@@ -182,7 +155,7 @@ Return all the `question` resources associated with the given `template` by `tem
 
 ```
 GET /templates/:template_id
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 200 OK
@@ -232,7 +205,7 @@ Return a list of all `scripts` for the given user.
 
 ```
 GET /scripts
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 200 OK
@@ -255,7 +228,7 @@ NOTE: Templates which the user has not used will not be included in the response
 
 ```
 GET /scripts?include=template
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 200 OK
@@ -321,7 +294,7 @@ NOTE: All `script` SHOULD have a related `template`, but this is not guaranteed.
 ```
 # Retrieving the related template
 GET /scripts/:id?include=template
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 200 OK
@@ -361,7 +334,7 @@ Content-Type: application/vnd.api+json
 
 # When the related template is missing
 GET /scripts/:id?include=template
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 200 OK
@@ -401,7 +374,7 @@ Permanently remove a script
 
 ```
 DELETE /scripts/:id
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 204 No Content
@@ -413,7 +386,7 @@ Submit an existing script to the scheduler. Note this route MAY return `503 Serv
 
 ```
 POST /submissions
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 Content-Type: application/vnd.api+json
 {
@@ -484,7 +457,7 @@ NOTE: This route does not conform the JSON:API standard and behaves slightly dif
 ```
 # With x-www-form-urlencoded body
 GET /render/:template_id
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Content-Type: x-www-form-urlencoded
 Accept: text/plain
 key=value&...
@@ -496,7 +469,7 @@ Content-Type: text/plain
 
 # With application/json body
 GET /render/:template_id
-Authorization: Basic <base64 username:password>
+Authorization: Bearer <jwt>
 Content-Type: application/json
 Accept: text/plain
 {
@@ -511,7 +484,7 @@ Content-Type: text/plain
 
 # When the template fails to render
 GET /render/:template_id
-Authorization: Basic <base64 invalid:invalid>
+Authorization: Bearer <jwt>
 Accept: text/plain
 
 HTPP/2 422 Unprocessable Entity
@@ -519,7 +492,7 @@ HTPP/2 422 Unprocessable Entity
 
 # With invalid credentials
 GET /render/:template_id
-Authorization: Basic <base64 invalid:invalid>
+Authorization: Bearer <jwt>
 Accept: text/plain
 
 HTPP/2 403 Forbidden

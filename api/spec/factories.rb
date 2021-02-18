@@ -86,4 +86,19 @@ FactoryBot.define do
       attributes.transform_keys(&:to_s)
     end
   end
+
+  factory(:jwt, class: String) do
+    username { ENV['USER'] }
+    iat { Time.now.to_i }
+    nbf { iat }
+    exp { iat + 60 }
+
+    transient do
+      shared_secret { FlightJobScriptAPI.config.shared_secret }
+    end
+
+    initialize_with do
+      JWT.encode(attributes, shared_secret, 'HS256')
+    end
+  end
 end

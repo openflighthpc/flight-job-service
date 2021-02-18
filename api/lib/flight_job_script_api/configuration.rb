@@ -47,9 +47,9 @@ module FlightJobScriptAPI
         default: ->(root) { root.join('var/puma.pid') }
       },
       {
-        name: 'pam_service',
+        name: 'shared_secret_path',
         env_var: true,
-        default: 'login'
+        default: ->(root) { root.join('etc/shared-secret.conf') }
       },
       {
         name: 'data_dir',
@@ -75,7 +75,12 @@ module FlightJobScriptAPI
         name: 'log_level',
         env_var: true,
         default: 'info'
-      }
+      },
+      {
+        name: 'sso_cookie_name',
+        env_var: true,
+        default: 'flight_web_auth',
+      },
     ]
     attr_accessor(*ATTRIBUTES.map { |a| a[:name] })
 
@@ -88,6 +93,14 @@ module FlightJobScriptAPI
           root.join(PATH_GENERATOR.call("#{ENV['RACK_ENV']}.local")),
         ]
         Loader.new(root, paths).load
+      end
+    end
+
+    def shared_secret
+      @shared_secret ||= if File.exists?(shared_secret_path)
+        File.read(shared_secret_path)
+      else
+        raise ConfigError, 'The shared_secret_path does not exist!'
       end
     end
   end
