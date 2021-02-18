@@ -3,7 +3,7 @@ import useFetch from 'use-http';
 
 import { Context as CurrentUserContext } from './CurrentUserContext';
 
-export function useSignIn(onError) {
+export function useSignIn({ onError, onSuccess }) {
   const { actions: userActions } = useContext(CurrentUserContext);
 
   const { post, error, loading, response } = useFetch(
@@ -18,6 +18,7 @@ export function useSignIn(onError) {
     const responseBody = await post('/sign-in', { account: data});
     if (response.ok) {
       userActions.setUser(responseBody.user);
+      typeof onSuccess === 'function' && onSuccess();
     } else {
       typeof onError === 'function' && onError(responseBody, response);
     }

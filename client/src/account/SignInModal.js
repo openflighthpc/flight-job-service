@@ -36,6 +36,7 @@ function SignInModal({
       <SignInForm
         ref={formApi}
         onSubmitting={setIsSubmitting}
+        onSuccess={toggle}
       />
     </StandardModal>
   );

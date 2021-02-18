@@ -15,11 +15,14 @@ function setErrorsFromResponse(setError) {
   }
 }
 
-function Form({ login, onSubmitting, }, apiRef) {
+function Form({ login, onSubmitting, onSuccess, }, apiRef) {
   const { register, handleSubmit, errors, formState, setError } = useForm({
     mode: 'all',
   });
-  const { signIn, loading } = useSignIn(setErrorsFromResponse(setError));
+  const { signIn, loading } = useSignIn({
+    onError: setErrorsFromResponse(setError),
+    onSuccess: onSuccess,
+  });
   const submit = handleSubmit(signIn);
   useEffect(() => { onSubmitting(loading); }, [loading, onSubmitting]);
 
