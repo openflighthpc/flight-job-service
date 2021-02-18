@@ -198,7 +198,7 @@ class App < Sinatra::Base
 
     has_one :script do
       graft(sideload_on: :create) do |rio|
-        script = Script.new(id: rio[:id], user: @current_user)
+        script = Script.new(id: rio[:id], user: current_user)
         resource.script = script
       end
     end
