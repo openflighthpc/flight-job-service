@@ -1,0 +1,11 @@
+/* add css module styles here (optional) */
+
+.inlineButton {
+    padding: 0;
+    vertical-align: unset;
+}
+
+.userBlock {
+    line-height: 1;
+}
+

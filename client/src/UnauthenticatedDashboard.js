@@ -2,7 +2,6 @@ import React from 'react';
 
 import ClusterOverviewCard from './ClusterOverviewCard';
 import { DashboardLogo } from './Branding';
-import SignInCard from './SignInCard';
 
 function UnauthenticatedDashboard() {
   return (
@@ -19,7 +18,6 @@ function UnauthenticatedDashboard() {
 
       <div className="card-deck">
         <ClusterOverviewCard />
-        <SignInCard />
       </div>
     </div>
   );

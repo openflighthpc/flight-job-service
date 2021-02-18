@@ -2,9 +2,9 @@ import React, { useContext } from 'react';
 import { Link } from "react-router-dom";
 import classNames from 'classnames';
 
+import AccountMenu from './account/Menu';
 import { BrandbarLogo, BrandbarText } from './Branding';
-import { Context as CurrentUserContext } from './CurrentUserContext';
-import { useEnvironment } from './BrandingContext';
+import { Context as CurrentUserContext } from './account/CurrentUserContext';
 
 export default function BrandBar({ className }) {
   return (
@@ -22,7 +22,7 @@ export default function BrandBar({ className }) {
           <NavItems />
         </ul>
         <ul className="navbar-nav">
-          <UserNavItems />
+          <AccountMenu />
         </ul>
       </div>
 
@@ -59,34 +59,6 @@ function NavItems() {
       >
         Scripts
       </Link>
-    </li>
-    </>
-  );
-}
-
-function UserNavItems() {
-  const { currentUser, actions } = useContext(CurrentUserContext);
-  const environment = useEnvironment();
-  if (currentUser == null) { return null; }
-
-  const formattedClusterName = environment('environment.name') ?
-    <span>({environment('environment.name')})</span> :
-    null;
-
-  return (
-    <>
-    <li className="nav-item">
-      <span className="nav-link nav-menu-text">
-        {currentUser.username} {formattedClusterName}
-      </span>
-    </li>
-    <li className="nav-item">
-      <button
-        className="btn btn-link nav-link nav-menu-button"
-        onClick={actions.signOut}
-      >
-        Sign out
-      </button>
     </li>
     </>
   );

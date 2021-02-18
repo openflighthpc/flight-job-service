@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Redirect, Route } from "react-router-dom";
 
-import { Context as CurrentUserContext } from './CurrentUserContext';
+import { Context as CurrentUserContext } from './account/CurrentUserContext';
 
 function AuthenticatedRoute({ children, ...rest }) {
   const { currentUser } = useContext(CurrentUserContext);
