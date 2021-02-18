@@ -5,7 +5,7 @@ import AppLayout from './AppLayout';
 import FetchProvider from './FetchProvider';
 import { BrandingProvider, EnvironmentProvider } from './BrandingContext';
 import { Provider as ConfigProvider } from './ConfigContext';
-import { Provider as CurrentUserProvider } from './CurrentUserContext';
+import { Provider as CurrentUserProvider } from './account/CurrentUserContext';
 
 function App() {
   return (
