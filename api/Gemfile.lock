@@ -7,8 +7,10 @@ GIT
       jwt (~> 2.2)
       slop (~> 4.8)
 
-PATH
-  remote: /host/flight_configuration
+GIT
+  remote: https://github.com/openflighthpc/flight_configuration
+  revision: 24928260e542768f13cc513a3a08af69f690dfbc
+  branch: 24928260e542768f13cc513a3a08af69f690dfbc
   specs:
     flight_configuration (0.1.0)
 
@@ -129,7 +131,6 @@ DEPENDENCIES
   rspec-collection_matchers
   sinatra
   sinja (~> 1.3)
-  slop
 
 BUNDLED WITH
    2.1.4
