@@ -28,16 +28,15 @@
 
 module FlightJobScriptAPI
   class Configuration
-    autoload(:Loader, 'flight_job_script_api/configuration/loader')
+    extend FlightConfiguration::RackDSL
 
     API_VERSION = 'v0'
-
-    PRODUCTION_PATH = 'etc/flight-job-script-api.yaml'
-    PATH_GENERATOR = ->(env) { "etc/flight-job-script-api.#{env}.yaml" }
-
     class ConfigError < StandardError; end
 
-    ATTRIBUTES = [
+    root_path File.expand_path('../..', __dir__)
+    application_name 'flight-job-script-api'
+
+    [
       {
         name: 'bind_address',
         env_var: true,
@@ -46,7 +45,8 @@ module FlightJobScriptAPI
       {
         name: 'pidfile',
         env_var: true,
-        default: ->(root) { root.join('var/puma.pid') }
+        default: 'var/puma.pid',
+        transform: root_path
       },
       {
         name: 'base_url',
@@ -56,22 +56,26 @@ module FlightJobScriptAPI
       {
         name: 'shared_secret_path',
         env_var: true,
-        default: ->(root) { root.join('etc/shared-secret.conf') }
+        default: 'etc/shared-secret.conf',
+        transform: root_path
       },
       {
         name: 'data_dir',
         env_var: true,
-        default: ->(root) { root.join('usr/share') }
+        default: 'usr/share',
+        transform: root_path
       },
       {
         name: 'internal_data_dir',
         env_var: true,
-        default: ->(root) { root.join('var/lib') }
+        default: 'var/lib',
+        transform: root_path
       },
       {
         name: 'script_dir',
         env_var: true,
-        default: ->(root) { root.join('libexec') }
+        default: 'libexec',
+        transform: root_path
       },
       {
         name: 'scheduler',
@@ -103,20 +107,7 @@ module FlightJobScriptAPI
         env_var: true,
         default: 'flight_web_auth',
       },
-    ]
-    attr_accessor(*ATTRIBUTES.map { |a| a[:name] })
-
-    def self.load(root)
-      if ENV['RACK_ENV'] == 'production'
-        Loader.new(root, root.join(PRODUCTION_PATH)).load
-      else
-        paths = [
-          root.join(PATH_GENERATOR.call(ENV['RACK_ENV'])),
-          root.join(PATH_GENERATOR.call("#{ENV['RACK_ENV']}.local")),
-        ]
-        Loader.new(root, paths).load
-      end
-    end
+    ].each { |opt| attribute(opt[:name], **opt) }
 
     def auth_decoder
       @auth_decoder ||= FlightAuth::Builder.new(shared_secret_path)

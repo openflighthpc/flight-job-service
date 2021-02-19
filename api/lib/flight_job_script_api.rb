@@ -38,7 +38,7 @@ module FlightJobScriptAPI
     def app
       # XXX: Eventually extract this to a Application object when the need arises
       @app ||= Struct.new(:config).new(
-        Configuration.load(Pathname.new('..').expand_path(__dir__))
+        Configuration.load
       )
     end
 

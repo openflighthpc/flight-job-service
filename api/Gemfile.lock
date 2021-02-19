@@ -7,6 +7,13 @@ GIT
       jwt (~> 2.2)
       slop (~> 4.8)
 
+GIT
+  remote: https://github.com/openflighthpc/flight_configuration
+  revision: c4801f554cbba88c019c63cae242667764f7db5e
+  branch: c4801f554cbba88c019c63cae242667764f7db5e
+  specs:
+    flight_configuration (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -111,6 +118,7 @@ DEPENDENCIES
   factory_bot
   fakefs
   flight_auth!
+  flight_configuration!
   json_schemer
   jwt
   pry
