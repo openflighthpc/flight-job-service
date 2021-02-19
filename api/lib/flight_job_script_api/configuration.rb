@@ -62,11 +62,13 @@ module FlightJobScriptAPI
       {
         name: 'internal_data_dir',
         env_var: true,
+        default: 'var/lib',
         transform: root_path
       },
       {
         name: 'script_dir',
         env_var: true,
+        default: 'libexec',
         transform: root_path
       },
       {
