@@ -37,7 +37,6 @@ require 'pathname'
 require 'ostruct'
 require 'erb'
 require 'etc'
-require 'time'
 require 'timeout'
 require 'logger'
 require 'delegate'
@@ -67,7 +66,7 @@ else
 end
 
 # Ensures the shared secret exists
-FlightJobScriptAPI.config.shared_secret
+FlightJobScriptAPI.config.auth_decoder
 
 # Ensure the scripts exist
 FlightJobScriptAPI.config.submit_script_path

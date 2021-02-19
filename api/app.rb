@@ -55,9 +55,9 @@ module SharedJSONAPI
 
     helpers do
       def auth
-        @auth ||= FlightJobScriptAPI::Auth.build(
+        @auth ||= FlightJobScriptAPI.config.auth_decoder.decode(
           cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
-          env['HTTP_AUTHORIZATION'],
+          env['HTTP_AUTHORIZATION']
         )
       end
 
@@ -249,9 +249,9 @@ end
 # /:version/render
 class RenderApp < Sinatra::Base
   before do
-    auth ||= FlightJobScriptAPI::Auth.build(
-      request.cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
-      env['HTTP_AUTHORIZATION'],
+    auth = FlightJobScriptAPI.config.auth_decoder.decode(
+      cookies[FlightJobScriptAPI.app.config.sso_cookie_name],
+      env['HTTP_AUTHORIZATION']
     )
 
     if auth.valid?

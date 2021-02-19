@@ -118,12 +118,8 @@ module FlightJobScriptAPI
       end
     end
 
-    def shared_secret
-      @shared_secret ||= if File.exists?(shared_secret_path)
-        File.read(shared_secret_path)
-      else
-        raise ConfigError, 'The shared_secret_path does not exist!'
-      end
+    def auth_decoder
+      @auth_decoder ||= FlightAuth::Builder.new(shared_secret_path)
     end
 
     def submit_script_path
