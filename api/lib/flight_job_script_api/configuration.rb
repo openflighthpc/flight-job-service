@@ -62,12 +62,12 @@ module FlightJobScriptAPI
       {
         name: 'internal_data_dir',
         env_var: true,
-        default: ->(root) { root.join('var/lib') }
+        transform: root_path
       },
       {
         name: 'script_dir',
         env_var: true,
-        default: ->(root) { root.join('libexec') }
+        transform: root_path
       },
       {
         name: 'scheduler',
