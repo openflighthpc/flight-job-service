@@ -13,4 +13,16 @@ module.exports = function(app) {
       logLevel: 'debug',
     })
   );
+
+  app.use(
+    '/login/api/v0',
+    createProxyMiddleware({
+      target: 'http://localhost:6311',
+      changeOrigin: false,
+      pathRewrite: {
+        '^/login/api/': '/', // Remove base path.
+      },
+      logLevel: 'debug',
+    })
+  );
 };
