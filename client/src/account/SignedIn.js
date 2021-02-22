@@ -24,7 +24,12 @@ function SignedIn({ currentUser }) {
     <Dropdown isOpen={dropdownOpen} toggle={toggle} className="align-self-center">
       <DropdownToggle
         tag="a"
-        className="nav nav-link dropdown-toggle px-4 d-inline-flex"
+        className={
+          classNames(
+            "nav nav-link dropdown-toggle px-4 d-inline-flex",
+            styles.DropdownToggle
+          )
+        }
         id="account-menu"
       >
         <span

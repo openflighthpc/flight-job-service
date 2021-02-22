@@ -5,3 +5,8 @@
     line-height: 12px;
     margin: 5px;
 }
+
+.formFeedback_base {
+    font-size: 100%;
+    margin-left: 0;
+}
