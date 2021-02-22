@@ -13,7 +13,8 @@ function UnauthenticatedDashboard() {
       </p>
 
       <p>
-        To start creating job scripts sign in below.
+        To start creating job scripts you will need to login by clicking the
+        "Log in" button above.
       </p>
 
       <div className="card-deck">
