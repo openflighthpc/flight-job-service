@@ -34,16 +34,6 @@
 # bind_address: tcp://127.0.0.1:921
 
 #-------------------------------------------------------------------------------
-# PID File Path
-# The path to where the PID of the supervisor process should be stored
-# The environment variable FLIGHT_JOB_SCRIPT_API_PIDFILE takes precedence
-#
-# The default is relative to the install directory. All overrides should use
-# absolute paths. The behaviour of overrides with relative paths is undefined.
-#-------------------------------------------------------------------------------
-# pidfile: /path/to/flight-job-script-api/var/puma.pid
-
-#-------------------------------------------------------------------------------
 # Scheduler Command
 # Specify the command that will be used to start the submission
 # The environment variable FLIGHT_JOB_SCRIPT_API_SCHEDULER_COMMAND takes precedence
