@@ -1,5 +1,10 @@
 /* add css module styles here (optional) */
 
+.DropdownToggle::after {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
 .inlineButton {
     padding: 0;
     vertical-align: unset;

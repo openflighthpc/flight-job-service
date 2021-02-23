@@ -1,18 +1,10 @@
 import { useContext } from 'react';
-import useFetch from 'use-http';
 
-import { Context as CurrentUserContext } from './CurrentUserContext';
+import { Context as CurrentUserContext, useLoginApi } from './CurrentUserContext';
 
 export function useSignIn({ onError, onSuccess }) {
   const { actions: userActions } = useContext(CurrentUserContext);
-
-  const { post, error, loading, response } = useFetch(
-    process.env.REACT_APP_SSO_BASE_URL,
-    {
-      headers: { Accept: 'application/json' },
-      credentials: 'include',
-    },
-  );
+  const { post, error, loading, response } = useLoginApi();
 
   async function signIn(data) {
     const responseBody = await post('/sign-in', { account: data});
