@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
-import AccountMenu from '../account/Menu';
+import AccountMenu from './account/Menu';
 import { BrandbarLogo, BrandbarText } from './Branding';
 
 export default function BrandBar({ className, navItems }) {

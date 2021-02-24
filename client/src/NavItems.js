@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Link } from "react-router-dom";
 
-import { Context as CurrentUserContext } from './account/CurrentUserContext';
+import { CurrentUserContext } from './lib';
 
 function NavItems() {
   const { currentUser } = useContext(CurrentUserContext);

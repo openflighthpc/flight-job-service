@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 
-import { Context as CurrentUserContext } from '../account/CurrentUserContext';
+import { Context as CurrentUserContext } from './account/CurrentUserContext';
 
 function AuthenticatedRoute({ Redirect, Route, children, ...rest }) {
   const { currentUser } = useContext(CurrentUserContext);

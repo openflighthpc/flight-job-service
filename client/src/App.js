@@ -7,8 +7,8 @@ import {
   BrandingProvider,
   EnvironmentProvider,
   ConfigProvider,
+  CurrentUserProvider,
 } from './lib';
-import { Provider as CurrentUserProvider } from './account/CurrentUserContext';
 
 function App() {
   return (
