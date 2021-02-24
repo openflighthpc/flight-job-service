@@ -210,6 +210,8 @@ end
 # The two apps are mounted together in rack. This app is mounted under
 # /:version/render
 class RenderApp < Sinatra::Base
+  helpers Sinatra::Cookies
+
   before do
     auth ||= FlightJobScriptAPI::Auth.build(
       request.cookies[FlightJobScriptAPI.app.config.sso_cookie_name],

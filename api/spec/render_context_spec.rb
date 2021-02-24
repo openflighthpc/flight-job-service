@@ -61,7 +61,7 @@ RSpec.describe FlightJobScriptAPI::RenderContext do
 
     subject do
       described_class.new(template: template,
-                          answers: { question['id'] => answer })
+                          answers: { question['id'].to_sym => answer })
     end
 
     it 'renders the general answers into the script' do
