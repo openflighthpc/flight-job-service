@@ -45,13 +45,13 @@ module FlightJobScriptAPI
         name: 'shared_secret_path',
         env_var: true,
         default: 'etc/shared-secret.conf',
-        transform: root_path
+        transform: relative_to(root_path)
       },
       {
         name: 'data_dir',
         env_var: true,
         default: 'usr/share',
-        transform: root_path
+        transform: relative_to(root_path)
       },
       {
         name: 'scheduler_command',
@@ -65,7 +65,7 @@ module FlightJobScriptAPI
       },
       {
         name: 'command_timeout',
-        env_var: false,
+        env_var: true,
         default: 5
       },
       {
@@ -76,7 +76,7 @@ module FlightJobScriptAPI
       {
         name: 'sso_cookie_name',
         env_var: true,
-        default: 'flight_web_auth',
+        default: 'flight_login',
       },
     ].each { |opt| attribute(opt[:name], **opt) }
 
