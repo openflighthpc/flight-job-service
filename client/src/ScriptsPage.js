@@ -1,16 +1,20 @@
 import React from 'react';
 
-import Overlay, { OverlayContainer } from './lib/Overlay';
+import {
+  DefaultErrorMessage,
+  Overlay,
+  OverlayContainer,
+  Spinner,
+  UnauthorizedError,
+  utils,
+} from './lib';
+
 import ScriptCard from './ScriptCard';
-import Spinner from './lib/Spinner';
-import UnauthorizedError from './lib/UnauthorizedError';
-import { DefaultErrorMessage } from './lib/ErrorBoundary';
-import { errorCode, getResourcesFromResponse } from './lib/utils';
 import { useFetchScripts } from './api';
 import styles from './ScriptsPage.module.css';
 
 function getScriptsFromResponse(data) {
-  const scripts = getResourcesFromResponse(data);
+  const scripts = utils.getResourcesFromResponse(data);
   if ( scripts == null) { return null };
 
   scripts.forEach((script) => {
@@ -42,7 +46,7 @@ function ScriptsPage() {
   const { data, error, loading, get } = useFetchScripts();
 
   if (error) {
-    if (errorCode(data) === 'Unauthorized') {
+    if (utils.errorCode(data) === 'Unauthorized') {
       return <UnauthorizedError />;
     } else {
       return <DefaultErrorMessage />;

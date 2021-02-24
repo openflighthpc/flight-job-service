@@ -1,11 +1,14 @@
 import { useParams } from 'react-router-dom';
 
+import {
+  DefaultErrorMessage,
+  Overlay,
+  Spinner,
+  utils,
+} from './lib';
+
 import { useFetchQuestions } from './api';
-import { DefaultErrorMessage } from './lib/ErrorBoundary';
-import Overlay from './lib/Overlay';
-import Spinner from './lib/Spinner';
 import QuestionSet from './QuestionSet';
-import { getResourcesFromResponse } from './lib/utils';
 
 function TemplateQuestionsPage() {
   const { id } = useParams();
@@ -20,7 +23,7 @@ function TemplateQuestionsPage() {
   } else if (questionsLoadingError) {
     return <DefaultErrorMessage />;
   } else {
-    const questions = getResourcesFromResponse(data);
+    const questions = utils.getResourcesFromResponse(data);
     if ( questions == null) {
       return <DefaultErrorMessage />;
     } else {

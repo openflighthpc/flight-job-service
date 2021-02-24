@@ -1,13 +1,15 @@
 import { useContext } from 'react';
 import { Redirect, Route } from "react-router-dom";
 
-import AnimatedRouter from './lib/AnimatedRouter';
-import AuthenticatedRoute from './lib/AuthenticatedRoute';
-import BrandBar from './lib/BrandBar';
-import Footer from './lib/Footer';
+import {
+  AnimatedRouter,
+  AuthenticatedRoute,
+  BrandBar,
+  ConfigContext,
+  Footer,
+} from './lib';
 import NavItems from './NavItems';
 import styles from './AppLayout.module.css';
-import { Context as ConfigContext } from './lib/ConfigContext';
 import { routes, unconfiguredRoutes } from './routes';
 
 function AppLayout() {

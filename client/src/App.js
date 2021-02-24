@@ -2,9 +2,12 @@ import { BrowserRouter as Router } from "react-router-dom";
 
 import * as Toast from './ToastContext';
 import AppLayout from './AppLayout';
-import FetchProvider from './lib/FetchProvider';
-import { BrandingProvider, EnvironmentProvider } from './lib/BrandingContext';
-import { Provider as ConfigProvider } from './lib/ConfigContext';
+import {
+  FetchProvider,
+  BrandingProvider,
+  EnvironmentProvider,
+  ConfigProvider,
+} from './lib';
 import { Provider as CurrentUserProvider } from './account/CurrentUserContext';
 
 function App() {

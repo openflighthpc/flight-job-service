@@ -1,7 +1,7 @@
 import React from 'react';
 
 import ClusterOverview from './ClusterOverview';
-import { DashboardLogo } from './lib/Branding';
+import { DashboardLogo } from './lib';
 
 function UnauthenticatedDashboard() {
   return (

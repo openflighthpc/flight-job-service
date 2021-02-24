@@ -1,12 +1,16 @@
 import React from 'react';
 import { Jumbotron } from 'reactstrap';
 
+import {
+  DefaultErrorMessage,
+  Overlay,
+  OverlayContainer,
+  Spinner,
+  UnauthorizedError,
+  utils,
+} from './lib';
+
 import TemplateCard from './TemplateCard';
-import Overlay, { OverlayContainer } from './lib/Overlay';
-import Spinner from './lib/Spinner';
-import { errorCode, getResourcesFromResponse } from './lib/utils';
-import UnauthorizedError from './lib/UnauthorizedError';
-import { DefaultErrorMessage } from './lib/ErrorBoundary';
 import { useFetchTemplates } from './api';
 import styles from './TemplatesPage.module.css';
 
@@ -14,13 +18,13 @@ function TemplatesPage() {
   const { data, error, loading } = useFetchTemplates();
 
   if (error) {
-    if (errorCode(data) === 'Unauthorized') {
+    if (utils.errorCode(data) === 'Unauthorized') {
       return <UnauthorizedError />;
     } else {
       return <DefaultErrorMessage />;
     }
   } else {
-    const templates = getResourcesFromResponse(data);
+    const templates = utils.getResourcesFromResponse(data);
     if (templates == null) {
       return <DefaultErrorMessage />;
     } else {
