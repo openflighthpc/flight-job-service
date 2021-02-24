@@ -2,11 +2,11 @@ import React from 'react';
 import { Jumbotron } from 'reactstrap';
 
 import TemplateCard from './TemplateCard';
-import Overlay, { OverlayContainer } from './Overlay';
-import Spinner from './Spinner';
-import { errorCode, getResourcesFromResponse } from './utils';
-import UnauthorizedError from './UnauthorizedError';
-import { DefaultErrorMessage } from './ErrorBoundary';
+import Overlay, { OverlayContainer } from './lib/Overlay';
+import Spinner from './lib/Spinner';
+import { errorCode, getResourcesFromResponse } from './lib/utils';
+import UnauthorizedError from './lib/UnauthorizedError';
+import { DefaultErrorMessage } from './lib/ErrorBoundary';
 import { useFetchTemplates } from './api';
 import styles from './TemplatesPage.module.css';
 

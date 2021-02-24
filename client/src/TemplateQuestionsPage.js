@@ -1,11 +1,11 @@
 import { useParams } from 'react-router-dom';
 
 import { useFetchQuestions } from './api';
-import { DefaultErrorMessage } from './ErrorBoundary';
-import Overlay from './Overlay';
-import Spinner from './Spinner';
+import { DefaultErrorMessage } from './lib/ErrorBoundary';
+import Overlay from './lib/Overlay';
+import Spinner from './lib/Spinner';
 import QuestionSet from './QuestionSet';
-import { getResourcesFromResponse } from './utils';
+import { getResourcesFromResponse } from './lib/utils';
 
 function TemplateQuestionsPage() {
   const { id } = useParams();

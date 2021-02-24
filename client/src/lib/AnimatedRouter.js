@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Route } from "react-router-dom";
 import { CSSTransition } from "react-transition-group";
 
-import AuthenticatedRoute from './AuthenticatedRoute';
 import ErrorBoundary from './ErrorBoundary';
 import './AnimatedRouter.css';
 
-function AnimatedRouter({ exact, routes, sideNav }) {
+function AnimatedRouter({ AuthenticatedRoute, Redirect, Route, exact, routes, sideNav }) {
   const SideNav = sideNav;
   const pageRef = useRef(null);
   useEffect(() => {
@@ -22,7 +20,13 @@ function AnimatedRouter({ exact, routes, sideNav }) {
       {routes.map(({ path, Component, authenticated, sideNav }) => {
         const MyRoute = authenticated ? AuthenticatedRoute : Route;
         return (
-          <MyRoute key={path} exact={exact} path={path}>
+          <MyRoute
+            Redirect={Redirect}
+            Route={Route}
+            exact={exact}
+            key={path}
+            path={path}
+          >
             {({ match }) => { 
               return (
                 <CSSTransition

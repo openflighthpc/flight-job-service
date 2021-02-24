@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react'
 import StandardModal from './StandardModal';
 import StatefulButton from './StatefulButton';
 import SignInForm from './SignInForm';
-import { useEnvironment } from '../BrandingContext';
+import { useEnvironment } from '../lib/BrandingContext';
 
 function SignInModal({
   toggle,

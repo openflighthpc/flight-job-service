@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { DashboardLogo } from './Branding';
+import { DashboardLogo } from './lib/Branding';
 
 function UnconfiguredDashboard() {
   return (

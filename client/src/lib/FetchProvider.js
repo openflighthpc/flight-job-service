@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Provider } from 'use-http';
 
 import { Context as ConfigContext } from './ConfigContext';
-import { Context as CurrentUserContext } from './account/CurrentUserContext';
+import { Context as CurrentUserContext } from '../account/CurrentUserContext';
 
 function FetchProvider({ children, cachePolicy }) {
   const { apiRootUrl } = useContext(ConfigContext);

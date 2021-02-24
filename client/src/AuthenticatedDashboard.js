@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 
 import { CardFooter } from './CardParts';
-import { DashboardLogo } from './Branding';
+import { DashboardLogo } from './lib/Branding';
 
 function AuthenticatedDashboard() {
   return (

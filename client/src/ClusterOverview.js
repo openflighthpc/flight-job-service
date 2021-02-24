@@ -1,6 +1,6 @@
 import styles from './ClusterOverview.module.css';
-import { ClusterDescription, ClusterLogo } from './Branding';
-import { useEnvironment } from './BrandingContext';
+import { ClusterDescription, ClusterLogo } from './lib/Branding';
+import { useEnvironment } from './lib/BrandingContext';
 
 function ClusterName({ children }) {
   return <h5 className={styles.ClusterName}>{children}</h5>;

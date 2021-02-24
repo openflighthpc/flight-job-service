@@ -1,5 +1,5 @@
-import ConfirmedActionButton from './ConfirmedActionButton';
-import { errorCode } from './utils';
+import ConfirmedActionButton from './lib/ConfirmedActionButton';
+import { errorCode } from './lib/utils';
 import { useDeleteScript } from './api';
 import { useToast } from './ToastContext';
 

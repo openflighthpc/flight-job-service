@@ -1,11 +1,11 @@
 import React from 'react';
 
-import Overlay, { OverlayContainer } from './Overlay';
+import Overlay, { OverlayContainer } from './lib/Overlay';
 import ScriptCard from './ScriptCard';
-import Spinner from './Spinner';
-import UnauthorizedError from './UnauthorizedError';
-import { DefaultErrorMessage } from './ErrorBoundary';
-import { errorCode, getResourcesFromResponse } from './utils';
+import Spinner from './lib/Spinner';
+import UnauthorizedError from './lib/UnauthorizedError';
+import { DefaultErrorMessage } from './lib/ErrorBoundary';
+import { errorCode, getResourcesFromResponse } from './lib/utils';
 import { useFetchScripts } from './api';
 import styles from './ScriptsPage.module.css';
 
