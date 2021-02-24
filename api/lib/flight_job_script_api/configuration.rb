@@ -28,33 +28,30 @@
 
 module FlightJobScriptAPI
   class Configuration
-    autoload(:Loader, 'flight_job_script_api/configuration/loader')
+    extend FlightConfiguration::RackDSL
 
-    PRODUCTION_PATH = 'etc/flight-job-script-api.yaml'
-    PATH_GENERATOR = ->(env) { "etc/flight-job-script-api.#{env}.yaml" }
+    root_path File.expand_path('../..', __dir__)
+    application_name 'flight-job-script-api'
 
     class ConfigError < StandardError; end
 
-    ATTRIBUTES = [
+    [
       {
         name: 'bind_address',
         env_var: true,
         default: 'tcp://127.0.0.1:921'
       },
       {
-        name: 'pidfile',
-        env_var: true,
-        default: ->(root) { root.join('var/puma.pid') }
-      },
-      {
         name: 'shared_secret_path',
         env_var: true,
-        default: ->(root) { root.join('etc/shared-secret.conf') }
+        default: 'etc/shared-secret.conf',
+        transform: relative_to(root_path)
       },
       {
         name: 'data_dir',
         env_var: true,
-        default: ->(root) { root.join('usr/share') }
+        default: 'usr/share',
+        transform: relative_to(root_path)
       },
       {
         name: 'scheduler_command',
@@ -68,7 +65,7 @@ module FlightJobScriptAPI
       },
       {
         name: 'command_timeout',
-        env_var: false,
+        env_var: true,
         default: 5
       },
       {
@@ -79,29 +76,12 @@ module FlightJobScriptAPI
       {
         name: 'sso_cookie_name',
         env_var: true,
-        default: 'flight_web_auth',
+        default: 'flight_login',
       },
-    ]
-    attr_accessor(*ATTRIBUTES.map { |a| a[:name] })
+    ].each { |opt| attribute(opt[:name], **opt) }
 
-    def self.load(root)
-      if ENV['RACK_ENV'] == 'production'
-        Loader.new(root, root.join(PRODUCTION_PATH)).load
-      else
-        paths = [
-          root.join(PATH_GENERATOR.call(ENV['RACK_ENV'])),
-          root.join(PATH_GENERATOR.call("#{ENV['RACK_ENV']}.local")),
-        ]
-        Loader.new(root, paths).load
-      end
-    end
-
-    def shared_secret
-      @shared_secret ||= if File.exists?(shared_secret_path)
-        File.read(shared_secret_path)
-      else
-        raise ConfigError, 'The shared_secret_path does not exist!'
-      end
+    def auth_decoder
+      @auth_decoder ||= FlightAuth::Builder.new(shared_secret_path)
     end
   end
 end

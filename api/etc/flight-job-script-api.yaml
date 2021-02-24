@@ -29,24 +29,14 @@
 # API Bind Address
 # The address (including port) puma will bind to
 # See: https://github.com/puma/puma#binding-tcp--sockets
-# The environment variable FLIGHT_JOB_SCRIPT_API_BIND_ADDRESS takes precedence
+# The environment variable flight_JOB_SCRIPT_API_bind_address takes precedence
 #-------------------------------------------------------------------------------
 # bind_address: tcp://127.0.0.1:921
 
 #-------------------------------------------------------------------------------
-# PID File Path
-# The path to where the PID of the supervisor process should be stored
-# The environment variable FLIGHT_JOB_SCRIPT_API_PIDFILE takes precedence
-#
-# The default is relative to the install directory. All overrides should use
-# absolute paths. The behaviour of overrides with relative paths is undefined.
-#-------------------------------------------------------------------------------
-# pidfile: /path/to/flight-job-script-api/var/puma.pid
-
-#-------------------------------------------------------------------------------
 # Scheduler Command
 # Specify the command that will be used to start the submission
-# The environment variable FLIGHT_JOB_SCRIPT_API_SCHEDULER_COMMAND takes precedence
+# The environment variable flight_JOB_SCRIPT_API_scheduler_command takes precedence
 #-------------------------------------------------------------------------------
 # scheduler_command: sbatch
 
@@ -54,7 +44,7 @@
 # Command PATH
 # The PATH the scheduler command will be executed with. This is a global value
 # for all users.
-# The environment variable FLIGHT_JOB_SCRIPT_COMMAND_PATH takes precedence
+# The environment variable flight_JOB_SCRIPT_API_command_path takes precedence
 #-------------------------------------------------------------------------------
 # command_path: /usr/sbin:/usr/bin:/sbin:/bin
 
@@ -62,13 +52,14 @@
 # Command Timeout
 # The maximum time to wait when launching a scheduler command. Commands which
 # take longer then this period will be terminated.
+# The environment variable flight_JOB_SCRIPT_API_command_timeout takes precedence
 #-------------------------------------------------------------------------------
 # command_timeout: 5
 
 #-------------------------------------------------------------------------------
 # Data Directory
 # Specify the directory for internal runtime data
-# The environment variable FLIGHT_JOB_SCRIPT_API_DATA_DIR takes precedence
+# The environment variable flight_JOB_SCRIPT_API_data_dir takes precedence
 #
 # The default is relative to the install directory. All overrides should use
 # absolute paths. The behaviour of overrides with relative paths is undefined.
@@ -78,7 +69,7 @@
 #-------------------------------------------------------------------------------
 # Log Level
 # Specify the logging level
-# The environment variable FLIGHT_JOB_SCRIPT_API_LOG_LEVEL takes precedence
+# The environment variable flight_JOB_SCRIPT_API_log_level takes precedence
 # Valid levels are: fatal, error, warn, info, debug
 #-------------------------------------------------------------------------------
 # log_level: info
@@ -86,6 +77,6 @@
 #-------------------------------------------------------------------------------
 # Cookie name
 # Specify the name to use for the sso cookie
-# The environment variable FLIGHT_JOB_SCRIPT_API_SSO_COOKIE_NAME takes precedence
+# The environment variable flight_JOB_SCRIPT_API_sso_cookie_name takes precedence
 #-------------------------------------------------------------------------------
-# sso_cookie_name: flight_web_auth
+# sso_cookie_name: flight_login

@@ -59,6 +59,6 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'flight_job_script_api'
 
 # Ensures the shared secret exists
-FlightJobScriptAPI.config.shared_secret
+FlightJobScriptAPI.config.auth_decoder
 
 require_relative '../app'

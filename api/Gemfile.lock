@@ -1,3 +1,17 @@
+GIT
+  remote: https://github.com/openflighthpc/flight_auth
+  revision: 297cb7241b820d334e5d593c4e237a81b83a9995
+  branch: 297cb7241b820d334e5d593c4e237a81b83a9995
+  specs:
+    flight_auth (0.1.0)
+      jwt (~> 2.2)
+      slop (~> 4.8)
+
+PATH
+  remote: /host/flight_configuration
+  specs:
+    flight_configuration (0.1.0)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -85,6 +99,7 @@ GEM
       jsonapi-serializers (>= 0.16.2, < 2)
       sinatra (>= 2.0.0.rc1, < 3)
       sinatra-contrib (>= 2.0.0.rc1, < 3)
+    slop (4.8.2)
     thread_safe (0.3.6)
     tilt (2.0.10)
     tzinfo (1.2.9)
@@ -99,6 +114,8 @@ DEPENDENCIES
   activesupport
   factory_bot
   fakefs
+  flight_auth!
+  flight_configuration!
   json_schemer
   jwt
   pry
