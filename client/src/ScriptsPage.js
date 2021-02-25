@@ -53,24 +53,20 @@ function ScriptsPage() {
     }
   } else {
     const scripts = getScriptsFromResponse(data);
-    if (scripts == null) {
-      return <DefaultErrorMessage />;
-    } else {
-      return (
-        <React.Fragment>
-          {
-            loading && (
-              <OverlayContainer>
-                <Overlay>
-                  <Spinner text="Loading desktops..."/>
-                </Overlay>
-              </OverlayContainer>
-            )
-          }
-          { scripts != null && <ScriptsList reloadScripts={get} scripts={scripts} /> }
-        </React.Fragment>
-      );
-    }
+    return (
+      <React.Fragment>
+        {
+          loading && (
+            <OverlayContainer>
+              <Overlay>
+                <Spinner text="Loading scripts..."/>
+              </Overlay>
+            </OverlayContainer>
+          )
+        }
+        { <ScriptsList reloadScripts={get} scripts={scripts || []} /> }
+      </React.Fragment>
+    );
   }
 }
 

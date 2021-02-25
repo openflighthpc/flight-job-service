@@ -25,24 +25,20 @@ function TemplatesPage() {
     }
   } else {
     const templates = utils.getResourcesFromResponse(data);
-    if (templates == null) {
-      return <DefaultErrorMessage />;
-    } else {
-      return (
-        <React.Fragment>
-          {
-            loading && (
-              <OverlayContainer>
-                <Overlay>
-                  <Spinner text="Loading desktops..."/>
-                </Overlay>
-              </OverlayContainer>
-            )
-          }
-          { templates != null && <TemplateCardDeck templates={templates} /> }
-        </React.Fragment>
-      );
-    }
+    return (
+      <React.Fragment>
+        {
+          loading && (
+            <OverlayContainer>
+              <Overlay>
+                <Spinner text="Loading templates..."/>
+              </Overlay>
+            </OverlayContainer>
+          )
+        }
+        { <TemplateCardDeck templates={templates || []} /> }
+      </React.Fragment>
+    );
   }
 }
 
