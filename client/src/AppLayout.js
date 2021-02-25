@@ -7,7 +7,8 @@ import {
   BrandBar,
   ConfigContext,
   Footer,
-} from './lib';
+} from 'flight-webapp-components';
+
 import NavItems from './NavItems';
 import styles from './AppLayout.module.css';
 import { routes, unconfiguredRoutes } from './routes';

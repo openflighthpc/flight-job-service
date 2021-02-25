@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 
-import { CurrentUserContext } from './lib';
+import { CurrentUserContext } from 'flight-webapp-components';
 
 import UnauthenticatedDashboard from './UnauthenticatedDashboard';
 import AuthenticatedDashboard from './AuthenticatedDashboard';

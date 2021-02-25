@@ -5,7 +5,7 @@ import {
   Overlay,
   Spinner,
   utils,
-} from './lib';
+} from 'flight-webapp-components';
 
 import { useFetchQuestions } from './api';
 import QuestionSet from './QuestionSet';

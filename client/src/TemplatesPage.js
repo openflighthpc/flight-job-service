@@ -8,7 +8,7 @@ import {
   Spinner,
   UnauthorizedError,
   utils,
-} from './lib';
+} from 'flight-webapp-components';
 
 import TemplateCard from './TemplateCard';
 import { useFetchTemplates } from './api';

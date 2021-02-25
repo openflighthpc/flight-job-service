@@ -1,14 +1,15 @@
 import { BrowserRouter as Router } from "react-router-dom";
 
-import * as Toast from './ToastContext';
-import AppLayout from './AppLayout';
 import {
   FetchProvider,
   BrandingProvider,
   EnvironmentProvider,
   ConfigProvider,
   CurrentUserProvider,
-} from './lib';
+} from 'flight-webapp-components';
+
+import * as Toast from './ToastContext';
+import AppLayout from './AppLayout';
 
 function App() {
   return (

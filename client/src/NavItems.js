@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Link } from "react-router-dom";
 
-import { CurrentUserContext } from './lib';
+import { CurrentUserContext } from 'flight-webapp-components';
 
 function NavItems() {
   const { currentUser } = useContext(CurrentUserContext);

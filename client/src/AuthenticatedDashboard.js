@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 
+import { DashboardLogo } from 'flight-webapp-components';
+
 import { CardFooter } from './CardParts';
-import { DashboardLogo } from './lib';
 
 function AuthenticatedDashboard() {
   return (

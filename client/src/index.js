@@ -1,5 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import 'flight-webapp-components/dist/styles/page-transitions.css'
+import 'flight-webapp-components/dist/styles/flight-webapp-components.css'
+
 import './fullscreen.css';
 import './fa-background.css';
 import App from './App';

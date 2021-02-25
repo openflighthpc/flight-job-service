@@ -7,7 +7,7 @@ import {
   Spinner,
   UnauthorizedError,
   utils,
-} from './lib';
+} from 'flight-webapp-components';
 
 import ScriptCard from './ScriptCard';
 import { useFetchScripts } from './api';

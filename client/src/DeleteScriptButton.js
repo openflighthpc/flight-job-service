@@ -1,7 +1,7 @@
 import {
   ConfirmedActionButton,
   utils,
-} from './lib';
+} from 'flight-webapp-components';
 import { useDeleteScript } from './api';
 import { useToast } from './ToastContext';
 

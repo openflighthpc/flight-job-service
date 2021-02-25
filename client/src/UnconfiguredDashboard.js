@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { DashboardLogo } from './lib';
+import { DashboardLogo } from 'flight-webapp-components';
 
 function UnconfiguredDashboard() {
   return (
