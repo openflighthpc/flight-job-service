@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from "react-router-dom";
 
 import {
   DefaultErrorMessage,
@@ -64,14 +65,25 @@ function ScriptsPage() {
             </OverlayContainer>
           )
         }
-        { <ScriptsList reloadScripts={get} scripts={scripts || []} /> }
+        { scripts != null && <ScriptsList reloadScripts={get} scripts={scripts} /> }
       </React.Fragment>
     );
   }
 }
 
+function NoScriptsFound() {
+  return (
+    <div>
+      <p>
+        No scripts found.  You may want to <Link to="/templates">create a
+          new script</Link>.
+      </p>
+    </div>
+  );
+}
+
 function ScriptsList({ reloadScripts, scripts }) {
-  const sortedScripts = scripts.sort((a, b) => {
+  const sortedScripts = ( scripts || [] ).sort((a, b) => {
     const aName = a.attributes.name.toUpperCase();
     const bName = b.attributes.name.toUpperCase();
     if (aName < bName) {
@@ -82,6 +94,9 @@ function ScriptsList({ reloadScripts, scripts }) {
       return 0
     }
   });
+  if (scripts == null || !scripts.length) {
+    return <NoScriptsFound />;
+  }
 
   const cards = sortedScripts.map(script => (
     <ScriptCard
