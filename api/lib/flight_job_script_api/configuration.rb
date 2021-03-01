@@ -88,7 +88,7 @@ module FlightJobScriptAPI
       },
       {
         name: 'monitor_interval',
-        env_var: false,
+        env_var: true,
         default: 300
       },
       {
