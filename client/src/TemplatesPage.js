@@ -1,12 +1,16 @@
 import React from 'react';
 import { Jumbotron } from 'reactstrap';
 
+import {
+  DefaultErrorMessage,
+  Overlay,
+  OverlayContainer,
+  Spinner,
+  UnauthorizedError,
+  utils,
+} from 'flight-webapp-components';
+
 import TemplateCard from './TemplateCard';
-import Overlay, { OverlayContainer } from './Overlay';
-import Spinner from './Spinner';
-import { errorCode, getResourcesFromResponse } from './utils';
-import UnauthorizedError from './UnauthorizedError';
-import { DefaultErrorMessage } from './ErrorBoundary';
 import { useFetchTemplates } from './api';
 import styles from './TemplatesPage.module.css';
 
@@ -14,31 +18,27 @@ function TemplatesPage() {
   const { data, error, loading } = useFetchTemplates();
 
   if (error) {
-    if (errorCode(data) === 'Unauthorized') {
+    if (utils.errorCode(data) === 'Unauthorized') {
       return <UnauthorizedError />;
     } else {
       return <DefaultErrorMessage />;
     }
   } else {
-    const templates = getResourcesFromResponse(data);
-    if (templates == null) {
-      return <DefaultErrorMessage />;
-    } else {
-      return (
-        <React.Fragment>
-          {
-            loading && (
-              <OverlayContainer>
-                <Overlay>
-                  <Spinner text="Loading desktops..."/>
-                </Overlay>
-              </OverlayContainer>
-            )
-          }
-          { templates != null && <TemplateCardDeck templates={templates} /> }
-        </React.Fragment>
-      );
-    }
+    const templates = utils.getResourcesFromResponse(data);
+    return (
+      <React.Fragment>
+        {
+          loading && (
+            <OverlayContainer>
+              <Overlay>
+                <Spinner text="Loading templates..."/>
+              </Overlay>
+            </OverlayContainer>
+          )
+        }
+        { <TemplateCardDeck templates={templates || []} /> }
+      </React.Fragment>
+    );
   }
 }
 

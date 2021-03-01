@@ -5,17 +5,32 @@
  * be loaded from Flight Landing Page.  When installed differently, these
  * branding styles can be used.
  * ----------------------------------------------- */
-body {
 
-  background-color: #e4f5fd;
+/*------------------------------------------------
+ * Generic branding
+ * ----------------------------------------------- */
+body {
+    background-color: #e4f5fd;
 }
-#main {
-    margin-bottom: 60px;
-    position: relative;
-    padding-bottom: 1rem;
+.sidenav {
+    margin-top: 1.5rem;
 }
-.nav-menu-text {
-    font-size: larger;
+
+/*------------------------------------------------
+ * Navbar and brandbar branding
+ * ----------------------------------------------- */
+
+/* Useful classes */
+.navbar { }
+.navbar .navbar-nav .nav-link { }
+.navbar-brand { }
+.branding-brandbar-wrapper { }
+.branding-brandbar-text-wrapper { }
+.branding-brandbar-text { }
+.branding-brandbar-logo img { }
+
+.navbar {
+    border-bottom: 1px solid #dee2e6;
 }
 .navbar-light .navbar-nav .nav-menu-text:hover {
     color: rgba(0,0,0,.5);
@@ -26,12 +41,24 @@ body {
 .navbar-right {
     padding-right: 4rem;
 }
+.navbar li {
+    padding-top: 1rem;
+}
+.nav-menu-text {
+    font-size: larger;
+}
 .nav-menu-button {
     font-weight: bold;
     font-size: larger;
 }
-.navbar li {
-    padding-top: 1rem;
+
+/* -----------------------------------------------
+ * Non-sticky header and sticky footer
+ * ----------------------------------------------- */
+#main {
+    margin-bottom: 60px;
+    position: relative;
+    padding-bottom: 1rem;
 }
 footer {
     background-color: white;
@@ -41,4 +68,29 @@ footer {
     position: fixed;
     width: 100%;
     z-index: 100;
+    border-top: 1px solid #dee2e6 !important;
+}
+
+/*------------------------------------------------
+ * Landing page dashboard branding
+ * ----------------------------------------------- */
+.branding-landingpage-dashboard-logo-wrapper { }
+img.branding-landingpage-dashboard-logo { }
+
+
+/* -----------------------------------------------
+ * Apps dashboard branding
+ * ----------------------------------------------- */
+.branding-apps-dashboard-logo-wrapper { }
+img.branding-apps-dashboard-logo { }
+
+/* -----------------------------------------------
+ * Logo
+ * ----------------------------------------------- */
+img.logo {
+    display: block;
+    max-height: 150px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }

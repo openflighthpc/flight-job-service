@@ -1,5 +1,7 @@
-import ConfirmedActionButton from './ConfirmedActionButton';
-import { errorCode } from './utils';
+import {
+  ConfirmedActionButton,
+  utils,
+} from 'flight-webapp-components';
 import { useDeleteScript } from './api';
 import { useToast } from './ToastContext';
 
@@ -21,7 +23,7 @@ function DeleteScriptButton({
       } else {
         addToast(deleteFailedToast({
           script: script,
-          errorCode: errorCode(responseBody),
+          errorCode: utils.errorCode(responseBody),
         }));
       }
     } catch (e) {

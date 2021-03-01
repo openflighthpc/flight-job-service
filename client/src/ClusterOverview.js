@@ -1,6 +1,10 @@
+import {
+  ClusterDescription,
+  ClusterLogo ,
+  useEnvironment,
+} from 'flight-webapp-components';
+
 import styles from './ClusterOverview.module.css';
-import { ClusterDescription, ClusterLogo } from './Branding';
-import { useEnvironment } from './BrandingContext';
 
 function ClusterName({ children }) {
   return <h5 className={styles.ClusterName}>{children}</h5>;

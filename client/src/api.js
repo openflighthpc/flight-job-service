@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import useFetch from 'use-http';
 
-import { Context as CurrentUserContext } from './account/CurrentUserContext';
+import { CurrentUserContext } from 'flight-webapp-components';
 
 export function useFetchTemplates() {
   const { currentUser } = useContext(CurrentUserContext);

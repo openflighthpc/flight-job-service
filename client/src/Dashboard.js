@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
 
+import { CurrentUserContext } from 'flight-webapp-components';
+
 import UnauthenticatedDashboard from './UnauthenticatedDashboard';
 import AuthenticatedDashboard from './AuthenticatedDashboard';
-import { Context as CurrentUserContext } from './account/CurrentUserContext';
 
 function Dashboard() {
   const { currentUser } = useContext(CurrentUserContext);

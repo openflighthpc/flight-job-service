@@ -1,16 +1,21 @@
 import React from 'react';
+import { Link } from "react-router-dom";
 
-import Overlay, { OverlayContainer } from './Overlay';
+import {
+  DefaultErrorMessage,
+  Overlay,
+  OverlayContainer,
+  Spinner,
+  UnauthorizedError,
+  utils,
+} from 'flight-webapp-components';
+
 import ScriptCard from './ScriptCard';
-import Spinner from './Spinner';
-import UnauthorizedError from './UnauthorizedError';
-import { DefaultErrorMessage } from './ErrorBoundary';
-import { errorCode, getResourcesFromResponse } from './utils';
 import { useFetchScripts } from './api';
 import styles from './ScriptsPage.module.css';
 
 function getScriptsFromResponse(data) {
-  const scripts = getResourcesFromResponse(data);
+  const scripts = utils.getResourcesFromResponse(data);
   if ( scripts == null) { return null };
 
   scripts.forEach((script) => {
@@ -42,36 +47,43 @@ function ScriptsPage() {
   const { data, error, loading, get } = useFetchScripts();
 
   if (error) {
-    if (errorCode(data) === 'Unauthorized') {
+    if (utils.errorCode(data) === 'Unauthorized') {
       return <UnauthorizedError />;
     } else {
       return <DefaultErrorMessage />;
     }
   } else {
     const scripts = getScriptsFromResponse(data);
-    if (scripts == null) {
-      return <DefaultErrorMessage />;
-    } else {
-      return (
-        <React.Fragment>
-          {
-            loading && (
-              <OverlayContainer>
-                <Overlay>
-                  <Spinner text="Loading desktops..."/>
-                </Overlay>
-              </OverlayContainer>
-            )
-          }
-          { scripts != null && <ScriptsList reloadScripts={get} scripts={scripts} /> }
-        </React.Fragment>
-      );
-    }
+    return (
+      <React.Fragment>
+        {
+          loading && (
+            <OverlayContainer>
+              <Overlay>
+                <Spinner text="Loading scripts..."/>
+              </Overlay>
+            </OverlayContainer>
+          )
+        }
+        { scripts != null && <ScriptsList reloadScripts={get} scripts={scripts} /> }
+      </React.Fragment>
+    );
   }
 }
 
+function NoScriptsFound() {
+  return (
+    <div>
+      <p>
+        No scripts found.  You may want to <Link to="/templates">create a
+          new script</Link>.
+      </p>
+    </div>
+  );
+}
+
 function ScriptsList({ reloadScripts, scripts }) {
-  const sortedScripts = scripts.sort((a, b) => {
+  const sortedScripts = ( scripts || [] ).sort((a, b) => {
     const aName = a.attributes.name.toUpperCase();
     const bName = b.attributes.name.toUpperCase();
     if (aName < bName) {
@@ -82,6 +94,9 @@ function ScriptsList({ reloadScripts, scripts }) {
       return 0
     }
   });
+  if (scripts == null || !scripts.length) {
+    return <NoScriptsFound />;
+  }
 
   const cards = sortedScripts.map(script => (
     <ScriptCard

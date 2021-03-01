@@ -1,7 +1,8 @@
 import React from 'react';
 
+import { DashboardLogo } from 'flight-webapp-components';
+
 import ClusterOverview from './ClusterOverview';
-import { DashboardLogo } from './Branding';
 
 function UnauthenticatedDashboard() {
   return (
