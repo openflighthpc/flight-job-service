@@ -36,7 +36,7 @@
 #-------------------------------------------------------------------------------
 # Base Url
 # The URL to where the API is being hosted. Used in the serialized responses.
-# The environment variable FLIGHT_JOB_SCRIPT_BASE_URL takes precedence
+# The environment variable flight_JOB_SCRIPT_API_base_url takes precedence
 #
 # NOTE: Do not include the version prefix, as this will be added implicitly
 #-------------------------------------------------------------------------------
@@ -68,6 +68,8 @@
 #-------------------------------------------------------------------------------
 # Monitor Interval
 # Specify the time interval between running the monitor tasks in seconds.
+# The environment variable flight_JOB_SCRIPT_API_monitor_interval takes
+# precedence.
 #-------------------------------------------------------------------------------
 # monitor_interval: 300
 
@@ -76,15 +78,14 @@
 # Specify the directory where the templates will be stored.
 # The environment variable flight_JOB_SCRIPT_API_data_dir takes precedence
 #
-# The default is relative to the install directory. All overrides should use
-# absolute paths. The behaviour of overrides with relative paths is undefined.
+# All relative paths are expanded from the install directory.
 #-------------------------------------------------------------------------------
 # data_dir: /path/to/flight-job-script-api/usr/share
 
 #-------------------------------------------------------------------------------
 # Script Directory
 # Specify where scheduler script will be stored.
-# The environment variable FLIGHT_JOB_SCRIPT_API_SCRIPT_DIR takes precedence.
+# The environment variable flight_JOB_SCRIPT_API_script_dir takes precedence.
 #
 # The directory should have the following structure:
 # <scheduler>
@@ -94,20 +95,36 @@
 # The monitor and submit scripts must exist and be globally executable for the
 # selected scheduler.
 #
-# The default is relative to the install directory. All overrides should use
-# absolute paths. The behaviour of overrides with relative paths is undefined.
+# All relative paths are expanded from the install directory.
 #-------------------------------------------------------------------------------
 # script_dir: /path/to/flight-job-script-api/libexec
 
 #-------------------------------------------------------------------------------
 # Internal Data Directory
 # Specify the directory for internal runtime data
-# The environment variable FLIGHT_JOB_SCRIPT_API_DATA_DIR takes precedence
+# The environment variable flight_JOB_SCRIPT_API_data_dir takes precedence
 #
-# The default is relative to the install directory. All overrides should use
-# absolute paths. The behaviour of overrides with relative paths is undefined.
+# All relative paths are expanded from the install directory.
 #-------------------------------------------------------------------------------
 # internal_data_dir: /path/to/flight-job-script-api/var/lib
+
+#-------------------------------------------------------------------------------
+# Shared Secret Path
+# Specify the path to to shared secret config. The secret must exist before the
+# service can be started.
+# The environment variable flight_JOB_SCRIPT_API_shared_secret_path takes
+# precedence.
+#
+# All relative paths are expanded from the install directory.
+#-------------------------------------------------------------------------------
+# shared_secret_path: /path/to/flight-job-script-api/etc/shared-secret.conf
+
+#-------------------------------------------------------------------------------
+# Cookie name
+# Specify the name to use for the sso cookie
+# The environment variable flight_JOB_SCRIPT_API_sso_cookie_name takes precedence
+#-------------------------------------------------------------------------------
+# sso_cookie_name: flight_login
 
 #-------------------------------------------------------------------------------
 # Log Level
@@ -116,10 +133,3 @@
 # Valid levels are: fatal, error, warn, info, debug
 #-------------------------------------------------------------------------------
 # log_level: info
-
-#-------------------------------------------------------------------------------
-# Cookie name
-# Specify the name to use for the sso cookie
-# The environment variable flight_JOB_SCRIPT_API_sso_cookie_name takes precedence
-#-------------------------------------------------------------------------------
-# sso_cookie_name: flight_login
