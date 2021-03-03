@@ -10,12 +10,12 @@ function NavItems() {
   return (
     <>
     <li className="nav-item">
-      <Link
+      <a
         className="nav-link nav-menu-button"
-        to="/"
+        href="/"
       >
-        Job Scripts
-      </Link>
+        Home
+      </a>
     </li>
     <li className="nav-item">
       <Link
