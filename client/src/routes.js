@@ -1,7 +1,9 @@
 import Dashboard from './Dashboard';
 import JobPage from './JobPage';
 import JobsPage from './JobsPage';
+import ScriptPage from './ScriptPage';
 import ScriptsPage from './ScriptsPage';
+import TemplatePage from './TemplatePage';
 import TemplateQuestionsPage from './TemplateQuestionsPage';
 import TemplatesPage from './TemplatesPage';
 import UnconfiguredDashboard from './UnconfiguredDashboard';
@@ -11,6 +13,13 @@ const routes = [
     path: '/templates',
     name: 'Templates',
     Component: TemplatesPage,
+    authenticated: true,
+    sideNav: true,
+  },
+  {
+    path: `/foo/templates/:id`,
+    name: 'Template',
+    Component: TemplatePage,
     authenticated: true,
     sideNav: true,
   },
@@ -25,6 +34,13 @@ const routes = [
     path: '/scripts',
     name: 'Scripts',
     Component: ScriptsPage,
+    authenticated: true,
+    sideNav: false,
+  },
+  {
+    path: '/scripts/:id',
+    name: 'Script',
+    Component: ScriptPage,
     authenticated: true,
     sideNav: false,
   },

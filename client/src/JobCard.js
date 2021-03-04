@@ -1,7 +1,8 @@
 import classNames from 'classnames';
-import RawTimeAgo from 'react-timeago';
 import { Badge } from 'reactstrap';
 
+import MetadataEntry from './MetadataEntry';
+import TimeAgo from './TimeAgo';
 import styles from './JobCard.module.css';
 
 const colourMap = {
@@ -15,20 +16,6 @@ const colourMap = {
   'STOPPED':    'info',
   'UNKNOWN':    'warning',
 };
-
-function TimeAgo({ date }) {
-  return (
-    <RawTimeAgo
-      date={date}
-      minPeriod={5}
-      formatter={(_v, unit, suffix, _e, nextFormatter) => (
-        unit === 'second' ?
-        `A few seconds ${suffix}` :
-        nextFormatter()
-      )}
-    />
-  );
-}
 
 function JobCard({ reloadJobs, job }) {
   const colour = colourMap[job.attributes.state];
@@ -108,44 +95,6 @@ function JobCard({ reloadJobs, job }) {
         <ErrorOutput job={job} />
       </div>
     </div>
-  );
-}
-
-function MetadataEntry({ format, hideWhenNull=false, name, value, valueTitle="raw" }) {
-  if (hideWhenNull && value == null) {
-    return null;
-  }
-  const formatted = typeof format === "function" ? format(value) : value;
-
-  let titleForValue = null;
-  switch (valueTitle) {
-    case "raw":
-      titleForValue = value;
-      break;
-    case "formatted":
-      titleForValue = formatted;
-      break;
-    case false:
-      break
-    default:
-      titleForValue = valueTitle;
-  }
-
-  return (
-    <>
-    <dt
-      className={classNames("text-truncate", styles.MetadataEntryDT)}
-      title={name}
-    >
-      {name}
-    </dt>
-    <dd
-      className={classNames("text-truncate", styles.MetadataEntryDD)}
-      title={titleForValue}
-    >
-      {formatted}
-    </dd>
-    </>
   );
 }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import TimeAgo from 'react-timeago';
 import { ButtonToolbar, Table } from 'reactstrap';
+import { Link, useHistory } from "react-router-dom";
 import { useTable, useSortBy } from 'react-table';
 
 import DeleteScriptButton from './DeleteScriptButton';
@@ -11,10 +12,6 @@ function ScriptsTable({ reloadScripts, scripts }) {
   const data = React.useMemo(() => scripts, [scripts]);
   const columns = React.useMemo(
     () => [
-      {
-        Header: 'Template',
-        accessor: 'template.attributes.name',
-      },
       {
         Header: 'Created',
         accessor: 'attributes.createdAt',
@@ -31,25 +28,33 @@ function ScriptsTable({ reloadScripts, scripts }) {
         ),
       },
       {
+        Header: 'ID',
+        accessor: 'id',
+        Cell: ({ value }) => <code>{value}</code>,
+      },
+      {
+        Header: 'Template',
+        accessor: 'template.attributes.name',
+        Cell: ({ row, value }) => (
+          <Link
+            to={`/foo/templates/${row.original.template.id}`}
+            title="View template"
+          >
+            {value}
+          </Link>
+        ),
+      },
+      {
         Header: 'Located at',
         accessor: 'attributes.path',
-        Cell: ({ value }) => {
-          const prefix = '.local/share/flight/job-scripts/';
-          const index = value.indexOf(prefix);
-          if (index < 0) {
-            return value;
-          }
-          return (
-            <span title={value}>
-              {value.slice(index + prefix.length)}
-            </span>
-          );
-        },
       },
     ],
     []
   );
-  const tableInstance = useTable({ columns, data }, useSortBy)
+  const initialState = {
+    sortBy: [{ id: 'attributes.createdAt', desc: true }],
+  };
+  const tableInstance = useTable({ columns, data, initialState }, useSortBy)
   const {
     getTableProps,
     getTableBodyProps,
@@ -102,8 +107,8 @@ function TableHeaders({ headerGroup }) {
               {
                 column.isSorted ?
                   column.isSortedDesc ?
-                  <i className="fa fa-caret-down"></i> :
-                  <i className="fa fa-caret-up"></i> :
+                  <i className="fa fa-sort-amount-desc"></i> :
+                  <i className="fa fa-sort-amount-asc"></i> :
                   ''
               }
             </span>
@@ -116,12 +121,15 @@ function TableHeaders({ headerGroup }) {
 }
 
 function TableRow({ prepareRow, reloadScripts, row }) {
-  // Prepare the row for display
+  const history = useHistory();
   prepareRow(row);
   const rowKey = row.original.id;
 
   return (
-    <tr {...row.getRowProps()}>
+    <tr
+      {...row.getRowProps()}
+      onClick={() => history.push(`/scripts/${row.original.id}`)}
+    >
       {
         row.cells.map(cell => (
           <TableCell

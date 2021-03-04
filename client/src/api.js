@@ -14,6 +14,24 @@ export function useFetchTemplates() {
     [ currentUser.authToken ]);
 }
 
+export function useFetchTemplate(id) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/templates/${id}`,
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+      interceptors: {
+        response: async ({ response }) => {
+          if (response.ok) {
+            denormalizeResponse(response);
+          }
+          return response;
+        }
+      }
+    },
+    [ currentUser.authToken ]);
+}
+
 export function useFetchQuestions(templateId) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
@@ -44,6 +62,24 @@ export function useFetchScripts() {
   return useFetch(
     "/scripts?include=template",
     { headers: { Accept: 'application/vnd.api+json' } },
+    [ currentUser.authToken ]);
+}
+
+export function useFetchScript(id) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/scripts/${id}?include=template`,
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+      interceptors: {
+        response: async ({ response }) => {
+          if (response.ok) {
+            denormalizeResponse(response);
+          }
+          return response;
+        }
+      }
+    },
     [ currentUser.authToken ]);
 }
 
