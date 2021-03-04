@@ -491,7 +491,7 @@ Content-Type: application/vnd.api+json
 }
 ```
 
-## GET - /render/:template_id
+## POST - /render/:template_id
 
 Renders the template against the provided date and saves it to the filesystem. Returns the path to the rendered script.
 
@@ -505,7 +505,7 @@ NOTE: This route does not conform the JSON:API standard and behaves slightly dif
 
 ```
 # With x-www-form-urlencoded body
-GET /v0/render/:template_id
+POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: x-www-form-urlencoded
 Accept: text/plain
@@ -517,7 +517,7 @@ Content-Type: text/plain
 
 
 # With application/json body
-GET /v0/render/:template_id
+POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: application/json
 Accept: text/plain
@@ -532,7 +532,7 @@ Content-Type: text/plain
 
 
 # When the template fails to render
-GET /v0/render/:template_id
+POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Accept: text/plain
 
@@ -540,7 +540,7 @@ HTPP/2 422 Unprocessable Entity
 
 
 # With invalid credentials
-GET /v0/render/:template_id
+POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Accept: text/plain
 
@@ -548,7 +548,7 @@ HTPP/2 403 Forbidden
 
 
 # Without credentials
-GET /v0/render/:template_id
+POST /v0/render/:template_id
 Accept: text/plain
 
 HTTP/2 401 Unauthorized
