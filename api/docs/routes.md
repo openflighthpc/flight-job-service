@@ -378,58 +378,6 @@ Accept: application/vnd.api+json
 HTTP/2 204 No Content
 ```
 
-## POST - /submissions
-
-Submit an existing script to the scheduler.
-NOTE: The API will respond 201 create if it successfully makes a record of the job. This does not mean the job was submitted correctly. Check the `success` flag to determine if the scheduler accepted the job correctly.
-
-```
-POST /v0/submissions
-Authorization: Bearer <jwt>
-Accept: application/vnd.api+json
-Content-Type: application/vnd.api+json
-{
-  "data": {
-    "type": "submissions",      # REQUIRED - Specify that a submission is being created
-    "relationships": {
-      "script": {               # REQUIRED - Specify the script which will be launched
-        "data": {
-          "type": "scripts",    # REQUIRED - Specify the related object is a script
-          "id": STRING          # REQUIRED - Specify the ID of the related script
-        }
-      }
-    }
-  }
-}
-
-HTTP/2 201 Created
-Content-Type: application/vnd.api+json
-{
-  "data": {
-    "type": "submissions",      # REQUIRED - Specifies a submission has been created
-    "id": STRING,               # REQUIRED - The ID of the submission
-    "attributes":{
-      "success": BOOLEAN,       # RECOMMENDED - Flags if the job was successfully submitted to the scheduler, or null if unknown
-    },
-    "links": {
-      "self": "/v0/submissions/:id"
-    },
-    "relationships": {
-      "script": {
-        "links": {
-          "related": "/v0/submissions/:id/script"
-        }
-      }
-    }
-  },
-  "jsonapi": {
-    "version": "1.0"
-  },
-  "included": [
-  ]
-}
-```
-
 ## GET - /jobs
 
 Return a list of previously submitted jobs
@@ -482,7 +430,50 @@ Content-Type: application/vnd.api+json
     "links": {
       "self": "/v0/jobs/:id"
     }
+    "relationships": {
+      "script": {
+        "links": {
+          "related": "/v0/jobs/:id/script"
+        }
+      }
+    }
   },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## POST - /jobs
+
+Submit an existing script to the scheduler.
+NOTE: The API will respond 201 create if it successfully makes a record of the job. This does not mean the job was submitted correctly. Check the `success` flag to determine if the scheduler accepted the job correctly.
+
+```
+POST /v0/jobs
+Authorization: Bearer <jwt>
+Accept: application/vnd.api+json
+Content-Type: application/vnd.api+json
+{
+  "data": {
+    "type": "jobs",             # REQUIRED - Specify that a job is being created
+    "relationships": {
+      "script": {               # REQUIRED - Specify the script which will be launched
+        "data": {
+          "type": "scripts",    # REQUIRED - Specify the related object is a script
+          "id": STRING          # REQUIRED - Specify the ID of the related script
+        }
+      }
+    }
+  }
+}
+
+HTTP/2 201 Created
+Content-Type: application/vnd.api+json
+{
+  "data": JobResource,
   "jsonapi": {
     "version": "1.0"
   },

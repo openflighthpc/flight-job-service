@@ -176,32 +176,20 @@ class App < Sinatra::Base
     end
   end
 
-  resource :submissions, pkre: /[[[:xdigit:]]-]+/ do |attr|
-    helpers do
-      def validate!
-        resource.validate!(:submit)
-        resource.submit
-      end
-    end
-
-    create do |attr|
-      sub = Submission.new(id: SecureRandom.uuid, user: current_user, created_at: DateTime.now.rfc3339)
-      [sub.id, sub]
-    end
-
-    has_one :script do
-      graft(sideload_on: :create) do |rio|
-        script = Script.new(id: rio[:id], user: current_user)
-        resource.script = script
-      end
-    end
-  end
-
-  resource 'jobs', pkre: /[[[:xdigit:]]-]+/ do
+  resource :jobs, pkre: /[[[:xdigit:]]-]+/ do
     helpers do
       def find(id)
         path = Job.metadata_path(current_user, id)
         File.exists?(path) ? Job.from_metadata_path(path) : nil
+      end
+
+      def validate!
+        if @action == :create
+          resource.validate!(:submit)
+          resource.submit
+        else
+          raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
+        end
       end
     end
 
@@ -222,6 +210,20 @@ class App < Sinatra::Base
     show do
       resource.monitor if resource.valid?(:monitor)
       resource
+    end
+
+    create do |attr|
+      @action = :create
+      sub = Job.new(id: SecureRandom.uuid, user: current_user, created_at: DateTime.now.rfc3339)
+      [sub.id, sub]
+    end
+
+    has_one :script do
+      graft(sideload_on: :create) do |rio|
+        raise Sinja::ForbiddenError, "A job's script can not be modified" unless @action == :create
+        script = Script.new(id: rio[:id], user: current_user)
+        resource.script = script
+      end
     end
   end
 
