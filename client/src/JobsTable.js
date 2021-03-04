@@ -1,5 +1,6 @@
 import React from 'react';
 import { Table } from 'reactstrap';
+import { useHistory } from 'react-router-dom';
 import { useTable, useSortBy } from 'react-table';
 
 import styles from './JobsTable.module.css';
@@ -96,11 +97,15 @@ function TableHeaders({ headerGroup }) {
 }
 
 function TableRow({ prepareRow, reloadJobs, row }) {
-  // Prepare the row for display
+  const history = useHistory();
   prepareRow(row);
+  const job = row.original;
 
   return (
-    <tr {...row.getRowProps()}>
+    <tr
+      {...row.getRowProps()}
+      onClick={() => history.push(`/jobs/${job.id}`)}
+    >
       { row.cells.map(cell => <TableCell cell={cell} />) }
     </tr>
   );

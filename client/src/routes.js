@@ -1,5 +1,5 @@
 import Dashboard from './Dashboard';
-import JobPage from './JobsPage';
+import JobPage from './JobPage';
 import JobsPage from './JobsPage';
 import ScriptsPage from './ScriptsPage';
 import TemplateQuestionsPage from './TemplateQuestionsPage';

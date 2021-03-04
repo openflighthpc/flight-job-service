@@ -95,3 +95,11 @@ export function useFetchJobs() {
     [ currentUser.authToken ]);
 }
 
+
+export function useFetchJob(id) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/history/jobs/${id}`,
+    { headers: { Accept: 'application/vnd.api+json' } },
+    [ currentUser.authToken ]);
+}

@@ -4,12 +4,10 @@ import {
   DefaultErrorMessage,
   Overlay,
   Spinner,
-  utils,
 } from 'flight-webapp-components';
 
 import JobCard from './JobCard';
 import { useFetchJob } from './api';
-// import styles from './JobsPage.module.css';
 
 function JobPage() {
   const { id } = useParams();
@@ -20,15 +18,12 @@ function JobPage() {
   } else if (error) {
     return <DefaultErrorMessage />;
   } else {
-    const questions = utils.getResourcesFromResponse(data);
-    if ( questions == null) {
+    const job = data.data;
+    if ( job == null) {
       return <DefaultErrorMessage />;
     } else {
       return (
-        <JobCard
-          templateId={id}
-          questions={data.data}
-        />
+        <JobCard job={job} />
       );
     }
   }
