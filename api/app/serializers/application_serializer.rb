@@ -41,9 +41,3 @@ class ApplicationSerializer
     nil
   end
 end
-
-module HistorySerializerHelper
-  def self_link
-    "#{base_url}/history/#{type}/#{id}"
-  end
-end
