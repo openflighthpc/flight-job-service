@@ -1,10 +1,6 @@
-import classNames from 'classnames';
-import { Button } from 'reactstrap';
-
-import { CardFooter } from './CardParts';
-import { useSubmitScript } from './api';
-import { useToast } from './ToastContext';
 import DeleteScriptButton from './DeleteScriptButton';
+import SubmitScriptButton from './SubmitScriptButton';
+import { CardFooter } from './CardParts';
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'full',
@@ -47,7 +43,7 @@ function ScriptCard({ reloadScripts, script }) {
             onDeleted={reloadScripts}
             script={script}
           />
-          <SubmitButton script={script} />
+          <SubmitScriptButton script={script} />
         </div>
       </CardFooter>
     </div>
@@ -74,58 +70,6 @@ function MetadataEntry({ name, value, format, valueTitle }) {
       {formatted}
     </dd>
     </>
-  );
-}
-
-function SubmitButton({ className, script }) {
-  const { addToast } = useToast();
-  const { loading: submitting, post, response } = useSubmitScript(script);
-
-  const submit = () => {
-    post().then(() => {
-      if (response.ok) {
-        response.text().then((scriptPath) => {
-          addToast({
-            body: (
-              <div>
-                Your job script has been submitted to the cluster.
-              </div>
-            ),
-            icon: 'success',
-            header: 'Job script submitted',
-          });
-        });
-      } else {
-        addToast({
-          body: (
-            <div>
-              Unfortunately there has been a problem submitting your job
-              script.  Please try again and, if problems persist, help us to
-              more quickly rectify the problem by contacting us and letting us
-              know.
-            </div>
-          ),
-          icon: 'danger',
-          header: 'Failed to submit script',
-        });
-      }
-    });
-  }
-
-  const icon = submitting ? 'fa-spinner fa-spin' : 'fa-rocket';
-  const text = submitting ? 'Submitting...' : 'Submit';
-
-  return (
-    <Button
-      color="primary"
-      onClick={submit}
-      className={classNames(className, { 'disabled': submitting })}
-      disabled={submitting}
-      size="sm"
-    >
-      <i className={`fa ${icon} mr-1`}></i>
-      <span>{text}</span>
-    </Button>
   );
 }
 
