@@ -86,3 +86,12 @@ export function useDeleteScript(script) {
   );
   return request;
 }
+
+export function useFetchJobs() {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    "/history/jobs",
+    { headers: { Accept: 'application/vnd.api+json' } },
+    [ currentUser.authToken ]);
+}
+
