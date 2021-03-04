@@ -1,7 +1,7 @@
 import React, { useReducer } from 'react';
 import classNames from 'classnames';
 import { Button } from 'reactstrap';
-import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import styles from './question.module.css';
 import { CardFooter } from './CardParts';
@@ -220,6 +220,7 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
 
 function SaveButton({ answers, className, state, templateId }) {
   const { addToast } = useToast();
+  const history = useHistory();
 
   const flattenedAnswers = answers.reduce((accum, answer) => {
     if (shouldAsk(answer.question, state)) {
@@ -230,36 +231,24 @@ function SaveButton({ answers, className, state, templateId }) {
 
   const { loading, post, response } = useGenerateScript(templateId, flattenedAnswers);
 
-  const submit = () => {
-    post().then(() => {
-      if (response.ok) {
-        response.text().then((scriptPath) => {
-          addToast({
-            body: (
-              <div>
-                Your job script has been saved.  You can view or submit it
-                from the <Link to="/scripts">scripts page</Link>.
-              </div>
-            ),
-            icon: 'success',
-            header: 'Job script saved',
-          });
-        });
-      } else {
-        addToast({
-          body: (
-            <div>
-              Unfortunately there has been a problem rendering your job
-              script.  Please try again and, if problems persist, help us to
-              more quickly rectify the problem by contacting us and letting us
-              know.
-            </div>
-          ),
-          icon: 'danger',
-          header: 'Failed to render template',
-        });
-      }
-    });
+  const submit = async () => {
+    await post()
+    if (response.ok) {
+      history.push('/scripts');
+    } else {
+      addToast({
+        body: (
+          <div>
+            Unfortunately there has been a problem rendering your job
+            script.  Please try again and, if problems persist, help us to
+            more quickly rectify the problem by contacting us and letting us
+            know.
+          </div>
+        ),
+        icon: 'danger',
+        header: 'Failed to render template',
+      });
+    }
   }
 
   const buttonText = loading ? 'Saving...' : 'Save job script';
