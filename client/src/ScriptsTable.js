@@ -1,9 +1,10 @@
 import React from 'react';
-import { useTable } from 'react-table';
 import { Table } from 'reactstrap';
+import { useTable, useSortBy } from 'react-table';
 
 import DeleteScriptButton from './DeleteScriptButton';
 import SubmitScriptButton from './SubmitScriptButton';
+import styles from './ScriptsTable.module.css';
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'full',
@@ -33,7 +34,7 @@ function ScriptsTable({ reloadScripts, scripts }) {
     ],
     []
   );
-  const tableInstance = useTable({ columns, data })
+  const tableInstance = useTable({ columns, data }, useSortBy)
   const {
     getTableProps,
     getTableBodyProps,
@@ -46,10 +47,11 @@ function ScriptsTable({ reloadScripts, scripts }) {
     <Table
       {...getTableProps()}
       bordered
+      className={styles.ScriptsTable}
       hover
       striped
     >
-      <thead className="table-dark">
+      <thead>
         {
           headerGroups.map((headerGroup, i) => (
             <TableHeaders key={i} headerGroup={headerGroup} />
@@ -77,10 +79,19 @@ function TableHeaders({ headerGroup }) {
     <tr {...headerGroup.getHeaderGroupProps()}>
       {
         headerGroup.headers.map(column => (
-          <th {...column.getHeaderProps()}>
+          <th {...column.getHeaderProps(column.getSortByToggleProps())} >
             {
               column.render('Header')
             }
+            <span className="ml-1 float-right">
+              {
+                column.isSorted ?
+                  column.isSortedDesc ?
+                  <i className="fa fa-caret-down"></i> :
+                  <i className="fa fa-caret-up"></i> :
+                  ''
+              }
+            </span>
           </th>
         ))
       }
