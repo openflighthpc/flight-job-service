@@ -430,12 +430,12 @@ Content-Type: application/vnd.api+json
 }
 ```
 
-## GET - /history/jobs
+## GET - /jobs
 
 Return a list of previously submitted jobs
 
 ```
-GET /v0/history/jobs
+GET /v0/jobs
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -454,12 +454,12 @@ Content-Type: application/vnd.api+json
 }
 ```
 
-## GET - /history/jobs/:id
+## GET - /jobs/:id
 
 Return the `job` given by the `id`. The returned object is referred to as a `JobResource` object within this document.
 
 ```
-GET /v0/history/jobs/:id
+GET /v0/jobs/:id
 Authorization: basic <base64 username:password>
 Accept: application/vnd.api+json
 
@@ -480,7 +480,7 @@ Content-Type: application/vnd.api+json
       "endTime": DATETIME       # OPTIONAL - The actual (or predicted) time the job will finish running
     },
     "links": {
-      "self": "/v0/history/jobs/:id"
+      "self": "/v0/jobs/:id"
     }
   },
   "jsonapi": {
