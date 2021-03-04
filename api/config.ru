@@ -40,7 +40,6 @@ end
 v = FlightJobScriptAPI::Configuration::API_VERSION
 app = Rack::Builder.new do
   map("/#{v}/render") { run RenderApp }
-  map("/#{v}/history") { run HistoryApp }
   map("/#{v}") { run App }
 end
 
