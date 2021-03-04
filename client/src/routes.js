@@ -1,4 +1,6 @@
 import Dashboard from './Dashboard';
+import JobPage from './JobPage';
+import JobsPage from './JobsPage';
 import ScriptsPage from './ScriptsPage';
 import TemplateQuestionsPage from './TemplateQuestionsPage';
 import TemplatesPage from './TemplatesPage';
@@ -23,6 +25,20 @@ const routes = [
     path: '/scripts',
     name: 'Scripts',
     Component: ScriptsPage,
+    authenticated: true,
+    sideNav: false,
+  },
+  {
+    path: '/jobs',
+    name: 'Jobs',
+    Component: JobsPage,
+    authenticated: true,
+    // sideNav: true,
+  },
+  {
+    path: '/jobs/:id',
+    name: 'Job',
+    Component: JobPage,
     authenticated: true,
     sideNav: false,
   },
