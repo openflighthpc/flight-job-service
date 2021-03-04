@@ -28,4 +28,5 @@
 
 class JobSerializer < ApplicationSerializer
   attributes :created_at, :stdout_path, :stderr_path, :state, :reason, :start_time, :end_time, :scheduler_id
+  has_one :script
 end
