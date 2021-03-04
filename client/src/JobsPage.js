@@ -10,9 +10,9 @@ import {
   utils,
 } from 'flight-webapp-components';
 
-import JobCard from './JobCard';
-import { useFetchJobs } from './api';
+import JobsTable from './JobsTable';
 import styles from './JobsPage.module.css';
+import { useFetchJobs } from './api';
 
 function getJobsFromResponse(data) {
   const jobs = utils.getResourcesFromResponse(data);
@@ -65,10 +65,23 @@ function JobsPage() {
             </OverlayContainer>
           )
         }
-        { jobs != null && <JobsList reloadJobs={get} jobs={jobs} /> }
+        { jobs != null && <Layout reloadJobs={get} jobs={jobs} /> }
       </React.Fragment>
     );
   }
+}
+
+function Layout({ reloadJobs, jobs }) {
+  if (jobs == null || !jobs.length) {
+    return <NoJobsFound />;
+  }
+
+  return (
+    <React.Fragment>
+      <IntroCard jobs={jobs} />
+      <JobsTable reloadJobs={reloadJobs} jobs={jobs} />
+    </React.Fragment>
+  );
 }
 
 function NoJobsFound() {
@@ -79,40 +92,6 @@ function NoJobsFound() {
           script</Link>.
       </p>
     </div>
-  );
-}
-
-function JobsList({ reloadJobs, jobs }) {
-  const sortedJobs = ( jobs || [] ).sort((a, b) => {
-    const aName = a.attributes.createdAt;
-    const bName = b.attributes.createdAt;
-    if (aName < bName) {
-      return -1;
-    } else if (aName > bName) {
-      return 1;
-    } else {
-      return 0
-    }
-  });
-  if (jobs == null || !jobs.length) {
-    return <NoJobsFound />;
-  }
-
-  const cards = sortedJobs.map(job => (
-    <JobCard
-      key={job.id}
-      reloadJobs={reloadJobs}
-      job={job}
-    />
-  ));
-
-  return (
-    <>
-    <IntroCard jobs={jobs} />
-    <div className={`card-deck ${styles.JobsList}`}>
-      {cards}
-    </div>
-    </>
   );
 }
 
