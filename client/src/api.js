@@ -90,7 +90,7 @@ export function useDeleteScript(script) {
 export function useFetchJobs() {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    "/history/jobs",
+    "/jobs",
     { headers: { Accept: 'application/vnd.api+json' } },
     [ currentUser.authToken ]);
 }
@@ -99,7 +99,7 @@ export function useFetchJobs() {
 export function useFetchJob(id) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    `/history/jobs/${id}`,
+    `/jobs/${id}`,
     { headers: { Accept: 'application/vnd.api+json' } },
     [ currentUser.authToken ]);
 }
