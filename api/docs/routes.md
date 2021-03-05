@@ -429,7 +429,9 @@ Content-Type: application/vnd.api+json
       "state": STRING,          # REQUIRED - The current point in the job's life cycle
       "reason": STRING,         # OPTIONAL - Additional information about the state
       "startTime": DATETIME,    # OPTIONAL - The actual (or predicted) time the job started running
-      "endTime": DATETIME       # OPTIONAL - The actual (or predicted) time the job will finish running
+      "endTime": DATETIME,      # OPTIONAL - The actual (or predicted) time the job will finish running
+      "submitStdout": STRING,   # RECOMMENDED - The standard output of the underlining scheduler command
+      "submitStderr": STRING    # RECOMMENDED - The standard error of the underlining scheduler command
     },
     "links": {
       "self": "/v0/jobs/:id"
