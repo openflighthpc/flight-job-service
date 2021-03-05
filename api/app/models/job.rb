@@ -110,7 +110,6 @@ class Job < ApplicationModel
     from_metadata_path(metadata_path)
   end
 
-  attr_reader :script
   attr_accessor :id, :user, *METADATA_KEYS
 
   validates :id, :user, presence: true
@@ -140,12 +139,19 @@ class Job < ApplicationModel
     ! scheduler_id.nil?
   end
 
+  def script
+    @script = if @script_id
+      s = Script.new(id: @script_id, user: user)
+      s.valid? ? s : @script_id = nil
+    end
+  end
+
   def script=(script)
     if @script_id
       errors.add(:script, 'can not be changed')
     else
-      @script_id = script.id
       @script = script
+      @script_id = script.id
     end
   end
 
