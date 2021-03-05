@@ -273,12 +273,16 @@ Content-Type: application/vnd.api+json
       "self": "/v0/scripts/:id"
     },
     "relationships": {
-      "template": {             # REQUIRED - The related template resource links
+      "template": {             # RECOMMENDED - The related template resource links
         "links": {
           "related": "/v0/scripts/:id/template"
+        },
+        "data": {
+          "type": "templates",  # RECOMMENDED - Denotes the related resource is a template
+          "id": STRING          # RECOMMENDED - The ID of the related template
         }
       }
-    }
+    },
   },
   "jsonapi": {
     "version": "1.0"
@@ -434,6 +438,10 @@ Content-Type: application/vnd.api+json
       "script": {
         "links": {
           "related": "/v0/jobs/:id/script"
+        },
+        "data": {
+          "type": "scripts",    # RECOMMENDED - Denotes the related resource is a script
+          "id": STRING          # RECOMMENDED - Denotes the script's ID
         }
       }
     }
