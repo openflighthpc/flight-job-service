@@ -111,7 +111,7 @@ class Script < ApplicationModel
       @metadata = {}
     elsif File.exists?(metadata_path)
       begin
-        YAML.load File.read(metadata_path)
+        @metadata = YAML.load File.read(metadata_path)
       rescue Psych::SyntaxError
         errors.add(:metadata, 'is not valid YAML')
         @metadata = {}
