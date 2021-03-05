@@ -57,13 +57,20 @@ function JobsTable({ reloadJobs, jobs }) {
     >
       <thead>
         {
-          headerGroups.map(headerGroup => <TableHeaders headerGroup={headerGroup} />)
+          headerGroups.map((headerGroup, i) => (
+            <TableHeaders key={i} headerGroup={headerGroup} />
+          ))
         }
       </thead>
       <tbody {...getTableBodyProps()}>
         {
           rows.map(row => (
-            <TableRow prepareRow={prepareRow} reloadJobs={reloadJobs} row={row} />
+            <TableRow
+              key={row.original.id}
+              prepareRow={prepareRow}
+              reloadJobs={reloadJobs}
+              row={row}
+            />
           ))
         }
       </tbody>
@@ -106,17 +113,15 @@ function TableRow({ prepareRow, reloadJobs, row }) {
       {...row.getRowProps()}
       onClick={() => history.push(`/jobs/${job.id}`)}
     >
-      { row.cells.map(cell => <TableCell cell={cell} />) }
+      {
+        row.cells.map(cell => (
+          <td {...cell.getCellProps()}>
+            { cell.render('Cell') }
+          </td>
+        ))
+      }
     </tr>
   );
-}
-
-function TableCell({ cell }) {
-  return (
-    <td {...cell.getCellProps()}>
-      { cell.render('Cell') }
-    </td>
-  )
 }
 
 export default JobsTable;
