@@ -1,18 +1,11 @@
 import React from 'react';
-import { Table } from 'reactstrap';
+import TimeAgo from 'react-timeago';
+import { ButtonToolbar, Table } from 'reactstrap';
 import { useTable, useSortBy } from 'react-table';
 
 import DeleteScriptButton from './DeleteScriptButton';
 import SubmitScriptButton from './SubmitScriptButton';
 import styles from './ScriptsTable.module.css';
-
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-  dateStyle: 'full',
-  timeStyle: 'long',
-});
-function timestampFormat(timestampFormat) {
-  return dateFormatter.format(new Date(timestampFormat));
-}
 
 function ScriptsTable({ reloadScripts, scripts }) {
   const data = React.useMemo(() => scripts, [scripts]);
@@ -24,12 +17,34 @@ function ScriptsTable({ reloadScripts, scripts }) {
       },
       {
         Header: 'Created',
-        accessor: (s) => timestampFormat(s.attributes.createdAt),
-        id: 'createdAt',
+        accessor: 'attributes.createdAt',
+        Cell: ({ value }) => (
+          <TimeAgo
+            date={value}
+            minPeriod={5}
+            formatter={(_v, unit, suffix, _e, nextFormatter) => (
+              unit === 'second' ?
+                `A few seconds ${suffix}` :
+                nextFormatter()
+            )}
+          />
+        ),
       },
       {
         Header: 'Located at',
         accessor: 'attributes.path',
+        Cell: ({ value }) => {
+          const prefix = '.local/share/flight/job-scripts/';
+          const index = value.indexOf(prefix);
+          if (index < 0) {
+            return value;
+          }
+          return (
+            <span title={value}>
+              {value.slice(index + prefix.length)}
+            </span>
+          );
+        },
       },
     ],
     []
@@ -131,13 +146,17 @@ function TableCell({ cell }) {
 function ActionsCell({ reloadScripts, row }) {
   const script = row.original;
   return (
-    <td>
-      <DeleteScriptButton
-        className="mr-2"
-        onDeleted={reloadScripts}
-        script={script}
-      />
-      <SubmitScriptButton script={script} />
+    <td className={styles.ActionsCell}>
+      <ButtonToolbar>
+        <SubmitScriptButton
+          className="mr-2"
+          script={script}
+        />
+        <DeleteScriptButton
+          onDeleted={reloadScripts}
+          script={script}
+        />
+      </ButtonToolbar>
     </td>
   );
 }

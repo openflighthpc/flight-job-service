@@ -8,11 +8,14 @@ function TemplateCard({ template }) {
     <div className="card border-primary">
       <h5
         className="card-header bg-primary text-light text-truncate"
-        title={template.attributes.synopsis}
+        title={template.attributes.name}
       >
-        {template.attributes.synopsis}
+        {template.attributes.name}
       </h5>
       <div className="card-body">
+        <p>
+          {template.attributes.synopsis}
+        </p>
         <p>
           {template.attributes.description}
         </p>

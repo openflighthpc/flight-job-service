@@ -24,7 +24,7 @@ const routes = [
     name: 'Scripts',
     Component: ScriptsPage,
     authenticated: true,
-    sideNav: true,
+    sideNav: false,
   },
   {
     path: '/',
