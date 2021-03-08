@@ -33,7 +33,7 @@ const routes = [
     name: 'Jobs',
     Component: JobsPage,
     authenticated: true,
-    sideNav: true,
+    // sideNav: true,
   },
   {
     path: '/jobs/:id',

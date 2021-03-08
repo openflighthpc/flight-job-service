@@ -19,14 +19,22 @@ function JobCard({ reloadJobs, job }) {
         <dl>
           <MetadataEntry
             name="Script"
-            value={job.script ? job.script.attributes.synopsis : 'Unknown'}
+            value={job.script ? job.script.attributes.name : 'Unknown'}
           />
           <MetadataEntry
             name="Template"
             value={job.template ? job.template.attributes.synopsis : 'Unknown'}
           />
           <MetadataEntry
-            name="Created"
+            name="Scheduler ID"
+            value={
+              job.attributes.schedulerId == null ?
+                <span>&mdash;</span> :
+                job.attributes.schedulerId
+            }
+          />
+          <MetadataEntry
+            name="Submitted at"
             value={job.attributes.createdAt}
             format={timestampFormat}
           />

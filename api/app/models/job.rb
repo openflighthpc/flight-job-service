@@ -59,6 +59,10 @@ class Job
     @script = false
   end
 
+  # def template
+  #   script&.template
+  # end
+
   def id
     metadata['id']
   end

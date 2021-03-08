@@ -14,37 +14,41 @@ import JobsTable from './JobsTable';
 import styles from './JobsPage.module.css';
 import { useFetchJobs } from './api';
 
-function getJobsFromResponse(data) {
-  const jobs = utils.getResourcesFromResponse(data);
-  if ( jobs == null) { return null };
+// function getJobsFromResponse(data) {
+//   const jobs = utils.getResourcesFromResponse(data);
+//   if ( jobs == null) { return null };
 
-  jobs.forEach((job) => {
-    if (!job.denormalized) {
-      Object.defineProperty(job, 'denormalized', { value: true, writable: false });
+//   jobs.forEach((job) => {
+//     if (!job.denormalized) {
+//       Object.defineProperty(job, 'denormalized', { value: true, writable: false });
 
-      Object.keys(job.relationships || {}).forEach((relName) => {
-        const relNeedle = job.relationships[relName].data;
-        Object.defineProperty(
-          job,
-          relName,
-          {
-            get: function() {
-              const haystack = data.included || [];
-              return haystack.find((hay) => {
-                return hay.type === relNeedle.type && hay.id === relNeedle.id;
-              });
-            },
-          },
-        );
-      });
-    }
-  });
+//       Object.keys(job.relationships || {}).forEach((relName) => {
+//         const relNeedle = job.relationships[relName].data;
+//         Object.defineProperty(
+//           job,
+//           relName,
+//           {
+//             get: function() {
+//               const haystack = data.included || [];
+//               return haystack.find((hay) => {
+//                 return hay.type === relNeedle.type && hay.id === relNeedle.id;
+//               });
+//             },
+//           },
+//         );
+//       });
+//     }
+//   });
 
-  return jobs;
-}
+//   return jobs;
+// }
 
 function JobsPage() {
   const { data, error, loading, get } = useFetchJobs();
+
+  console.log('data:', data);  // eslint-disable-line no-console
+  console.log('error:', error);  // eslint-disable-line no-console
+  console.log('loading:', loading);  // eslint-disable-line no-console
 
   if (error) {
     if (utils.errorCode(data) === 'Unauthorized') {
@@ -53,7 +57,8 @@ function JobsPage() {
       return <DefaultErrorMessage />;
     }
   } else {
-    const jobs = getJobsFromResponse(data);
+    // const jobs = getJobsFromResponse(data);
+    const jobs = data == null ? null : data.data ;
     return (
       <React.Fragment>
         {

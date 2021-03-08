@@ -19,7 +19,10 @@ function JobsTable({ reloadJobs, jobs }) {
     () => [
       {
         Header: 'Scheduler ID',
-        accessor: 'attributes.schedulerId',
+        accessor: (j) => (
+          j.attributes.schedulerId == null ? <span>&mdash;</span> : j.attributes.schedulerId
+        ),
+        id: 'attributes.schedulerId',
       },
       {
         Header: 'Template',
@@ -27,7 +30,15 @@ function JobsTable({ reloadJobs, jobs }) {
         id: 'template.name',
       },
       {
-        Header: 'Created',
+        Header: 'Script',
+        accessor: (j) => {
+          console.log('j:', j);  // eslint-disable-line no-console
+          return j.script ? j.script.attributes.name : 'Unknown';
+        },
+        id: 'script.name',
+      },
+      {
+        Header: 'Submitted at',
         accessor: (s) => timestampFormat(s.attributes.createdAt),
         id: 'createdAt',
       },
