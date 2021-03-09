@@ -94,8 +94,7 @@ generation_questions:
       Set the conditions under which you wish to be notified.
     default: 'ALL'
     format:
-      # type: multiselect
-      type: select
+      type: multiselect
       options:
         - text: 'Started'
           value: 'BEGIN'

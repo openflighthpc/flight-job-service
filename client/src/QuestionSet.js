@@ -1,5 +1,6 @@
 import React, { useReducer } from 'react';
 import ReactMarkdown from 'react-markdown'
+import Select from 'react-select'
 import classNames from 'classnames';
 import { Button } from 'reactstrap';
 import { useHistory } from "react-router-dom";
@@ -170,10 +171,21 @@ function Question({
 
 function Summary({ answers, onEditAnswers, state, templateId }) {
   const answerSummary = answers.map((answer, idx) => {
+    const format = answer.question.attributes.format;
     if (shouldAsk(answer.question, state)) {
       let formattedAnswer;
-      if (answer.question.attributes.format.type === 'multiline_text') {
+      if (format.type === 'multiline_text') {
         formattedAnswer = <code><pre>{answer.valueOrDefault()}</pre></code>;
+      } else if (format.type === 'select' || format.type === 'multiselect') {
+        const isMulti = format.type === 'multiselect';
+        const answeredValue = isMulti ?
+          answer.valueOrDefault().split(',') :
+          [answer.valueOrDefault()];
+        formattedAnswer = format.options
+          .filter(o => answeredValue.includes(o.value))
+          .map(o => o.text);
+        formattedAnswer = isMulti ? formattedAnswer.join(',') : formattedAnswer[0];
+
       } else {
         formattedAnswer = answer.valueOrDefault();
       }
@@ -291,20 +303,37 @@ function QuestionInput({ answer, onChange, question }) {
         />
       );
     case 'select':
+    case 'multiselect':
       const options = format.options.map(option => (
-        <option key={option.value} value={option.value}>{option.text}</option>
+        { value: option.value, label: option.text }
       ));
+      const isMulti = format.type === 'multiselect';
+      const defaultValue = options.filter(o => o.value === question.attributes.default);
+      let value;
+      if (answer.value === "") {
+        value = undefined;
+      } else {
+        const answeredValue = isMulti ? answer.value.split(',') : [answer.value];
+        value = options.filter(o => answeredValue.includes(o.value));
+        value = isMulti ? value : value[0];
+      }
+
       return (
-        <select
-          onChange={(ev) => {
-            const selectedOption = ev.target.options[ev.target.selectedIndex];
-            onChange({target: { value: selectedOption.value }});
+        <Select
+          defaultValue={isMulti ? defaultValue : defaultValue[0]}
+          isMulti={isMulti}
+          isClearable={isMulti}
+          onChange={(selectedOption) => {
+            const value = isMulti ?
+              selectedOption.map(o => o.value).join(',') :
+              selectedOption.value;
+            onChange({target: { value: value }});
           }}
-          value={answer.value}
-        >
-          {options}
-        </select>
+          options={options}
+          value={value}
+        />
       );
+
     case 'text':
     default:
       return (
