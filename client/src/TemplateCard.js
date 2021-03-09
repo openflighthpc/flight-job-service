@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import ReactMarkdown from 'react-markdown'
 import classNames from 'classnames';
+import { Link } from "react-router-dom";
 
 import { CardFooter } from './CardParts';
 
@@ -14,12 +15,12 @@ function TemplateCard({ className, template }) {
         {template.attributes.name}
       </h5>
       <div className="card-body">
-        <p>
+        <ReactMarkdown>
           {template.attributes.synopsis}
-        </p>
-        <p>
+        </ReactMarkdown>
+        <ReactMarkdown>
           {template.attributes.description}
-        </p>
+        </ReactMarkdown>
       </div>
       <CardFooter>
         <div className="btn-toolbar justify-content-center">

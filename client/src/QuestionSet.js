@@ -1,4 +1,5 @@
 import React, { useReducer } from 'react';
+import ReactMarkdown from 'react-markdown'
 import classNames from 'classnames';
 import { Button } from 'reactstrap';
 import { useHistory } from "react-router-dom";
@@ -129,7 +130,7 @@ function Question({
         {question.attributes.text}
       </h5>
       <div className="card-body">
-        <p>{question.attributes.description}</p>
+        <ReactMarkdown>{question.attributes.description}</ReactMarkdown>
         <QuestionInput
           answer={answer}
           onChange={onChange}
