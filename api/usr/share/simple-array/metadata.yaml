@@ -1,9 +1,12 @@
-name: Simple serial
-script_template: simple.sh
+name: Simple serial array
+script_template: simple-array.sh
 version: 0
-synopsis: Submit a single job.
+synopsis: Submit multiple, similar jobs.
 description: |
-  Your job will be allocated a single core on the first available node.
+  Each job will be allocated a single core on the first available node. Use
+  this when you wish to spawn multiple jobs, making use of environment
+  variables to differentiate each job. This method should not be used for
+  multi-threaded, SMP or MPI jobs.
 
 generation_questions:
   - id: working_dir
@@ -20,7 +23,7 @@ generation_questions:
     description: >
       Specify a path to a file to contain the output from the standard output
       stream of your job script.
-    default: job-%j.output
+    default: job-%A.%a.output
     format:
       type: text
 
@@ -44,7 +47,7 @@ generation_questions:
     description: >
       Specify a path to a file to contain the output from the standard error
       stream of your job script.
-    default: job-%j.error
+    default: job-%A.%a.error
     format:
       type: text
     ask_when:
@@ -56,7 +59,7 @@ generation_questions:
     description: >
       This will be shown in the process queue and by default used in the name
       of the output files.
-    default: 'simple.sh'
+    default: 'simple-array.sh'
     format:
       type: text
 
@@ -132,6 +135,24 @@ generation_questions:
       Note that this setting is specified in megabytes.  e.g. specify `1024`
       for 1 gigabyte.
     default: '1024'
+    format:
+      type: text
+
+  - id: array_configuration
+    text: Array configuration
+    description: >
+      The array configuration identifies what array index values should be
+      used. Multiple values may be specified using a comma separated list
+      and/or a range of values with a "-" separator. For example, "0-15" or
+      "0,6,16-32".
+      
+      A step function can also be specified with a suffix containing a colon
+      and number. For example, "0-15:4" is equivalent to "0,4,8,12".
+      
+      A maximum number of simultaneously running tasks from the job array may
+      be specified using a "%" separator. For example "0-15%4" will limit the
+      number of simultaneously running tasks from this job array to 4.
+    default: '1-10%4'
     format:
       type: text
 

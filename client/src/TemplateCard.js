@@ -1,21 +1,26 @@
+import ReactMarkdown from 'react-markdown'
+import classNames from 'classnames';
 import { Link } from "react-router-dom";
 
 import { CardFooter } from './CardParts';
 
-function TemplateCard({ template }) {
+function TemplateCard({ className, template }) {
 
   return (
-    <div className="card border-primary">
+    <div className={classNames('card border-primary', className)}>
       <h5
         className="card-header bg-primary text-light text-truncate"
-        title={template.attributes.synopsis}
+        title={template.attributes.name}
       >
-        {template.attributes.synopsis}
+        {template.attributes.name}
       </h5>
       <div className="card-body">
-        <p>
+        <ReactMarkdown>
+          {template.attributes.synopsis}
+        </ReactMarkdown>
+        <ReactMarkdown>
           {template.attributes.description}
-        </p>
+        </ReactMarkdown>
       </div>
       <CardFooter>
         <div className="btn-toolbar justify-content-center">

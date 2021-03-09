@@ -1,9 +1,17 @@
-name: Simple serial
-script_template: simple.sh
+name: Multiple node
+script_template: multinode.sh
 version: 0
-synopsis: Submit a single job.
+synopsis: Submit a single job that spans multiple nodes where you want exclusive use of each node allocated. 
 description: |
-  Your job will be allocated a single core on the first available node.
+  This may be because you intend to spawn multiple threads yourself or intend
+  to run an MPI application. This method is often used for MPI jobs where you
+  need to specify the number of processes, machine file and process allocation
+  manually, rather than leave this up to the scheduler.
+  
+  Your job will be allocated the requested number of empty nodes. This method
+  should not be used for SMP (OpenMP) jobs. Only use this method if you need
+  exclusive use of each node allocated; prefer a multiple slot job for a
+  shorter queue time.
 
 generation_questions:
   - id: working_dir
@@ -56,7 +64,7 @@ generation_questions:
     description: >
       This will be shown in the process queue and by default used in the name
       of the output files.
-    default: 'simple.sh'
+    default: 'multinode.sh'
     format:
       type: text
 
@@ -132,6 +140,19 @@ generation_questions:
       Note that this setting is specified in megabytes.  e.g. specify `1024`
       for 1 gigabyte.
     default: '1024'
+    format:
+      type: text
+
+  - id: number_of_nodes
+    text: Processing requirements
+    description: >
+      Specify the number of processing slots required for your job.
+
+      You should request a processing slot for each simultaneous thread
+      (or process) that your script and/or application executes.  Note
+      that requesting a larger number of slots will mean that your job
+      could take longer to launch.
+    default: '2'
     format:
       type: text
 

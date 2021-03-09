@@ -10,9 +10,9 @@ import {
   utils,
 } from 'flight-webapp-components';
 
-import ScriptCard from './ScriptCard';
-import { useFetchScripts } from './api';
+import ScriptsTable from './ScriptsTable';
 import styles from './ScriptsPage.module.css';
+import { useFetchScripts } from './api';
 
 function getScriptsFromResponse(data) {
   const scripts = utils.getResourcesFromResponse(data);
@@ -65,10 +65,23 @@ function ScriptsPage() {
             </OverlayContainer>
           )
         }
-        { scripts != null && <ScriptsList reloadScripts={get} scripts={scripts} /> }
+        { scripts != null && <Layout reloadScripts={get} scripts={scripts} /> }
       </React.Fragment>
     );
   }
+}
+
+function Layout({ reloadScripts, scripts }) {
+  if (scripts == null || !scripts.length) {
+    return <NoScriptsFound />;
+  }
+
+  return (
+    <React.Fragment>
+      <IntroCard scripts={scripts} />
+      <ScriptsTable reloadScripts={reloadScripts} scripts={scripts} />
+    </React.Fragment>
+  );
 }
 
 function NoScriptsFound() {
@@ -79,40 +92,6 @@ function NoScriptsFound() {
           new script</Link>.
       </p>
     </div>
-  );
-}
-
-function ScriptsList({ reloadScripts, scripts }) {
-  const sortedScripts = ( scripts || [] ).sort((a, b) => {
-    const aName = a.attributes.name.toUpperCase();
-    const bName = b.attributes.name.toUpperCase();
-    if (aName < bName) {
-      return -1;
-    } else if (aName > bName) {
-      return 1;
-    } else {
-      return 0
-    }
-  });
-  if (scripts == null || !scripts.length) {
-    return <NoScriptsFound />;
-  }
-
-  const cards = sortedScripts.map(script => (
-    <ScriptCard
-      key={script.id}
-      reloadScripts={reloadScripts}
-      script={script}
-    />
-  ));
-
-  return (
-    <>
-    <IntroCard scripts={scripts} />
-    <div className={`card-deck ${styles.ScriptsList}`}>
-      {cards}
-    </div>
-    </>
   );
 }
 

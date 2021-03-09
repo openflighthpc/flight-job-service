@@ -1,7 +1,9 @@
 import React, { useReducer } from 'react';
+import ReactMarkdown from 'react-markdown'
+import Select from 'react-select'
 import classNames from 'classnames';
 import { Button } from 'reactstrap';
-import { Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 
 import styles from './question.module.css';
 import { CardFooter } from './CardParts';
@@ -129,7 +131,7 @@ function Question({
         {question.attributes.text}
       </h5>
       <div className="card-body">
-        <p>{question.attributes.description}</p>
+        <ReactMarkdown>{question.attributes.description}</ReactMarkdown>
         <QuestionInput
           answer={answer}
           onChange={onChange}
@@ -169,10 +171,21 @@ function Question({
 
 function Summary({ answers, onEditAnswers, state, templateId }) {
   const answerSummary = answers.map((answer, idx) => {
+    const format = answer.question.attributes.format;
     if (shouldAsk(answer.question, state)) {
       let formattedAnswer;
-      if (answer.question.attributes.format.type === 'multiline_text') {
+      if (format.type === 'multiline_text') {
         formattedAnswer = <code><pre>{answer.valueOrDefault()}</pre></code>;
+      } else if (format.type === 'select' || format.type === 'multiselect') {
+        const isMulti = format.type === 'multiselect';
+        const answeredValue = isMulti ?
+          answer.valueOrDefault().split(',') :
+          [answer.valueOrDefault()];
+        formattedAnswer = format.options
+          .filter(o => answeredValue.includes(o.value))
+          .map(o => o.text);
+        formattedAnswer = isMulti ? formattedAnswer.join(',') : formattedAnswer[0];
+
       } else {
         formattedAnswer = answer.valueOrDefault();
       }
@@ -220,6 +233,7 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
 
 function SaveButton({ answers, className, state, templateId }) {
   const { addToast } = useToast();
+  const history = useHistory();
 
   const flattenedAnswers = answers.reduce((accum, answer) => {
     if (shouldAsk(answer.question, state)) {
@@ -230,36 +244,24 @@ function SaveButton({ answers, className, state, templateId }) {
 
   const { loading, post, response } = useGenerateScript(templateId, flattenedAnswers);
 
-  const submit = () => {
-    post().then(() => {
-      if (response.ok) {
-        response.text().then((scriptPath) => {
-          addToast({
-            body: (
-              <div>
-                Your job script has been saved.  You can view or submit it
-                from the <Link to="/scripts">scripts page</Link>.
-              </div>
-            ),
-            icon: 'success',
-            header: 'Job script saved',
-          });
-        });
-      } else {
-        addToast({
-          body: (
-            <div>
-              Unfortunately there has been a problem rendering your job
-              script.  Please try again and, if problems persist, help us to
-              more quickly rectify the problem by contacting us and letting us
-              know.
-            </div>
-          ),
-          icon: 'danger',
-          header: 'Failed to render template',
-        });
-      }
-    });
+  const submit = async () => {
+    await post()
+    if (response.ok) {
+      history.push('/scripts');
+    } else {
+      addToast({
+        body: (
+          <div>
+            Unfortunately there has been a problem rendering your job
+            script.  Please try again and, if problems persist, help us to
+            more quickly rectify the problem by contacting us and letting us
+            know.
+          </div>
+        ),
+        icon: 'danger',
+        header: 'Failed to render template',
+      });
+    }
   }
 
   const buttonText = loading ? 'Saving...' : 'Save job script';
@@ -301,20 +303,37 @@ function QuestionInput({ answer, onChange, question }) {
         />
       );
     case 'select':
+    case 'multiselect':
       const options = format.options.map(option => (
-        <option key={option.value} value={option.value}>{option.text}</option>
+        { value: option.value, label: option.text }
       ));
+      const isMulti = format.type === 'multiselect';
+      const defaultValue = options.filter(o => o.value === question.attributes.default);
+      let value;
+      if (answer.value === "") {
+        value = undefined;
+      } else {
+        const answeredValue = isMulti ? answer.value.split(',') : [answer.value];
+        value = options.filter(o => answeredValue.includes(o.value));
+        value = isMulti ? value : value[0];
+      }
+
       return (
-        <select
-          onChange={(ev) => {
-            const selectedOption = ev.target.options[ev.target.selectedIndex];
-            onChange({target: { value: selectedOption.value }});
+        <Select
+          defaultValue={isMulti ? defaultValue : defaultValue[0]}
+          isMulti={isMulti}
+          isClearable={isMulti}
+          onChange={(selectedOption) => {
+            const value = isMulti ?
+              selectedOption.map(o => o.value).join(',') :
+              selectedOption.value;
+            onChange({target: { value: value }});
           }}
-          value={answer.value}
-        >
-          {options}
-        </select>
+          options={options}
+          value={value}
+        />
       );
+
     case 'text':
     default:
       return (

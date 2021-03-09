@@ -7,6 +7,7 @@ import {
   OverlayContainer,
   Spinner,
   UnauthorizedError,
+  useMediaGrouping,
   utils,
 } from 'flight-webapp-components';
 
@@ -55,12 +56,23 @@ function TemplateCardDeck({ templates }) {
     }
   });
 
-  const cards = sortedTemplates.map(template => (
-    <TemplateCard
-      key={template.id}
-      template={template}
-    />
-  ));
+  const { groupedItems: groupedTemplates } = useGrouping(sortedTemplates);
+  const decks = groupedTemplates.map(
+    (group, index) => (
+      <div key={index} className="card-deck">
+        {
+          group.map((template) => {
+            if (template == null) {
+              // The `key` attribute is intentionally omitted.
+              return <BlankCard />;
+            } else {
+            return <TemplateCard className="mb-2" key={template.id} template={template} />;
+            }
+          })
+        }
+      </div>
+    )
+  );
 
   return (
     <React.Fragment>
@@ -76,11 +88,32 @@ function TemplateCardDeck({ templates }) {
           <li>Submit your script to the cluster's scheduler.</li>
         </ul>
       </Jumbotron>
-      <div className={`card-deck ${styles.TemplateCardDeck}`}>
-        {cards}
-      </div>
+      {decks}
     </React.Fragment>
   );
+}
+
+function useGrouping(templates) {
+  const { groupedItems, perGroup } = useMediaGrouping(
+    ['(min-width: 1200px)', '(min-width: 992px)', '(min-width: 768px)', '(min-width: 576px)'],
+    [2, 2, 1, 1],
+    1,
+    templates,
+  );
+  if (groupedItems.length) {
+    const lastGroup = groupedItems[groupedItems.length - 1];
+    if (lastGroup.length < perGroup) {
+      const requiredBlanks = perGroup - lastGroup.length;
+      for (let i=0; i<requiredBlanks; i++) {
+        lastGroup.push(null);
+      }
+    }
+  }
+  return { groupedItems, perGroup };
+}
+
+function BlankCard() {
+  return <div className="card invisible"></div>;
 }
 
 export default TemplatesPage;

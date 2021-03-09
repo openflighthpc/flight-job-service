@@ -5,10 +5,7 @@ import { CurrentUserContext } from 'flight-webapp-components';
 
 function NavItems() {
   const { currentUser } = useContext(CurrentUserContext);
-  if (currentUser == null) { return null; }
-
-  return (
-    <>
+  const homeNav = (
     <li className="nav-item">
       <a
         className="nav-link nav-menu-button"
@@ -17,6 +14,15 @@ function NavItems() {
         Home
       </a>
     </li>
+  );
+
+  if (currentUser == null) {
+    return homeNav;
+  }
+
+  return (
+    <>
+    {homeNav}
     <li className="nav-item">
       <Link
         className="nav-link nav-menu-button"
