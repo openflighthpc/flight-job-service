@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
+import classNames from 'classnames';
 
 import { CardFooter } from './CardParts';
 
-function TemplateCard({ template }) {
+function TemplateCard({ className, template }) {
 
   return (
-    <div className="card border-primary">
+    <div className={classNames('card border-primary', className)}>
       <h5
         className="card-header bg-primary text-light text-truncate"
         title={template.attributes.name}
