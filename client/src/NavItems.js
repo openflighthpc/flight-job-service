@@ -1,17 +1,19 @@
 import { useContext } from 'react';
 import { Link } from "react-router-dom";
 
-import { CurrentUserContext } from 'flight-webapp-components';
+import { CurrentUserContext, useEnvironment } from 'flight-webapp-components';
 
 function NavItems() {
   const { currentUser } = useContext(CurrentUserContext);
+  const environment = useEnvironment();
+
   const homeNav = (
     <li className="nav-item">
       <a
         className="nav-link nav-menu-button"
         href="/"
       >
-        Home
+        {environment('environment.name') || 'Home'}
       </a>
     </li>
   );

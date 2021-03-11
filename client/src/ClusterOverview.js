@@ -1,5 +1,5 @@
+import classNames from 'classnames';
 import {
-  ClusterDescription,
   ClusterLogo ,
   useEnvironment,
 } from 'flight-webapp-components';
@@ -10,16 +10,15 @@ function ClusterName({ children }) {
   return <h5 className={styles.ClusterName}>{children}</h5>;
 }
 
-function ClusterOverview() {
+function ClusterOverview({ className }) {
   const environment = useEnvironment();
 
   return (
-    <div>
-      <ClusterLogo />
-      <div className="text-center mb-3">
+    <div className={classNames(className)}>
+      <div className="text-center">
         <ClusterName>{environment('environment.name')}</ClusterName>
       </div>
-      <ClusterDescription />
+      <ClusterLogo />
     </div>
   );
 }
