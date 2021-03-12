@@ -46,8 +46,6 @@ module Sinja
   end
 end
 
-class MissingScriptValidation < StandardError; end
-
 # The base JSON:API for most interactions. Mounted in rack under
 # /:version
 class App < Sinatra::Base
@@ -79,6 +77,11 @@ class App < Sinatra::Base
 
   configure_jsonapi do |c|
     c.validation_exceptions << Job::MissingScript
+    c.validation_formatter = -> (e) do
+      [
+        [:script_id, e.message]
+      ]
+    end
 
     # Resource roles
     c.default_roles = {
