@@ -112,117 +112,72 @@ class App < Sinatra::Base
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
-        template = Template.new(id: id)
-        if template.valid?
-          template
-        else
-          FlightJobScriptAPI.logger.debug("Template is invalid: #{template.id}\n") do
-            template.errors.full_messages.join("\n")
-          end
-          nil
-        end
+        raise NotImplementedError
       end
     end
 
     index do
-      # Generates a list of Templates
-      templates = Dir.glob(Template.new(id: '*').metadata_path).map do |path|
-        Template.new(id: File.basename(File.dirname(path)))
-      end
-
-      valid_templates = templates.select do |template|
-        if template.valid?
-          true
-        else
-          FlightJobScriptAPI.logger.error "Rejecting invalid template from index: #{template.id}\n" do
-            template.errors.full_messages.join("\n")
-          end
-          false
-        end
-      end
-
-      next valid_templates
+      raise NotImplementedError
     end
 
     show
 
     has_many :questions do
-      fetch { resource.generation_questions }
+      fetch { raise NotImplementedError; resource.generation_questions }
     end
   end
 
-  resource :scripts, pkre: /[[[:xdigit:]]-]+/ do
+  resource :scripts, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        script = Script.new(id: id, user: current_user)
-        script.valid? ? script : nil
+        raise NotImplementedError
       end
     end
 
     index do
-      glob_path = Script.new(id: '*', user: current_user).metadata_path
-      scripts = Dir.glob(glob_path).map do |path|
-        id = File.basename File.dirname(path)
-        Script.new(id: id, user: current_user)
-      end
-
-      next scripts.select(&:valid?)
+      raise NotImplementedError
     end
 
     show
 
-    destroy do
-      FileUtils.rm_rf File.dirname(resource.metadata_path)
-    end
+    # TODO: Reimplement me in the CLI
+    # destroy do
+    #   raise NotImplementedError
+    # end
   end
 
-  resource :jobs, pkre: /[[[:xdigit:]]-]+/ do
+  resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        path = Job.metadata_path(current_user, id)
-        File.exists?(path) ? Job.from_metadata_path(path) : nil
+        raise NotImplementedError
       end
 
       def validate!
-        if @action == :create
-          resource.validate!(:submit)
-          resource.submit
-        else
-          raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
-        end
+        raise NotImplementedError
+        # if @action == :create
+        #   resource.validate!(:submit)
+        #   resource.submit
+        # else
+        #   raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
+        # end
       end
     end
 
     index do
-      jobs = Dir.glob(Job.metadata_path(current_user, '*')).map do |path|
-        Job.from_metadata_path(path)
-      end.reject(&:nil?)
-
-      jobs.sort_by do |j|
-        if j.created_at.is_a? String
-          -DateTime.rfc3339(j.created_at).to_time.to_i
-        else
-          0
-        end
-      end
+      raise NotImplementedError
     end
 
     show do
-      resource.monitor if resource.valid?(:monitor)
-      resource
+      raise NotImplementedError
     end
 
     create do |attr|
-      @action = :create
-      sub = Job.new(id: SecureRandom.uuid, user: current_user, created_at: DateTime.now.rfc3339)
-      [sub.id, sub]
+      raise NotImplementedError
     end
 
     has_one :script do
       graft(sideload_on: :create) do |rio|
-        raise Sinja::ForbiddenError, "A job's script can not be modified" unless @action == :create
-        script = Script.new(id: rio[:id], user: current_user)
-        resource.script = script
+        raise NotImplementedError
       end
     end
   end
@@ -264,30 +219,31 @@ class RenderApp < Sinatra::Base
 
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    template = Template.new(id: params['id'])
-    if template.valid?
-      response.headers['Content-Type'] = 'text/plain'
-      script = Script.new(template: template, user: @current_user)
+    raise NotImplementedError
+    # template = Template.new(id: params['id'])
+    # if template.valid?
+    #   response.headers['Content-Type'] = 'text/plain'
+    #   script = Script.new(template: template, user: @current_user)
 
-      # This conditional should not be reached ATM
-      unless script.valid?
-        status 500
-        halt
-      end
+    #   # This conditional should not be reached ATM
+    #   unless script.valid?
+    #     status 500
+    #     halt
+    #   end
 
-      begin
-        script.render_and_save(**params.to_h.transform_keys(&:to_sym))
-      rescue
-        FlightJobScriptAPI.logger.debug("Rendering script failed") { $! }
-        status 422
-        halt
-      end
+    #   begin
+    #     script.render_and_save(**params.to_h.transform_keys(&:to_sym))
+    #   rescue
+    #     FlightJobScriptAPI.logger.debug("Rendering script failed") { $! }
+    #     status 422
+    #     halt
+    #   end
 
-      status 201
-      next script.script_path
-    else
-      status 404
-      halt
-    end
+    #   status 201
+    #   next script.script_path
+    # else
+    #   status 404
+    #   halt
+    # end
   end
 end
