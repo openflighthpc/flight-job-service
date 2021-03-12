@@ -123,7 +123,7 @@ class App < Sinatra::Base
     show
 
     has_many :questions do
-      fetch { raise NotImplementedError; resource.generation_questions }
+      fetch { resource.generation_questions }
     end
   end
 
