@@ -150,27 +150,23 @@ class App < Sinatra::Base
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        raise NotImplementedError
+        Job.find(id, user: current_user)
       end
 
       def validate!
-        raise NotImplementedError
-        # if @action == :create
-        #   resource.validate!(:submit)
-        #   resource.submit
-        # else
-        #   raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
-        # end
+        if @action == :create
+          raise NotImplementedError
+        else
+          raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
+        end
       end
     end
 
     index do
-      raise NotImplementedError
+      Job.index(user: current_user)
     end
 
-    show do
-      raise NotImplementedError
-    end
+    show
 
     create do |attr|
       raise NotImplementedError
