@@ -220,31 +220,22 @@ class RenderApp < Sinatra::Base
 
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    raise NotImplementedError
-    # template = Template.new(id: params['id'])
-    # if template.valid?
-    #   response.headers['Content-Type'] = 'text/plain'
-    #   script = Script.new(template: template, user: @current_user)
+    id = params['id']
+    answers = params.to_h.to_json
+    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(id, user: @current_user, stdin: answers)
 
-    #   # This conditional should not be reached ATM
-    #   unless script.valid?
-    #     status 500
-    #     halt
-    #   end
+    if cmd.status.success?
+      response.headers['Content-Type'] = 'application/vnd.api+json'
+      script = Script.new(user: @current_user, **JSON.parse(cmd.stdout))
+      status 201
+      next JSONAPI::Serializer.serialize(script).to_json
 
-    #   begin
-    #     script.render_and_save(**params.to_h.transform_keys(&:to_sym))
-    #   rescue
-    #     FlightJobScriptAPI.logger.debug("Rendering script failed") { $! }
-    #     status 422
-    #     halt
-    #   end
-
-    #   status 201
-    #   next script.script_path
-    # else
-    #   status 404
-    #   halt
-    # end
+    elsif cmd.status.exitstatus == 21
+      status 404
+      halt
+    else
+      status 503
+      halt
+    end
   end
 end
