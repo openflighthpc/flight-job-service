@@ -27,6 +27,8 @@
 #==============================================================================
 
 class Job
+  class MissingScript < StandardError; end
+
   def self.index(**opts)
     cmd = FlightJobScriptAPI::SystemCommand.flight_list_jobs(**opts).tap do |cmd|
       next if cmd.status.success?
@@ -61,6 +63,15 @@ class Job
     metadata['id']
   end
 
+  def script_id
+    metadata['script_id']
+  end
+
+  def script_id=(id)
+    @script = false
+    metadata['script_id'] = id
+  end
+
   def script
     if @script == false
       script_id = metadata['script_id']
@@ -68,5 +79,22 @@ class Job
       @script = Script.find(script_id, user: user)
     end
     @script
+  end
+
+  def submit
+    unless script_id
+      raise MissingScript, "Can not create a job without a script"
+    end
+
+    cmd = FlightJobScriptAPI::SystemCommand.flight_submit_job(script_id, user: user).tap do |cmd|
+      next if cmd.status.success?
+      if cmd.status.exitstatus == 22
+        raise MissingScript, "Failed to locate script : #{script_id}"
+      else
+        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to submit job"
+      end
+    end
+
+    @metadata = JSON.parse(cmd.stdout)
   end
 end
