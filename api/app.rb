@@ -112,7 +112,7 @@ class App < Sinatra::Base
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
-        raise NotImplementedError
+        Template.find(id, user: current_user)
       end
     end
 
