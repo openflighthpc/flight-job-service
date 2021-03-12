@@ -28,6 +28,7 @@
 
 module FlightJobScriptAPI
   autoload(:Configuration, 'flight_job_script_api/configuration')
+  autoload(:SystemCommand, 'flight_job_script_api/system_command')
 
   class UnexpectedError < StandardError; end
 
