@@ -265,7 +265,6 @@ Content-Type: application/vnd.api+json
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The script's ID
     "attributes": {
-      "script-path": STRING,    # REQUIRED - The path to the rendered script
       "script-name": STRING,    # REQUIRED - The name of the script
       "created-at": STRING      # REQUIRED - The creation date-time in RFC3339 format
     },
@@ -276,10 +275,6 @@ Content-Type: application/vnd.api+json
       "template": {             # RECOMMENDED - The related template resource links
         "links": {
           "related": "/v0/scripts/:id/template"
-        },
-        "data": {
-          "type": "templates",  # RECOMMENDED - Denotes the related resource is a template
-          "id": STRING          # RECOMMENDED - The ID of the related template
         }
       }
     },
