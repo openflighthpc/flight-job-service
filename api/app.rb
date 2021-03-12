@@ -130,12 +130,12 @@ class App < Sinatra::Base
   resource :scripts, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        raise NotImplementedError
+        Script.find(id, user: current_user)
       end
     end
 
     index do
-      raise NotImplementedError
+      Script.index(user: current_user)
     end
 
     show

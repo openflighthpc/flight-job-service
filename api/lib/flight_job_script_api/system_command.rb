@@ -47,6 +47,14 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'info-template', id, '--json', **opts).tap(&:wait)
     end
 
+    def self.flight_list_scripts(**opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'list-scripts', '--json', **opts).tap(&:wait)
+    end
+
+    def self.flight_info_script(id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', **opts).tap(&:wait)
+    end
+
     attr_reader :cmd, :user, :mutex
     attr_accessor :stdout, :stderr, :status
 

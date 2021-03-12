@@ -29,16 +29,6 @@
 class ApplicationSerializer
   include JSONAPI::Serializer
 
-  # Include the 'data' hash for has_one relationships by default
-  # NOTE: This is only the resource identifier object NOT the entire related
-  # resource. This provides the ID to the client without using an 'include'
-  #
-  # PS: has_many is still excluded because typically work is required to generate
-  # the IDs. The client needs to request these explicitly
-  def self.has_one(*a, include_data: true, **o)
-    super
-  end
-
   def format_name(attribute_name)
     attribute_name.to_s.camelize(:lower)
   end
