@@ -496,7 +496,7 @@ Due to the underlining templating engine, this route could fail to render for va
 1. The client not sending all the required keys, or
 2. The template being misconfigured.
 
-The above errors SHOULD be resolved by the system administrator. The server expects render errors MAY occur and SHALL return in `422 - Unprocessable Entity`. This denotes the error occurred during rendering as opposed to a generic server error.
+The API may fail to render the script due to a malformed template. The exact behaviour in this situation is undefined.
 
 NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
 
@@ -505,48 +505,44 @@ NOTE: This route does not conform the JSON:API standard and behaves slightly dif
 POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: x-www-form-urlencoded
-Accept: text/plain
+Accept: application/vnd.api+json
 key=value&...
 
 HTTP/2 201 CREATED
-Content-Type: text/plain
-/path/to/rendered/script
+Content-Type: application/vnd.api+json
+{
+  "data": ScriptResource,
+}
 
 
 # With application/json body
 POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: application/json
-Accept: text/plain
+Accept: application/vnd.api+json
 {
   "[key]": "[value]",
   ...
 }
 
 HTTP/2 201 CREATED
-Content-Type: text/plain
-/path/to/rendered/script
-
-
-# When the template fails to render
-POST /v0/render/:template_id
-Authorization: Bearer <jwt>
-Accept: text/plain
-
-HTPP/2 422 Unprocessable Entity
+Content-Type: application/vnd.api+json
+{
+  "data": ScriptResource,
+}
 
 
 # With invalid credentials
 POST /v0/render/:template_id
 Authorization: Bearer <jwt>
-Accept: text/plain
+Accept: application/vnd.api+json
 
 HTPP/2 403 Forbidden
 
 
 # Without credentials
 POST /v0/render/:template_id
-Accept: text/plain
+Accept: application/vnd.api+json
 
 HTTP/2 401 Unauthorized
 ```

@@ -55,12 +55,17 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', **opts).tap(&:wait)
     end
 
-    attr_reader :cmd, :user, :mutex
+    def self.flight_create_script(template_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'create-script', template_id, '--json', '--stdin', **opts).tap(&:wait)
+    end
+
+    attr_reader :cmd, :user, :mutex, :stdin
     attr_accessor :stdout, :stderr, :status
 
-    def initialize(*cmd, user:, mutex: nil)
+    def initialize(*cmd, user:, mutex: nil, stdin: nil)
       @cmd = cmd
       @user = user
+      @stdin = stdin
       @mutex = self.class.mutexes[user]
     end
 
@@ -90,12 +95,17 @@ module FlightJobScriptAPI
       # NOTE: Must be first due to the ensure block
       out_read, out_write = IO.pipe
       err_read, err_write = IO.pipe
+      in_read,  in_write  = IO.pipe
 
       mutex.synchronize do
+        # Write the standard input if required
+        in_write.write(stdin) if stdin
+
         pid = Kernel.fork do
-          # Close the read pipes
+          # Close the parent pipes
           out_read.close
           err_read.close
+          in_write.close
 
           # Become the user
           Process::Sys.setgid(passwd.gid)
@@ -104,21 +114,27 @@ module FlightJobScriptAPI
 
           # Execute the command
           FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
-          Kernel.exec(env, *cmd, unsetenv_others: true, close_others: true,
-                      chdir: passwd.dir, out: out_write, err: err_write)
+          opts = {
+            unsetenv_others: true, close_others: true, chdir: passwd.dir,
+            out: out_write, err: err_write, in: in_read
+          }
+          Kernel.exec(env, *cmd, **opts)
         end
 
-        # Close the write pipes
+        # Close the child pipes
         out_write.close
         err_write.close
+        in_read.close
 
         # Wait for the command to finish within the timelimit
+        signal = 'TERM'
         begin
           _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
             Process.wait2(pid)
           end
         rescue Timeout::Error
-          Process.kill('TERM', pid)
+          Process.kill(-Signal.list[signal], pid)
+          signal = 'KILL'
           retry
         end
 
@@ -129,6 +145,8 @@ module FlightJobScriptAPI
 
         FlightJobScriptAPI.logger.debug <<~DEBUG
           STATUS: #{status.exitstatus}
+          STDIN:
+          #{ stdin ? stdin : "(Not Provided)"}
           STDOUT:
           #{stdout}
           STDERR:
@@ -140,6 +158,8 @@ module FlightJobScriptAPI
       out_write.close unless out_write.closed?
       err_read.close unless err_read.closed?
       err_write.close unless err_write.closed?
+      in_read.close unless in_read.closed?
+      in_write.close unless in_write.closed?
     end
   end
 end
