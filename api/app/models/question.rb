@@ -26,35 +26,7 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class Template
-  def self.index(**opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_list_templates(**opts).tap do |cmd|
-      next if cmd.status.success?
-      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
-    end
-    JSON.parse(cmd.stdout).map do |metadata|
-      new(**metadata)
-    end
-  end
-
-  def self.find(id, **opts)
-    # The underlying CLI has supports non-deterministic indexing of templates
-    # This "okay" in the CLI but makes the API unnecessarily complicated
-    # Instead, all "ids" which match an integer will be ignored
-    # NOTE: This means templates which are named after an integer may be indexed
-    #       but can't be found. However this is an odd edge case and is currently
-    #       being ignored
-    return if /\A\d+\Z/.match?(id)
-
-    cmd = FlightJobScriptAPI::SystemCommand.flight_info_template(id, **opts).tap do |cmd|
-      next if cmd.status.success?
-      return nil if cmd.status.exitstatus == 21
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"
-    end
-
-    new(**JSON.parse(cmd.stdout))
-  end
-
+class Question
   attr_reader :metadata
 
   def initialize(**metadata)
@@ -64,8 +36,5 @@ class Template
   def id
     metadata['id']
   end
-
-  def generation_questions
-    metadata['generation_questions'].map { |metadata| Question.new(**metadata) }
-  end
 end
+

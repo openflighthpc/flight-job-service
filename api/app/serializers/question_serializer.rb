@@ -27,5 +27,7 @@
 #==============================================================================
 
 class QuestionSerializer < ApplicationSerializer
-  attributes :text, :description, :default, :format, :ask_when
+  ['text', 'description', 'default', 'format', 'ask_when'].each do |field|
+    attribute(field) { object.metadata[field] }
+  end
 end
