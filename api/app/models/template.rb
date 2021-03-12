@@ -26,37 +26,24 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-ENV['RACK_ENV'] ||= 'development'
-ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
+Template = Struct.new(:metadata) do
+  def self.index(**opts)
+    cmd = FlightJobScriptAPI::SystemCommand.flight_list_templates(**opts).tap do |cmd|
+      next if cmd.status.success?
+      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
+    end
+    JSON.parse(cmd.stdout).map do |metadata|
+      new(metadata)
+    end
+  end
 
-require 'rubygems'
-require 'bundler'
-require 'yaml'
-require 'json'
-require 'pathname'
-require 'ostruct'
-require 'etc'
-require 'timeout'
-require 'logger'
+  def id
+    metadata['id']
+  end
 
-if ENV['RACK_ENV'] == 'development'
-  Bundler.require(:default, :development)
-else
-  Bundler.require(:default)
+  def generation_questions
+    raise NotImplementedError
+    # TODO: Map these into question objects
+    metadata['generation_questions']
+  end
 end
-
-# Shared activesupport libraries
-require 'active_support/core_ext/hash/keys'
-
-# Ensure ApplicationModel::ValidationError is defined in advance
-require 'active_model/validations.rb'
-
-lib = File.expand_path('../lib', __dir__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-
-require 'flight_job_script_api'
-
-# Ensures the shared secret exists
-FlightJobScriptAPI.config.auth_decoder
-
-require_relative '../app'

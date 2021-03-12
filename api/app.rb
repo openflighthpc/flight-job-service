@@ -117,7 +117,7 @@ class App < Sinatra::Base
     end
 
     index do
-      raise NotImplementedError
+      Template.index(user: current_user)
     end
 
     show
@@ -141,6 +141,7 @@ class App < Sinatra::Base
     show
 
     # TODO: Reimplement me in the CLI
+    # Remember to update the routes document
     # destroy do
     #   raise NotImplementedError
     # end

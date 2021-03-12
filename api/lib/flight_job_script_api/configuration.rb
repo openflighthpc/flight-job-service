@@ -54,27 +54,10 @@ module FlightJobScriptAPI
         transform: relative_to(root_path)
       },
       {
-        name: 'data_dir',
+        name: 'flight_job',
         env_var: true,
-        default: 'usr/share',
-        transform: relative_to(root_path)
-      },
-      {
-        name: 'internal_data_dir',
-        env_var: true,
-        default: 'var/lib',
-        transform: relative_to(root_path)
-      },
-      {
-        name: 'script_dir',
-        env_var: true,
-        default: 'libexec',
-        transform: relative_to(root_path)
-      },
-      {
-        name: 'scheduler',
-        env_var: true,
-        default: 'slurm'
+        default: File.join(ENV.fetch('flight_ROOT', '/opt/flight'), 'bin/flight job'),
+        transform: ->(value) { value.split(' ') }
       },
       {
         name: 'command_path',
@@ -85,11 +68,6 @@ module FlightJobScriptAPI
         name: 'command_timeout',
         env_var: true,
         default: 5
-      },
-      {
-        name: 'monitor_interval',
-        env_var: true,
-        default: 300
       },
       {
         name: 'log_level',
