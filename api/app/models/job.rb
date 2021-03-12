@@ -26,14 +26,47 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class ScriptSerializer < ApplicationSerializer
-  # NOTE: Removed as it is missing from the JSON output. Consider re-implementing
-  # if required. Remember to update the routes doc
-  # attribute(:path) { object.script_path }
-  attribute(:name) { object.metadata['script_name'] }
-  attribute(:created_at) { object.metadata['created_at'] }
+class Job
+  def self.index(**opts)
+    cmd = FlightJobScriptAPI::SystemCommand.flight_list_jobs(**opts).tap do |cmd|
+      next if cmd.status.success?
+      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list jobs'
+    end
+    JSON.parse(cmd.stdout).map do |metadata|
+      new(user: opts[:user], **metadata)
+    end
+  end
 
-  # NOTE: This relationship could add considerable overhead with includes? requests
-  # Consider refactoring to a per-request registry
-  has_one(:template)
+  def self.find(id, **opts)
+    cmd = FlightJobScriptAPI::SystemCommand.flight_info_job(id, **opts).tap do |cmd|
+      next if cmd.status.success?
+      return nil if cmd.status.exitstatus == 23
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find job: #{id}"
+    end
+
+    new(user: opts[:user], **JSON.parse(cmd.stdout))
+  end
+
+  attr_reader :metadata, :user
+
+  def initialize(user:, **metadata)
+    @metadata = metadata
+    @user = user
+
+    # Flag that the script has not been loaded
+    @script = false
+  end
+
+  def id
+    metadata['id']
+  end
+
+  def script
+    if @script == false
+      script_id = metadata['script_id']
+      FlightJobScriptAPI.logger.info "Lazy loading related script: #{script_id} (script: #{id})"
+      @script = Script.find(script_id, user: user)
+    end
+    @script
+  end
 end

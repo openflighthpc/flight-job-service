@@ -27,7 +27,12 @@
 #==============================================================================
 
 class JobSerializer < ApplicationSerializer
-  attributes :created_at, :stdout_path, :stderr_path, :state, :reason,
-    :start_time, :end_time, :scheduler_id, :submit_stdout, :submit_stderr
+  [
+    'created_at', 'stdout_path', 'stderr_path', 'state', 'reason',
+    'start_time', 'end_time', 'scheduler_id', 'submit_stdout', 'submit_stderr'
+  ].each do |field|
+    attribute(field) { object.metadata[field] }
+  end
+
   has_one :script
 end
