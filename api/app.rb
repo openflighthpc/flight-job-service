@@ -46,6 +46,8 @@ module Sinja
   end
 end
 
+class MissingScriptValidation < StandardError; end
+
 # The base JSON:API for most interactions. Mounted in rack under
 # /:version
 class App < Sinatra::Base
@@ -76,12 +78,7 @@ class App < Sinatra::Base
   end
 
   configure_jsonapi do |c|
-    c.validation_exceptions << ActiveModel::ValidationError
-    c.validation_formatter = ->(e) do
-      e.model.errors.messages.map do |src, msg|
-        [src, msg.join(', ')]
-      end
-    end
+    c.validation_exceptions << Job::MissingScript
 
     # Resource roles
     c.default_roles = {
@@ -155,7 +152,7 @@ class App < Sinatra::Base
 
       def validate!
         if @action == :create
-          raise NotImplementedError
+          resource.submit
         else
           raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
         end
@@ -169,12 +166,17 @@ class App < Sinatra::Base
     show
 
     create do |attr|
-      raise NotImplementedError
+      @action = :create
+      # Due to the how the internal Sinja routing works, the job needs an "ID"
+      # However the actual ID won't be assigned until latter, so a temporary ID
+      # is used instead.
+      ['temporary', Job.new(user: current_user)]
     end
 
     has_one :script do
       graft(sideload_on: :create) do |rio|
-        raise NotImplementedError
+        raise Sinja::ForbiddenError, "A job's script can not be modified" unless @action == :create
+        resource.script_id = rio[:id]
       end
     end
   end
