@@ -69,4 +69,11 @@ class Script
     end
     @template
   end
+
+  def delete(**opts)
+    FlightJobScriptAPI::SystemCommand.flight_delete_script(id, **opts).tap do |cmd|
+      next if cmd.status.success?
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to delete script: #{id}"
+    end
+  end
 end

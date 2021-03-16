@@ -140,11 +140,7 @@ class App < Sinatra::Base
 
     show
 
-    # TODO: Reimplement me in the CLI
-    # Remember to update the routes document
-    # destroy do
-    #   raise NotImplementedError
-    # end
+    destroy { resource.delete(user: current_user) }
   end
 
   resource :jobs, pkre: /[\w-]+/ do
