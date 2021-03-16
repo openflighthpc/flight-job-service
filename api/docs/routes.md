@@ -169,7 +169,8 @@ Content-Type: application/vnd.api+json
       "attributes": {
         "text": STRING,         # REQUIRED    - A short summary of the question
         "description": STRING,  # OPTIONAL    - A longer description of the question
-        "default": STRING,      # OPTIONAL    - The value which should pre-populate the question
+        "default": STRING,      # RECOMMENDED - The value which should pre-populate the question
+        "default": [STRING],    # OPTIONAL    - An array of default values when the format is multiselect
         "format": {             # OPTIONAL    - Specifies how the field should be presented
           "type": STRING,       # RECOMMENDED - The field type that should be used (specifcation TBA)
           "options":            # OPTIONAL    - A list of valid responses to the question
@@ -265,8 +266,9 @@ Content-Type: application/vnd.api+json
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The script's ID
     "attributes": {
-      "script-name": STRING,    # REQUIRED - The name of the script
-      "created-at": STRING      # REQUIRED - The creation date-time in RFC3339 format
+      "scriptName": STRING,     # REQUIRED - The name of the script
+      "createdAt": STRING,      # REQUIRED - The creation date-time in RFC3339 format
+      "path": STRING            # REQUIRED - The script's path on the filesystem
     },
     "links": {
       "self": "/v0/scripts/:id"
