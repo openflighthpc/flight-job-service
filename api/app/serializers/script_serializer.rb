@@ -27,9 +27,7 @@
 #==============================================================================
 
 class ScriptSerializer < ApplicationSerializer
-  # NOTE: Removed as it is missing from the JSON output. Consider re-implementing
-  # if required. Remember to update the routes doc
-  # attribute(:path) { object.script_path }
+  attribute(:path) { object.metadata['path'] }
   attribute(:name) { object.metadata['script_name'] }
   attribute(:created_at) { object.metadata['created_at'] }
 
