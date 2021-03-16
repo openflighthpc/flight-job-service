@@ -368,7 +368,6 @@ Content-Type: application/vnd.api+json
 ```
 
 ## DELETE - /scripts/:id
-NOTE: This end point has been "temporarily" disabled
 
 Permanently remove a script
 
