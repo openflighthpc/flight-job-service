@@ -217,9 +217,25 @@ class RenderApp < Sinatra::Base
 
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    id = params['id']
-    answers = params.to_h.to_json
-    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(id, user: @current_user, stdin: answers)
+    # NOTE: The template is only loaded so it can preform the CSV conversion for
+    # multiselect questions. Removing support for CSV would drop this requirement
+    template = Template.find(params['id'], user: @current_user)
+    if template.nil?
+      status 404
+      halt
+    end
+
+    # Transform any multiselect answers from CSV to Arrays
+    answers = params.to_h.dup
+    template.generation_questions.each do |q|
+      next unless q.metadata['format']['type'] == 'multiselect'
+      next unless answers[q.id].is_a? String
+      FlightJobScriptAPI.logger.warn "Implicitly converting '#{q.id}' from CSV to an array"
+      answers[q.id] = CSV.parse(answers[q.id]).first
+    end
+    answers = answers.to_json
+
+    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(template.id, user: @current_user, stdin: answers)
 
     if cmd.status.success?
       response.headers['Content-Type'] = 'application/vnd.api+json'
@@ -227,6 +243,7 @@ class RenderApp < Sinatra::Base
       status 201
       next JSONAPI::Serializer.serialize(script).to_json
 
+    # Technically this should not be reached as it means the template does not exist
     elsif cmd.status.exitstatus == 21
       status 404
       halt
