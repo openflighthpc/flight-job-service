@@ -76,7 +76,7 @@ module FlightJobScriptAPI
     end
 
     attr_reader :cmd, :user, :mutex, :stdin
-    attr_accessor :stdout, :stderr, :status
+    attr_accessor :stdout, :stderr, :exitstatus
 
     def initialize(*cmd, user:, mutex: nil, stdin: nil)
       @cmd = cmd
@@ -117,6 +117,7 @@ module FlightJobScriptAPI
         # Write the standard input if required
         in_write.write(stdin) if stdin
 
+        FlightJobScriptAPI.logger.debug("Forking Process")
         pid = Kernel.fork do
           # Close the parent pipes
           out_read.close
@@ -129,11 +130,12 @@ module FlightJobScriptAPI
           Process.setsid
 
           # Execute the command
-          FlightJobScriptAPI.logger.info("Executing: #{cmd.join(' ')}")
           opts = {
             unsetenv_others: true, close_others: true, chdir: passwd.dir,
             out: out_write, err: err_write, in: in_read
           }
+          # NOTE: Kepp the log before the exec for timing purposes
+          FlightJobScriptAPI.logger.info("Executing (#{user}): #{cmd.join(' ')}")
           Kernel.exec(env, *cmd, **opts)
         end
 
@@ -145,24 +147,43 @@ module FlightJobScriptAPI
         # Wait for the command to finish within the timelimit
         signal = 'TERM'
         begin
+          FlightJobScriptAPI.logger.debug("Waiting for pid: #{pid}")
           _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
             Process.wait2(pid)
           end
         rescue Timeout::Error
+          FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
           Process.kill(-Signal.list[signal], pid)
           signal = 'KILL'
           retry
         end
 
         # Store the results
-        self.status = status
+        if status.exitstatus
+          self.exitstatus = status.exitstatus
+
+        # The exit status from signals aren't always set, instead they can be inferred
+        elsif status.signaled?
+          FlightJobScriptAPI.logger.warn "Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{pid})"
+          self.exitstatus = status.termsig + 128
+
+        # If all else fails, say 128
+        else
+          FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
+          self.exitstatus = 128
+        end
+
         self.stdout = out_read.read
         self.stderr = err_read.read
 
         FlightJobScriptAPI.logger.debug <<~DEBUG
-          STATUS: #{status.exitstatus}
+
+          COMMAND: #{cmd.join(' ')}
+          USER: #{user}
+          PID: #{pid}
+          STATUS: #{exitstatus}
           STDIN:
-          #{ stdin ? stdin : "(Not Provided)"}
+          #{stdin.to_s}
           STDOUT:
           #{stdout}
           STDERR:

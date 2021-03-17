@@ -237,14 +237,14 @@ class RenderApp < Sinatra::Base
 
     cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(template.id, user: @current_user, stdin: answers)
 
-    if cmd.status.success?
+    if cmd.exitstatus == 0
       response.headers['Content-Type'] = 'application/vnd.api+json'
       script = Script.new(user: @current_user, **JSON.parse(cmd.stdout))
       status 201
       next JSONAPI::Serializer.serialize(script).to_json
 
     # Technically this should not be reached as it means the template does not exist
-    elsif cmd.status.exitstatus == 21
+    elsif cmd.exitstatus == 21
       status 404
       halt
     else
