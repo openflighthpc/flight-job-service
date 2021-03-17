@@ -29,7 +29,7 @@
 class Template
   def self.index(**opts)
     cmd = FlightJobScriptAPI::SystemCommand.flight_list_templates(**opts).tap do |cmd|
-      next if cmd.status.success?
+      next if cmd.exitstatus == 0
       raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
     end
     JSON.parse(cmd.stdout).map do |metadata|
@@ -47,8 +47,8 @@ class Template
     return if /\A\d+\Z/.match?(id)
 
     cmd = FlightJobScriptAPI::SystemCommand.flight_info_template(id, **opts).tap do |cmd|
-      next if cmd.status.success?
-      return nil if cmd.status.exitstatus == 21
+      next if cmd.exitstatus == 0
+      return nil if cmd.exitstatus == 21
       raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"
     end
 

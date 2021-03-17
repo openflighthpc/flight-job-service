@@ -31,7 +31,7 @@ class Job
 
   def self.index(**opts)
     cmd = FlightJobScriptAPI::SystemCommand.flight_list_jobs(**opts).tap do |cmd|
-      next if cmd.status.success?
+      next if cmd.exitstatus == 0
       raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list jobs'
     end
     JSON.parse(cmd.stdout).map do |metadata|
@@ -41,8 +41,8 @@ class Job
 
   def self.find(id, **opts)
     cmd = FlightJobScriptAPI::SystemCommand.flight_info_job(id, **opts).tap do |cmd|
-      next if cmd.status.success?
-      return nil if cmd.status.exitstatus == 23
+      next if cmd.exitstatus == 0
+      return nil if cmd.exitstatus == 23
       raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find job: #{id}"
     end
 
@@ -87,8 +87,8 @@ class Job
     end
 
     cmd = FlightJobScriptAPI::SystemCommand.flight_submit_job(script_id, user: user).tap do |cmd|
-      next if cmd.status.success?
-      if cmd.status.exitstatus == 22
+      next if cmd.exitstatus == 0
+      if cmd.exitstatus == 22
         raise MissingScript, "Failed to locate script : #{script_id}"
       else
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to submit job"
