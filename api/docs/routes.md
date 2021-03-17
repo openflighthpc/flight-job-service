@@ -170,7 +170,7 @@ Content-Type: application/vnd.api+json
         "text": STRING,         # REQUIRED    - A short summary of the question
         "description": STRING,  # OPTIONAL    - A longer description of the question
         "default": STRING,      # RECOMMENDED - The value which should pre-populate the question
-        "default": [STRING],    # OPTIONAL    - An array of default values when the format is multiselect
+                                # NOTE: multiselect questions will provide the default as a CSV list
         "format": {             # OPTIONAL    - Specifies how the field should be presented
           "type": STRING,       # RECOMMENDED - The field type that should be used (specifcation TBA)
           "options":            # OPTIONAL    - A list of valid responses to the question
@@ -491,7 +491,7 @@ Content-Type: application/vnd.api+json
 
 ## POST - /render/:template_id
 
-Renders the template against the provided date and saves it to the filesystem. Returns the path to the rendered script.
+Renders the template against the provided date and saves it to the filesystem.
 
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or

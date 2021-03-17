@@ -38,6 +38,7 @@ require 'ostruct'
 require 'etc'
 require 'timeout'
 require 'logger'
+require 'csv'
 
 if ENV['RACK_ENV'] == 'development'
   Bundler.require(:default, :development)
