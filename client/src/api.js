@@ -141,7 +141,7 @@ function denormalizeResponse(response, { isArray=false }={}) {
 export function useFetchJobs() {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    "/jobs?include=script,template",
+    "/jobs?include=script",
     {
       headers: { Accept: 'application/vnd.api+json' },
       interceptors: {
