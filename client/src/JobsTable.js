@@ -18,16 +18,15 @@ function JobsTable({ reloadJobs, jobs }) {
   const columns = React.useMemo(
     () => [
       {
+        Header: 'ID',
+        accessor: 'id',
+      },
+      {
         Header: 'Scheduler ID',
         accessor: (j) => (
           j.attributes.schedulerId == null ? <span>&mdash;</span> : j.attributes.schedulerId
         ),
         id: 'attributes.schedulerId',
-      },
-      {
-        Header: 'Template',
-        accessor: (j) => j.template ? j.template.attributes.name : 'Unknown',
-        id: 'template.name',
       },
       {
         Header: 'Script',

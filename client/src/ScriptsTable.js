@@ -12,6 +12,10 @@ function ScriptsTable({ reloadScripts, scripts }) {
   const columns = React.useMemo(
     () => [
       {
+        Header: 'ID',
+        accessor: 'id',
+      },
+      {
         Header: 'Template',
         accessor: 'template.attributes.name',
       },

@@ -161,7 +161,7 @@ export function useFetchJobs() {
 export function useFetchJob(id) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    `/jobs/${id}?include=script,template`,
+    `/jobs/${id}?include=script`,
     {
       headers: { Accept: 'application/vnd.api+json' },
       interceptors: {
