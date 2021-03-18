@@ -35,5 +35,5 @@ class JobSerializer < ApplicationSerializer
   end
 
   has_one :script
-  has_one :template
+  # has_one :template
 end
