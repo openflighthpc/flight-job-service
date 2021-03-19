@@ -1,7 +1,7 @@
 import React from 'react';
 import TimeAgo from 'react-timeago';
 import { Badge, Table } from 'reactstrap';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { useTable, useSortBy } from 'react-table';
 
 import styles from './JobsTable.module.css';
@@ -41,7 +41,14 @@ function JobsTable({ reloadJobs, jobs }) {
         Header: 'Script',
         accessor: 'script.attributes.name',
         Cell: ({ row, value }) => (
-          row.original.script == null ? <i>Unknown</i> : {value}
+          row.original.script == null ? <i>Unknown</i> : (
+            <Link
+              to={`/scripts/${row.original.script.id}`}
+              title="View script"
+            >
+              {value}
+            </Link>
+          )
         ),
       },
       {

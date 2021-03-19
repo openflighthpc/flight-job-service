@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import { Badge } from 'reactstrap';
+import { Link } from 'react-router-dom';
 
 import MetadataEntry from './MetadataEntry';
 import TimeAgo from './TimeAgo';
@@ -59,7 +60,14 @@ function JobCard({ reloadJobs, job }) {
             name="Script"
             value={job.script ? job.script.attributes.name : null}
             format={(value) => (
-              value == null ? <i>Unknown</i> : {value}
+              value == null ? <i>Unknown</i> : (
+                <Link
+                  to={`/scripts/${job.script.id}`}
+                  title="View script"
+                >
+                  {value}
+                </Link>
+              )
             )}
           />
           <MetadataEntry
