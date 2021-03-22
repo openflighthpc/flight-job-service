@@ -186,7 +186,7 @@ end
 # NOTE: The render route is implemented independently because:
 # 1. It does not conform to the JSON:API standard
 # 2. Sinja would require an work around involving the Content-Type/Accept headers
-# 3. Even with the work aroud, authentication needs manual integration
+# 3. Even with the work around, authentication needs manual integration
 #
 # The two apps are mounted together in rack. This app is mounted under
 # /:version/render
@@ -210,32 +210,24 @@ class RenderApp < Sinatra::Base
     end
   end
 
-  # Content-Type application/x-www-form-urlencoded is implicitly handled by sinatra
-  use Rack::Parser, parsers: {
+  parsers = {
     'application/json' => ->(body) { JSON.parse(body) }
   }
 
-  # TODO: The :id should be parsed against the same regex as above
-  post '/:id' do
-    # NOTE: The template is only loaded so it can preform the CSV conversion for
-    # multiselect questions. Removing support for CSV would drop this requirement
-    template = Template.find(params['id'], user: @current_user)
-    if template.nil?
-      status 404
+  before do
+    # Force the correct content-type encoding scheme
+    unless parsers.key?(env['CONTENT_TYPE'])
+      status 415
       halt
     end
+  end
 
-    # Transform any multiselect answers from CSV to Arrays
-    answers = params.to_h.dup
-    template.generation_questions.each do |q|
-      next unless q.metadata['format']['type'] == 'multiselect'
-      next unless answers[q.id].is_a? String
-      FlightJobScriptAPI.logger.warn "Implicitly converting '#{q.id}' from CSV to an array"
-      answers[q.id] = CSV.parse(answers[q.id]).first
-    end
-    answers = answers.to_json
+  use Rack::Parser, parsers: parsers
 
-    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(template.id, user: @current_user, stdin: answers)
+  # TODO: The :id should be parsed against the same regex as above
+  post '/:id' do
+    answers = params.to_json
+    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(params[:id], user: @current_user, stdin: answers)
 
     if cmd.exitstatus == 0
       response.headers['Content-Type'] = 'application/vnd.api+json'

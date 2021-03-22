@@ -33,8 +33,5 @@ class QuestionSerializer < ApplicationSerializer
 
   # NOTE: Technically only multiselect questions have Array defaults, however
   # it is "assumed" this is enforced by the underlying CLI
-  attribute(:default) do
-    default = object.metadata['default']
-    default.is_a?(Array) ? CSV.generate_line(default).chomp : default
-  end
+  attribute(:default) { object.metadata['default'] }
 end

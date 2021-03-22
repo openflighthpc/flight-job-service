@@ -169,7 +169,11 @@ Content-Type: application/vnd.api+json
       "attributes": {
         "text": STRING,         # REQUIRED    - A short summary of the question
         "description": STRING,  # OPTIONAL    - A longer description of the question
-        "default": STRING,      # RECOMMENDED - The value which should pre-populate the question
+                                #               The TYPE is dependant on the "format-type" below
+                                #               The TYPE SHALL be:
+                                #                 - [STRING] (array of strings) for 'multiselect'
+                                #               Otherwise the TYPE SHOULD be STRING.
+        "default": TYPE,        # RECOMMENDED - The value which would be used if the answer is omitted
                                 # NOTE: multiselect questions will provide the default as a CSV list
         "format": {             # OPTIONAL    - Specifies how the field should be presented
           "type": STRING,       # RECOMMENDED - The field type that should be used (specifcation TBA)
@@ -502,21 +506,6 @@ The API may fail to render the script due to a malformed template. The exact beh
 NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
 
 ```
-# With x-www-form-urlencoded body
-POST /v0/render/:template_id
-Authorization: Bearer <jwt>
-Content-Type: x-www-form-urlencoded
-Accept: application/vnd.api+json
-key=value&...
-
-HTTP/2 201 CREATED
-Content-Type: application/vnd.api+json
-{
-  "data": ScriptResource,
-}
-
-
-# With application/json body
 POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: application/json
