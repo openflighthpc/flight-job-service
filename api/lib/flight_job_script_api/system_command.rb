@@ -88,7 +88,7 @@ module FlightJobScriptAPI
     def wait
       return if @wait
       run
-      @wait ||= true
+      @wait = true
     end
 
     private
