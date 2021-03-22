@@ -83,7 +83,7 @@ class Job
 
   def submit
     unless script_id
-      raise MissingScript, "Can not create a job without a script"
+      raise MissingScript, "Cannot create a job without a script"
     end
 
     cmd = FlightJobScriptAPI::SystemCommand.flight_submit_job(script_id, user: user).tap do |cmd|

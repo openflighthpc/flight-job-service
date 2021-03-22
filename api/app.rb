@@ -167,7 +167,7 @@ class App < Sinatra::Base
     create do |attr|
       @action = :create
       # Due to the how the internal Sinja routing works, the job needs an "ID"
-      # However the actual ID won't be assigned until latter, so a temporary ID
+      # However the actual ID won't be assigned until later, so a temporary ID
       # is used instead.
       ['temporary', Job.new(user: current_user)]
     end
