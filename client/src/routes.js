@@ -17,15 +17,15 @@ const routes = [
     sideNav: true,
   },
   {
-    path: `/foo/templates/:id`,
+    path: '/templates/:id',
     name: 'Template',
     Component: TemplatePage,
     authenticated: true,
     sideNav: true,
   },
   {
-    path: `/templates/:id`,
-    name: 'Template',
+    path: '/scripts/new/:templateId',
+    name: 'New script',
     Component: TemplateQuestionsPage,
     authenticated: true,
     sideNav: true,
@@ -49,7 +49,7 @@ const routes = [
     name: 'Jobs',
     Component: JobsPage,
     authenticated: true,
-    // sideNav: true,
+    sideNav: false,
   },
   {
     path: '/jobs/:id',

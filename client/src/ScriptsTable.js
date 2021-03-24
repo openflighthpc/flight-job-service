@@ -39,7 +39,7 @@ function ScriptsTable({ reloadScripts, scripts }) {
           <Link
             onClick={(ev) => ev.stopPropagation() }
             title="View template"
-            to={`/foo/templates/${row.original.template.id}`}
+            to={`/templates/${row.original.template.id}`}
           >
             {value}
           </Link>

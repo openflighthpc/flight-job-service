@@ -28,7 +28,7 @@ function ScriptCard({ reloadScripts, script }) {
             format={(value) => (
               value == null ? <i>Unknown</i> : (
                 <Link
-                  to={`/foo/templates/${script.template.id}`}
+                  to={`/templates/${script.template.id}`}
                   title="View template"
                 >
                   {value}
