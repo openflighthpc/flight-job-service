@@ -5,21 +5,10 @@ import { Link } from 'react-router-dom';
 import MetadataEntry from './MetadataEntry';
 import TimeAgo from './TimeAgo';
 import styles from './JobCard.module.css';
-
-const colourMap = {
-  'PENDING':    'secondary',
-  'RUNNING':    'primary',
-  'COMPLETING': 'success',
-  'COMPLETED':  'success',
-  'FAILED':     'danger',
-  'TERMINATED': 'danger',
-  'SUSPENDED':  'info',
-  'STOPPED':    'info',
-  'UNKNOWN':    'warning',
-};
+import { stateColourMap } from './utils';
 
 function JobCard({ reloadJobs, job }) {
-  const colour = colourMap[job.attributes.state];
+  const colour = stateColourMap[job.attributes.state];
   const outputMerged = job.attributes.stdoutPath === job.attributes.stderrPath;
 
   return (

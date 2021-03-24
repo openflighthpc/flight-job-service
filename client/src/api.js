@@ -61,7 +61,17 @@ export function useFetchScripts() {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
     "/scripts?include=template",
-    { headers: { Accept: 'application/vnd.api+json' } },
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+      interceptors: {
+        response: async ({ response }) => {
+          if (response.ok) {
+            denormalizeResponse(response, { isArray: true });
+          }
+          return response;
+        }
+      }
+    },
     [ currentUser.authToken ]);
 }
 
@@ -175,7 +185,6 @@ export function useFetchJobs() {
         response: async ({ response }) => {
           if (response.ok) {
             denormalizeResponse(response, { isArray: true });
-            // setJobDefaults(response);
           }
           return response;
         }
@@ -195,7 +204,6 @@ export function useFetchJob(id) {
         response: async ({ response }) => {
           if (response.ok) {
             denormalizeResponse(response);
-            // setJobDefaults([ response.data.data ]);
           }
           return response;
         }

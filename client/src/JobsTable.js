@@ -5,6 +5,7 @@ import { Link, useHistory } from 'react-router-dom';
 import { useTable, useSortBy } from 'react-table';
 
 import styles from './JobsTable.module.css';
+import { stateColourMap } from './utils';
 
 function JobsTable({ reloadJobs, jobs }) {
   const data = React.useMemo(() => jobs, [jobs]);
@@ -54,20 +55,7 @@ function JobsTable({ reloadJobs, jobs }) {
       {
         Header: 'State',
         accessor: 'attributes.state',
-        Cell: ({ value }) => {
-          const colourMap = {
-            'PENDING':    'secondary',
-            'RUNNING':    'primary',
-            'COMPLETING': 'success',
-            'COMPLETED':  'success',
-            'FAILED':     'danger',
-            'TERMINATED': 'danger',
-            'SUSPENDED':  'info',
-            'STOPPED':    'info',
-            'UNKNOWN':    'warning',
-          };
-          return <Badge color={colourMap[value]}>{value}</Badge>;
-        },
+        Cell: ({ value }) => <Badge color={stateColourMap[value]}>{value}</Badge>,
       },
     ],
     []
