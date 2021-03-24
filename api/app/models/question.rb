@@ -26,6 +26,15 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class Question < ApplicationModel
-  attr_accessor :id, :text, :description, :default, :format, :ask_when, :template
+class Question
+  attr_reader :metadata
+
+  def initialize(**metadata)
+    @metadata = metadata
+  end
+
+  def id
+    metadata['id']
+  end
 end
+

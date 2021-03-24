@@ -32,5 +32,5 @@ class TemplateSerializer < ApplicationSerializer
   attribute(:description) { object.metadata['description'] }
   attribute(:version) { object.metadata['version'] }
 
-  has_many :questions
+  has_many(:questions) { object.generation_questions }
 end

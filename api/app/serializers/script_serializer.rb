@@ -27,11 +27,11 @@
 #==============================================================================
 
 class ScriptSerializer < ApplicationSerializer
-  attribute(:path) { object.script_path }
-  attribute(:name) { object.script_name }
+  attribute(:path) { object.metadata['path'] }
+  attribute(:name) { object.metadata['script_name'] }
   attribute(:created_at) { object.metadata['created_at'] }
 
-  # The model uses nil/false inter-changeable,
-  # this distinction is hidden by the API
-  has_one(:template) { object.template ? object.template : nil }
+  # NOTE: This relationship could add considerable overhead with includes? requests
+  # Consider refactoring to a per-request registry
+  has_one(:template)
 end

@@ -26,134 +26,46 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class Template < ApplicationModel
-  FORMAT_SPEC = {
-    "type" => "object",
-    "additionalProperties" => false,
-    "required" => ['type'],
-    "properties" => {
-      'type' => { "type" => "string" },
-      'options' => {
-        "type" => "array",
-        "items" => {
-          "type" => "object",
-          "additionalProperties" => false,
-          "required" => ['text', 'value'],
-          "properties" => {
-            'text' => { "type" => "string" },
-            'value' => { "type" => "string" }
-          }
-        }
-      }
-    }
-  }
-
-  ASK_WHEN_SPEC = {
-    "type" => "object",
-    "additionalProperties" => false,
-    "required" => ['value', 'eq'],
-    "properties" => {
-      'value' => { "type" => "string" },
-      'eq' => { "type" => "string" }
-    }
-  }
-
-  QUESTIONS_SPEC = {
-    "type" => "array",
-    "items" => {
-      "type" => "object",
-      "additionalProperties" => false,
-      "required" => ['id', 'text'],
-      "properties" => {
-        'id' => { 'type' => 'string' },
-        'text' => { 'type' => 'string' },
-        'description' => { 'type' => 'string' },
-        # NOTE' => Forcing the default to be a string is a stop-gap measure
-        # It keeps the initial implementation simple as everything is a strings
-        # Eventually multiple formats will be supported
-        'default' => { 'type' => 'string' },
-        'format' => FORMAT_SPEC,
-        'ask_when' => ASK_WHEN_SPEC
-      }
-    }
-  }
-
-  SCHEMA = JSONSchemer.schema({
-    "type" => "object",
-    "additionalProperties" => false,
-    "required" => ['synopsis', 'version', 'generation_questions', 'name'],
-    "properties" => {
-      'name' => { "type" => 'string' },
-      'script_template' => { "type" => 'string' },
-      'synopsis' => { "type" => 'string' },
-      'description' => { "type" => 'string' },
-      'version' => { "type" => 'integer', 'enum' => [0] },
-      'generation_questions' => QUESTIONS_SPEC
-    }
-  })
-
-  attr_accessor :id
-
-  # Validates the metadata and questions file
-  validate do
-    if metadata
-      unless (schema_errors = SCHEMA.validate(metadata).to_a).empty?
-        FlightJobScriptAPI.logger.error "The following metadata file is invalid: #{metadata_path}\n" do
-          schema_errors.each_with_index.map do |error, index|
-            "Error #{index + 1}:\n#{JSON.pretty_generate(error)}"
-          end.join("\n")
-        end
-        errors.add(:metadata, 'is not valid')
-      end
+class Template
+  def self.index(**opts)
+    cmd = FlightJobScriptAPI::SystemCommand.flight_list_templates(**opts).tap do |cmd|
+      next if cmd.exitstatus == 0
+      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
+    end
+    JSON.parse(cmd.stdout).map do |metadata|
+      new(**metadata)
     end
   end
 
-  # Validates the script
-  validate do
-    unless File.exists? template_path
-      errors.add(:template, "has not been saved")
+  def self.find(id, **opts)
+    # The underlying CLI has supports non-deterministic indexing of templates
+    # This "okay" in the CLI but makes the API unnecessarily complicated
+    # Instead, all "ids" which match an integer will be ignored
+    # NOTE: This means templates which are named after an integer may be indexed
+    #       but can't be found. However this is an odd edge case and is currently
+    #       being ignored
+    return if /\A\d+\Z/.match?(id)
+
+    cmd = FlightJobScriptAPI::SystemCommand.flight_info_template(id, **opts).tap do |cmd|
+      next if cmd.exitstatus == 0
+      return nil if cmd.exitstatus == 21
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"
     end
+
+    new(**JSON.parse(cmd.stdout))
   end
 
-  def metadata_path
-    File.join(FlightJobScriptAPI.config.data_dir, id, "metadata.yaml")
+  attr_reader :metadata
+
+  def initialize(**metadata)
+    @metadata = metadata
   end
 
-  def template_path
-    File.join(FlightJobScriptAPI.config.data_dir, id, "#{script_template_name}.erb")
-  end
-
-  def script_template_name
-    metadata.fetch('script_template', 'script.sh')
-  end
-
-  # NOTE: The metadata is intentionally cached to prevent excess file reads during
-  # serialization. This cache is not intended to be reset, instead a new Template
-  # instance should be initialized.
-  def metadata
-    @metadata ||= begin
-      YAML.load(File.read(metadata_path)).to_h
-    end
-  rescue Errno::ENOENT
-    errors.add(:metadata, "has not been saved")
-    {}
-  rescue Psych::SyntaxError
-    errors.add(:metadata, "is not valid YAML")
-    {}
-  end
-
-  def questions_data
-    return [] if metadata.nil?
-    metadata['generation_questions']
+  def id
+    metadata['id']
   end
 
   def generation_questions
-    @questions ||= questions_data.map do |datum|
-      Question.new(**datum.symbolize_keys)
-    end
-  end
-
-  def to_erb
-    ERB.new(File.read(template_path), nil, '-')
+    metadata['generation_questions'].map { |metadata| Question.new(**metadata) }
   end
 end

@@ -32,6 +32,7 @@ module FlightJobScriptAPI
 
     root_path File.expand_path('../..', __dir__)
     application_name 'flight-job-script-api'
+    API_VERSION = 'v0'
 
     class ConfigError < StandardError; end
 
@@ -42,21 +43,21 @@ module FlightJobScriptAPI
         default: 'tcp://127.0.0.1:921'
       },
       {
+        name: 'base_url',
+        env_var: true,
+        default: '/'
+      },
+      {
         name: 'shared_secret_path',
         env_var: true,
         default: 'etc/shared-secret.conf',
         transform: relative_to(root_path)
       },
       {
-        name: 'data_dir',
+        name: 'flight_job',
         env_var: true,
-        default: 'usr/share',
-        transform: relative_to(root_path)
-      },
-      {
-        name: 'scheduler_command',
-        env_var: true,
-        default: 'sbatch'
+        default: File.join(ENV.fetch('flight_ROOT', '/opt/flight'), 'bin/flight job'),
+        transform: ->(value) { value.split(' ') }
       },
       {
         name: 'command_path',

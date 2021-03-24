@@ -2,6 +2,8 @@
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [BCP 14](https://tools.ietf.org/html/bcp14) [[RFC2119](https://tools.ietf.org/html/rfc2119)] [[RFC8174](https://tools.ietf.org/html/rfc8174)] when, and only when, they appear in all capitals, as shown here.
 
+All `DATETIME` fields SHALL use the date-time format described in [RFC3339](https://tools.ietf.org/html/rfc3339#section-5.6).
+
 ## Authentication
 
 All request SHOULD set the `Authorization` using the `Bearer` authentication strategy with there issued `jwt`. Please contact your system administrator to be issued with a token.
@@ -89,7 +91,7 @@ POST /render/:id
 Returns a list of all known `templates`
 
 ```
-GET /templates
+GET /v0/templates
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -113,7 +115,7 @@ Content-Type: application/vnd.api+json
 Returns the `template` given by the `id`. The returned object is referred to as a `TemplateResource` within this document.
 
 ```
-GET /templates/:id
+GET /v0/templates/:id
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -130,13 +132,12 @@ Content-Type: application/vnd.api+json
       "version": 0                # REQUIRED - Species the version used by the template
     },
     "links": {                    # REQUIRED - Self reference to the resource
-      "self": "/templates/<id>"
+      "self": "/v0/templates/<id>"
     },
     "relationships": {
       "questions": {              # REQUIRED - References to the template's questions
         "links": {
-          "self": "/templates/:id/relationships/questions",
-          "related": "/templates/:id/questions"
+          "related": "/v0/templates/:id/questions"
         }
       }
     }
@@ -154,7 +155,7 @@ Content-Type: application/vnd.api+json
 Return all the `question` resources associated with the given `template` by `template_id`
 
 ```
-GET /templates/:template_id
+GET /v0/templates/:template_id
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -168,7 +169,12 @@ Content-Type: application/vnd.api+json
       "attributes": {
         "text": STRING,         # REQUIRED    - A short summary of the question
         "description": STRING,  # OPTIONAL    - A longer description of the question
-        "default": STRING,      # OPTIONAL    - The value which should pre-populate the question
+                                #               The TYPE is dependant on the "format-type" below
+                                #               The TYPE SHALL be:
+                                #                 - [STRING] (array of strings) for 'multiselect'
+                                #               Otherwise the TYPE SHOULD be STRING.
+        "default": TYPE,        # RECOMMENDED - The value which would be used if the answer is omitted
+                                # NOTE: multiselect questions will provide the default as a CSV list
         "format": {             # OPTIONAL    - Specifies how the field should be presented
           "type": STRING,       # RECOMMENDED - The field type that should be used (specifcation TBA)
           "options":            # OPTIONAL    - A list of valid responses to the question
@@ -185,7 +191,7 @@ Content-Type: application/vnd.api+json
         }
       },
       "links": {                # REQUIRED  - Self reference to the resource
-        "self": "/questions/<question_id>"
+        "self": "/v0/questions/<question_id>"
       }
     },
     ...
@@ -204,7 +210,7 @@ Content-Type: application/vnd.api+json
 Return a list of all `scripts` for the given user.
 
 ```
-GET /scripts
+GET /v0/scripts
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -227,7 +233,7 @@ Return the same list with all the related templates.
 NOTE: Templates which the user has not used will not be included in the response
 
 ```
-GET /scripts?include=template
+GET /v0/scripts?include=template
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -253,32 +259,31 @@ Content-Type: application/vnd.api+json
 Return the `script` given by the `id`. The returned object is referred to as a `ScriptResource` object within this document.
 
 ```
-get /scripts/:id
-authorization: basic <base64 username:password>
-accept: application/vnd.api+json
+GET /v0/scripts/:id
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
 
-http/2 200 ok
-content-type: application/vnd.api+json
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
 {
-  "data": {                     # REQUIRED - The ScreiptResource
+  "data": {                     # REQUIRED - The ScriptResource
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The script's ID
     "attributes": {
-      "script-path": STRING,    # REQUIRED - The path to the rendered script
-      "script-name": STRING,    # REQUIRED - The name of the script
-      "created-at": STRING      # REQUIRED - The creation date-time in RFC3339 format
+      "scriptName": STRING,     # REQUIRED - The name of the script
+      "createdAt": STRING,      # REQUIRED - The creation date-time in RFC3339 format
+      "path": STRING            # REQUIRED - The script's path on the filesystem
     },
     "links": {
-      "self": "/scripts/a70d5782-1271-4429-a82d-1221bc06dd2d"
+      "self": "/v0/scripts/:id"
     },
     "relationships": {
-      "template": {             # REQUIRED - The related template resource links
+      "template": {             # RECOMMENDED - The related template resource links
         "links": {
-          "self": "/scripts/:id/relationships/template",
-          "related": "/scripts/:id/template"
+          "related": "/v0/scripts/:id/template"
         }
       }
-    }
+    },
   },
   "jsonapi": {
     "version": "1.0"
@@ -293,7 +298,7 @@ NOTE: All `script` SHOULD have a related `template`, but this is not guaranteed.
 
 ```
 # Retrieving the related template
-GET /scripts/:id?include=template
+GET /v0/scripts/:id?include=template
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -313,8 +318,7 @@ Content-Type: application/vnd.api+json
     "relationships": {
       "template": {
         "links": {
-          "self": "/scripts/:id/relationships/template",
-          "related": "/scripts/:id/template"
+          "related": "/v0/scripts/:id/template"
         },
         "data": {
           "type": "template"      # REQUIRED - Specifies the related resource is a template
@@ -333,7 +337,7 @@ Content-Type: application/vnd.api+json
 
 
 # When the related template is missing
-GET /scripts/:id?include=template
+GET /v0/scripts/:id?include=template
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
@@ -348,13 +352,12 @@ Content-Type: application/vnd.api+json
       ...
     },
     "links": {
-      "self": "/scripts/:id"
+      "self": "/v0/scripts/:id"
     },
     "relationships": {
       "template": {
         "links": {
-          "self": "/scripts/:id/relationships/template",
-          "related": "/scripts/:id/template"
+          "related": "/v0/scripts/:id/template"
         },
         "data": null
       }
@@ -373,25 +376,100 @@ Content-Type: application/vnd.api+json
 Permanently remove a script
 
 ```
-DELETE /scripts/:id
+DELETE /v0/scripts/:id
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 204 No Content
 ```
 
-## POST - /submissions
+## GET - /jobs
 
-Submit an existing script to the scheduler. Note this route MAY return `503 Service Unavailable` due to the underlining system command failing.
+Return a list of previously submitted jobs
 
 ```
-POST /submissions
+GET /v0/jobs
+Authorization: Bearer <jwt>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": [
+    JobResource,
+    ...
+  ],
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## GET - /jobs/:id
+
+Return the `job` given by the `id`. The returned object is referred to as a `JobResource` object within this document.
+
+```
+GET /v0/jobs/:id
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": {                     # REQUIRED - The JobResource
+    "type": "jobs",             # REQUIRED - Specfies the resource is a script
+    "id": STRING,               # REQUIRED - The job's ID
+    "attributes":{
+      "createdAt": DATETIME,    # REQUIRED - The date-time the job was created
+      "schedulerId": "STRING",  # RECOMMENDED - The ID used by the underlining scheduler
+      "stdoutPath": STRING,     # RECOMMENDED - The path where the job's STDOUT was redirected
+      "stderrPath": STRING,     # RECOMMENDED - The path where the job's STDERR was redirected
+      "state": STRING,          # REQUIRED - The current point in the job's life cycle
+      "reason": STRING,         # OPTIONAL - Additional information about the state
+      "startTime": DATETIME,    # OPTIONAL - The actual (or predicted) time the job started running
+      "endTime": DATETIME,      # OPTIONAL - The actual (or predicted) time the job will finish running
+      "submitStdout": STRING,   # RECOMMENDED - The standard output of the underlining scheduler command
+      "submitStderr": STRING    # RECOMMENDED - The standard error of the underlining scheduler command
+    },
+    "links": {
+      "self": "/v0/jobs/:id"
+    }
+    "relationships": {
+      "script": {
+        "links": {
+          "related": "/v0/jobs/:id/script"
+        },
+        "data": {
+          "type": "scripts",    # RECOMMENDED - Denotes the related resource is a script
+          "id": STRING          # RECOMMENDED - Denotes the script's ID
+        }
+      }
+    }
+  },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## POST - /jobs
+
+Submit an existing script to the scheduler.
+NOTE: The API will respond 201 create if it successfully makes a record of the job. This does not mean the job was submitted correctly. Check the `success` flag to determine if the scheduler accepted the job correctly.
+
+```
+POST /v0/jobs
 Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 Content-Type: application/vnd.api+json
 {
   "data": {
-    "type": "submissions",      # REQUIRED - Specify that a submission is being created
+    "type": "jobs",             # REQUIRED - Specify that a job is being created
     "relationships": {
       "script": {               # REQUIRED - Specify the script which will be launched
         "data": {
@@ -406,101 +484,55 @@ Content-Type: application/vnd.api+json
 HTTP/2 201 Created
 Content-Type: application/vnd.api+json
 {
-  "data": {
-    "type": "submissions",      # REQUIRED - Specifies a submission has been created
-    "id": STRING,               # REQUIRED - The ID of the submission
-    "links": {
-      "self": "/submissions/:id"
-    },
-    "relationships": {
-      "script": {
-        "links": {
-          "self": "/submissions/:id/relationships/script",
-          "related": "/submissions/:id/script"
-        }
-      }
-    }
-  },
+  "data": JobResource,
   "jsonapi": {
     "version": "1.0"
   },
   "included": [
   ]
 }
-
-# When the underlining system command fails
-HTTP/2 503 Service Unavailable
-{
-  "errors": [
-    {
-      "id": ":id",
-      "title": "Service Unavailable",
-      "detail": "could not schedule the script",
-      "status": "503"
-    }
-  ]
-}
 ```
 
-## GET - /render/:template_id
+## POST - /render/:template_id
 
-Renders the template against the provided date and saves it to the filesystem. Returns the path to the rendered script.
+Renders the template against the provided date and saves it to the filesystem.
 
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or
 2. The template being misconfigured.
 
-The above errors SHOULD be resolved by the system administrator. The server expects render errors MAY occur and SHALL return in `422 - Unprocessable Entity`. This denotes the error occurred during rendering as opposed to a generic server error.
+The API may fail to render the script due to a malformed template. The exact behaviour in this situation is undefined.
 
 NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
 
 ```
-# With x-www-form-urlencoded body
-GET /render/:template_id
-Authorization: Bearer <jwt>
-Content-Type: x-www-form-urlencoded
-Accept: text/plain
-key=value&...
-
-HTTP/2 201 CREATED
-Content-Type: text/plain
-/path/to/rendered/script
-
-
-# With application/json body
-GET /render/:template_id
+POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: application/json
-Accept: text/plain
+Accept: application/vnd.api+json
 {
   "[key]": "[value]",
   ...
 }
 
 HTTP/2 201 CREATED
-Content-Type: text/plain
-/path/to/rendered/script
-
-
-# When the template fails to render
-GET /render/:template_id
-Authorization: Bearer <jwt>
-Accept: text/plain
-
-HTPP/2 422 Unprocessable Entity
+Content-Type: application/vnd.api+json
+{
+  "data": ScriptResource,
+}
 
 
 # With invalid credentials
-GET /render/:template_id
+POST /v0/render/:template_id
 Authorization: Bearer <jwt>
-Accept: text/plain
+Accept: application/vnd.api+json
 
 HTPP/2 403 Forbidden
 
 
 # Without credentials
-GET /render/:template_id
-Accept: text/plain
+POST /v0/render/:template_id
+Accept: application/vnd.api+json
 
 HTTP/2 401 Unauthorized
 ```

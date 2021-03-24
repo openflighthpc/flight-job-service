@@ -35,11 +35,9 @@ require 'yaml'
 require 'json'
 require 'pathname'
 require 'ostruct'
-require 'erb'
 require 'etc'
 require 'timeout'
 require 'logger'
-require 'securerandom'
 
 if ENV['RACK_ENV'] == 'development'
   Bundler.require(:default, :development)

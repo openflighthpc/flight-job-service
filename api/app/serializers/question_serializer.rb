@@ -27,5 +27,11 @@
 #==============================================================================
 
 class QuestionSerializer < ApplicationSerializer
-  attributes :text, :description, :default, :format, :ask_when
+  ['text', 'description', 'default', 'format', 'ask_when'].each do |field|
+    attribute(field) { object.metadata[field] }
+  end
+
+  # NOTE: Technically only multiselect questions have Array defaults, however
+  # it is "assumed" this is enforced by the underlying CLI
+  attribute(:default) { object.metadata['default'] }
 end

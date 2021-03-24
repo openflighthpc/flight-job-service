@@ -32,4 +32,12 @@ class ApplicationSerializer
   def format_name(attribute_name)
     attribute_name.to_s.camelize(:lower)
   end
+
+  def base_url
+    File.join(FlightJobScriptAPI.config.base_url, FlightJobScriptAPI::Configuration::API_VERSION)
+  end
+
+  def relationship_self_link(attribute_name)
+    nil
+  end
 end

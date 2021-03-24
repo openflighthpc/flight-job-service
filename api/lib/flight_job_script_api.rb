@@ -28,8 +28,9 @@
 
 module FlightJobScriptAPI
   autoload(:Configuration, 'flight_job_script_api/configuration')
-  autoload(:DefaultsOpenStruct, 'flight_job_script_api/defaults_open_struct')
-  autoload(:RenderContext, 'flight_job_script_api/render_context')
+  autoload(:SystemCommand, 'flight_job_script_api/system_command')
+
+  class UnexpectedError < StandardError; end
 
   class << self
     def app

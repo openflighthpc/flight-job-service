@@ -26,18 +26,13 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-module FlightJobScriptAPI
-  class DefaultsOpenStruct < OpenStruct
-    def initialize(opts = {}, &b)
-      if b
-        @table = Hash.new(&b)
-      else
-        @table = {}
-      end
-      @table.define_singleton_method(:key?) { |_| true }
-      opts.each do |k, v|
-        @table[k.to_sym] = v
-      end
-    end
+class JobSerializer < ApplicationSerializer
+  [
+    'created_at', 'stdout_path', 'stderr_path', 'state', 'reason',
+    'start_time', 'end_time', 'scheduler_id', 'submit_stdout', 'submit_stderr'
+  ].each do |field|
+    attribute(field) { object.metadata[field] }
   end
+
+  has_one :script
 end

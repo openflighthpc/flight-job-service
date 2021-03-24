@@ -26,11 +26,13 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class Script
+class Job
+  class MissingScript < StandardError; end
+
   def self.index(**opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_list_scripts(**opts).tap do |cmd|
+    cmd = FlightJobScriptAPI::SystemCommand.flight_list_jobs(**opts).tap do |cmd|
       next if cmd.exitstatus == 0
-      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list scripts'
+      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list jobs'
     end
     JSON.parse(cmd.stdout).map do |metadata|
       new(user: opts[:user], **metadata)
@@ -38,10 +40,10 @@ class Script
   end
 
   def self.find(id, **opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_info_script(id, **opts).tap do |cmd|
+    cmd = FlightJobScriptAPI::SystemCommand.flight_info_job(id, **opts).tap do |cmd|
       next if cmd.exitstatus == 0
-      return nil if cmd.exitstatus == 22
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find script: #{id}"
+      return nil if cmd.exitstatus == 23
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find job: #{id}"
     end
 
     new(user: opts[:user], **JSON.parse(cmd.stdout))
@@ -53,27 +55,46 @@ class Script
     @metadata = metadata
     @user = user
 
-    # Flag that the template has not been loaded
-    @template = false
+    # Flag that the script has not been loaded
+    @script = false
   end
 
   def id
     metadata['id']
   end
 
-  def template
-    if @template == false
-      template_id = metadata['template_id']
-      FlightJobScriptAPI.logger.info "Lazy loading related template: #{template_id} (script: #{id})"
-      @template = Template.find(template_id, user: user)
-    end
-    @template
+  def script_id
+    metadata['script_id']
   end
 
-  def delete(**opts)
-    FlightJobScriptAPI::SystemCommand.flight_delete_script(id, **opts).tap do |cmd|
-      next if cmd.exitstatus == 0
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to delete script: #{id}"
+  def script_id=(id)
+    @script = false
+    metadata['script_id'] = id
+  end
+
+  def script
+    if @script == false
+      script_id = metadata['script_id']
+      FlightJobScriptAPI.logger.info "Lazy loading related script: #{script_id} (script: #{id})"
+      @script = Script.find(script_id, user: user)
     end
+    @script
+  end
+
+  def submit
+    unless script_id
+      raise MissingScript, "Cannot create a job without a script"
+    end
+
+    cmd = FlightJobScriptAPI::SystemCommand.flight_submit_job(script_id, user: user).tap do |cmd|
+      next if cmd.exitstatus == 0
+      if cmd.exitstatus == 22
+        raise MissingScript, "Failed to locate script : #{script_id}"
+      else
+        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to submit job"
+      end
+    end
+
+    @metadata = JSON.parse(cmd.stdout)
   end
 end

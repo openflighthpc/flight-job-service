@@ -76,11 +76,11 @@ class App < Sinatra::Base
   end
 
   configure_jsonapi do |c|
-    c.validation_exceptions << ActiveModel::ValidationError
-    c.validation_formatter = ->(e) do
-      e.model.errors.messages.map do |src, msg|
-        [src, msg.join(', ')]
-      end
+    c.validation_exceptions << Job::MissingScript
+    c.validation_formatter = -> (e) do
+      [
+        [:script_id, e.message]
+      ]
     end
 
     # Resource roles
@@ -112,36 +112,12 @@ class App < Sinatra::Base
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
-        template = Template.new(id: id)
-        if template.valid?
-          template
-        else
-          FlightJobScriptAPI.logger.debug("Template is invalid: #{template.id}\n") do
-            template.errors.full_messages.join("\n")
-          end
-          nil
-        end
+        Template.find(id, user: current_user)
       end
     end
 
     index do
-      # Generates a list of Templates
-      templates = Dir.glob(Template.new(id: '*').metadata_path).map do |path|
-        Template.new(id: File.basename(File.dirname(path)))
-      end
-
-      valid_templates = templates.select do |template|
-        if template.valid?
-          true
-        else
-          FlightJobScriptAPI.logger.error "Rejecting invalid template from index: #{template.id}\n" do
-            template.errors.full_messages.join("\n")
-          end
-          false
-        end
-      end
-
-      next valid_templates
+      Template.index(user: current_user)
     end
 
     show
@@ -151,50 +127,55 @@ class App < Sinatra::Base
     end
   end
 
-  resource :scripts, pkre: /[[[:xdigit:]]-]+/ do
+  resource :scripts, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        script = Script.new(id: id, user: current_user)
-        script.valid? ? script : nil
+        Script.find(id, user: current_user)
       end
     end
 
     index do
-      glob_path = Script.new(id: '*', user: current_user).metadata_path
-      scripts = Dir.glob(glob_path).map do |path|
-        id = File.basename File.dirname(path)
-        Script.new(id: id, user: current_user)
-      end
-
-      next scripts.select(&:valid?)
+      Script.index(user: current_user)
     end
 
     show
 
-    destroy do
-      FileUtils.rm_rf File.dirname(resource.metadata_path)
-    end
+    destroy { resource.delete(user: current_user) }
   end
 
-  resource :submissions, pkre: /[[[:xdigit:]]-]+/ do |attr|
+  resource :jobs, pkre: /[\w-]+/ do
     helpers do
+      def find(id)
+        Job.find(id, user: current_user)
+      end
+
       def validate!
-        resource.validate!
-        unless resource.run
-          raise Sinja::ServiceUnavailable, 'could not schedule the script'
+        if @action == :create
+          resource.submit
+        else
+          raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
         end
       end
     end
 
+    index do
+      Job.index(user: current_user)
+    end
+
+    show
+
     create do |attr|
-      sub = Submission.new
-      [sub.id, sub]
+      @action = :create
+      # Due to the how the internal Sinja routing works, the job needs an "ID"
+      # However the actual ID won't be assigned until later, so a temporary ID
+      # is used instead.
+      ['temporary', Job.new(user: current_user)]
     end
 
     has_one :script do
       graft(sideload_on: :create) do |rio|
-        script = Script.new(id: rio[:id], user: current_user)
-        resource.script = script
+        raise Sinja::ForbiddenError, "A job's script can not be modified" unless @action == :create
+        resource.script_id = rio[:id]
       end
     end
   end
@@ -205,7 +186,7 @@ end
 # NOTE: The render route is implemented independently because:
 # 1. It does not conform to the JSON:API standard
 # 2. Sinja would require an work around involving the Content-Type/Accept headers
-# 3. Even with the work aroud, authentication needs manual integration
+# 3. Even with the work around, authentication needs manual integration
 #
 # The two apps are mounted together in rack. This app is mounted under
 # /:version/render
@@ -229,36 +210,37 @@ class RenderApp < Sinatra::Base
     end
   end
 
-  # Content-Type application/x-www-form-urlencoded is implicitly handled by sinatra
-  use Rack::Parser, parsers: {
+  parsers = {
     'application/json' => ->(body) { JSON.parse(body) }
   }
 
+  before do
+    # Force the correct content-type encoding scheme
+    unless parsers.key?(env['CONTENT_TYPE'])
+      status 415
+      halt
+    end
+  end
+
+  use Rack::Parser, parsers: parsers
+
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    template = Template.new(id: params['id'])
-    if template.valid?
-      response.headers['Content-Type'] = 'text/plain'
-      script = Script.new(template: template, user: @current_user)
+    answers = params.to_json
+    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(params[:id], user: @current_user, stdin: answers)
 
-      # This conditional should not be reached ATM
-      unless script.valid?
-        status 500
-        halt
-      end
-
-      begin
-        script.render_and_save(**params.to_h.transform_keys(&:to_sym))
-      rescue
-        FlightJobScriptAPI.logger.debug("Rendering script failed") { $! }
-        status 422
-        halt
-      end
-
+    if cmd.exitstatus == 0
+      response.headers['Content-Type'] = 'application/vnd.api+json'
+      script = Script.new(user: @current_user, **JSON.parse(cmd.stdout))
       status 201
-      next script.script_path
-    else
+      next JSONAPI::Serializer.serialize(script).to_json
+
+    # Technically this should not be reached as it means the template does not exist
+    elsif cmd.exitstatus == 21
       status 404
+      halt
+    else
+      status 503
       halt
     end
   end

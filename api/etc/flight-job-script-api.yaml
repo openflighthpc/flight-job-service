@@ -34,11 +34,13 @@
 # bind_address: tcp://127.0.0.1:921
 
 #-------------------------------------------------------------------------------
-# Scheduler Command
-# Specify the command that will be used to start the submission
-# The environment variable flight_JOB_SCRIPT_API_scheduler_command takes precedence
+# Base Url
+# The URL to where the API is being hosted. Used in the serialized responses.
+# The environment variable flight_JOB_SCRIPT_API_base_url takes precedence
+#
+# NOTE: Do not include the version prefix, as this will be added implicitly
 #-------------------------------------------------------------------------------
-# scheduler_command: sbatch
+# base_url: '/'
 
 #-------------------------------------------------------------------------------
 # Command PATH
@@ -57,14 +59,22 @@
 # command_timeout: 5
 
 #-------------------------------------------------------------------------------
-# Data Directory
-# Specify the directory for internal runtime data
-# The environment variable flight_JOB_SCRIPT_API_data_dir takes precedence
+# Shared Secret Path
+# Specify the path to to shared secret config. The secret must exist before the
+# service can be started.
+# The environment variable flight_JOB_SCRIPT_API_shared_secret_path takes
+# precedence.
 #
-# The default is relative to the install directory. All overrides should use
-# absolute paths. The behaviour of overrides with relative paths is undefined.
+# All relative paths are expanded from the install directory.
 #-------------------------------------------------------------------------------
-# data_dir: /path/to/flight-job-script-api/usr/share
+# shared_secret_path: /path/to/flight-job-script-api/etc/shared-secret.conf
+
+#-------------------------------------------------------------------------------
+# Cookie name
+# Specify the name to use for the sso cookie
+# The environment variable flight_JOB_SCRIPT_API_sso_cookie_name takes precedence
+#-------------------------------------------------------------------------------
+# sso_cookie_name: flight_login
 
 #-------------------------------------------------------------------------------
 # Log Level
@@ -73,10 +83,3 @@
 # Valid levels are: fatal, error, warn, info, debug
 #-------------------------------------------------------------------------------
 # log_level: info
-
-#-------------------------------------------------------------------------------
-# Cookie name
-# Specify the name to use for the sso cookie
-# The environment variable flight_JOB_SCRIPT_API_sso_cookie_name takes precedence
-#-------------------------------------------------------------------------------
-# sso_cookie_name: flight_login

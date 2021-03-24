@@ -27,6 +27,7 @@
 #==============================================================================
 
 require_relative 'config/boot'
+require 'sinatra'
 
 configure do
   LOGGER = FlightJobScriptAPI.logger
@@ -36,9 +37,10 @@ configure do
   set :raise_errors, true
 end
 
+v = FlightJobScriptAPI::Configuration::API_VERSION
 app = Rack::Builder.new do
-  map('/v0/render') { run RenderApp }
-  map('/v0') { run App }
+  map("/#{v}/render") { run RenderApp }
+  map("/#{v}") { run App }
 end
 
 run app
