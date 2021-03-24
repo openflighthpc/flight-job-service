@@ -37,8 +37,9 @@ function ScriptsTable({ reloadScripts, scripts }) {
         accessor: 'template.attributes.name',
         Cell: ({ row, value }) => (
           <Link
-            to={`/foo/templates/${row.original.template.id}`}
+            onClick={(ev) => ev.stopPropagation() }
             title="View template"
+            to={`/foo/templates/${row.original.template.id}`}
           >
             {value}
           </Link>

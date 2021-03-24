@@ -44,8 +44,9 @@ function JobsTable({ reloadJobs, jobs }) {
         Cell: ({ row, value }) => (
           row.original.script == null ? <i>Unknown</i> : (
             <Link
-              to={`/scripts/${row.original.script.id}`}
+              onClick={(ev) => ev.stopPropagation() }
               title="View script"
+              to={`/scripts/${row.original.script.id}`}
             >
               {value}
             </Link>
