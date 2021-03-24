@@ -14,35 +14,6 @@ import ScriptsTable from './ScriptsTable';
 import styles from './ScriptsPage.module.css';
 import { useFetchScripts } from './api';
 
-function getScriptsFromResponse(data) {
-  const scripts = utils.getResourcesFromResponse(data);
-  if ( scripts == null) { return null };
-
-  scripts.forEach((script) => {
-    if (!script.denormalized) {
-      Object.defineProperty(script, 'denormalized', { value: true, writable: false });
-
-      Object.keys(script.relationships || {}).forEach((relName) => {
-        const relNeedle = script.relationships[relName].data;
-        Object.defineProperty(
-          script,
-          relName,
-          {
-            get: function() {
-              const haystack = data.included || [];
-              return haystack.find((hay) => {
-                return hay.type === relNeedle.type && hay.id === relNeedle.id;
-              });
-            },
-          },
-        );
-      });
-    }
-  });
-
-  return scripts;
-}
-
 function ScriptsPage() {
   const { data, error, loading, get } = useFetchScripts();
 
@@ -53,7 +24,7 @@ function ScriptsPage() {
       return <DefaultErrorMessage />;
     }
   } else {
-    const scripts = getScriptsFromResponse(data);
+    const scripts = data == null ? null : data.data ;
     return (
       <React.Fragment>
         {

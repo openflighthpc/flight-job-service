@@ -1,0 +1,29 @@
+.JobCardBody {
+    display: flex;
+    flex-flow: row wrap;
+}
+.JobCardBody > * {
+    /* flex: 1 100%; */
+}
+.MetadataEntryDL {
+    flex: 1 auto;
+    max-width: 28em;
+}
+.MetadataEntryDT {
+    float: left;
+    width: 6.5em;
+    margin-right: 0.5em;
+}
+.MetadataEntryDD {
+    max-width: 20em;
+}
+.ErrorOutput {
+    flex: 2 0px;
+}
+.PreCode {
+    background: #343a40; /* bg-dark */
+    color: #f8f9fa; /* text-light */
+    padding: 0.5em;
+    border-radius: 0.5em;
+    max-height: 20em;
+}

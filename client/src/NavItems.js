@@ -41,6 +41,14 @@ function NavItems() {
         Scripts
       </Link>
     </li>
+    <li className="nav-item">
+      <Link
+        className="nav-link nav-menu-button"
+        to="/jobs"
+      >
+        Jobs
+      </Link>
+    </li>
     </>
   );
 }

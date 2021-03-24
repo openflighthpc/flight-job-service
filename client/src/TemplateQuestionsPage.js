@@ -11,15 +11,15 @@ import { useFetchQuestions } from './api';
 import QuestionSet from './QuestionSet';
 
 function TemplateQuestionsPage() {
-  const { id } = useParams();
+  const { templateId } = useParams();
   const {
     data,
     error: questionsLoadingError,
     loading: questionsLoading,
-  } = useFetchQuestions(id);
+  } = useFetchQuestions(templateId);
 
   if (questionsLoading) {
-    return <Loading id={id} />;
+    return <Loading />;
   } else if (questionsLoadingError) {
     return <DefaultErrorMessage />;
   } else {
@@ -29,7 +29,7 @@ function TemplateQuestionsPage() {
     } else {
       return (
         <QuestionSet
-          templateId={id}
+          templateId={templateId}
           questions={data.data}
         />
       );
@@ -37,7 +37,7 @@ function TemplateQuestionsPage() {
   }
 }
 
-function Loading({ id }) {
+function Loading() {
   return (
     <Layout>
       <Overlay>

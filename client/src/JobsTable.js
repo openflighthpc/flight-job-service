@@ -1,19 +1,18 @@
 import React from 'react';
 import TimeAgo from 'react-timeago';
-import { ButtonToolbar, Table } from 'reactstrap';
-import { Link, useHistory } from "react-router-dom";
+import { Badge, Table } from 'reactstrap';
+import { Link, useHistory } from 'react-router-dom';
 import { useTable, useSortBy } from 'react-table';
 
-import DeleteScriptButton from './DeleteScriptButton';
-import SubmitScriptButton from './SubmitScriptButton';
-import styles from './ScriptsTable.module.css';
+import styles from './JobsTable.module.css';
+import { stateColourMap } from './utils';
 
-function ScriptsTable({ reloadScripts, scripts }) {
-  const data = React.useMemo(() => scripts, [scripts]);
+function JobsTable({ reloadJobs, jobs }) {
+  const data = React.useMemo(() => jobs, [jobs]);
   const columns = React.useMemo(
     () => [
       {
-        Header: 'Created',
+        Header: 'Submitted',
         accessor: 'attributes.createdAt',
         Cell: ({ value }) => (
           <TimeAgo
@@ -33,21 +32,31 @@ function ScriptsTable({ reloadScripts, scripts }) {
         Cell: ({ value }) => <code>{value}</code>,
       },
       {
-        Header: 'Template',
-        accessor: 'template.attributes.name',
-        Cell: ({ row, value }) => (
-          <Link
-            onClick={(ev) => ev.stopPropagation() }
-            title="View template"
-            to={`/templates/${row.original.template.id}`}
-          >
-            {value}
-          </Link>
+        Header: 'Scheduler ID',
+        accessor: 'attributes.schedulerId',
+        Cell: ({ value }) => (
+          value == null ? <span>&mdash;</span> : <code>{value}</code>
         ),
       },
       {
-        Header: 'Located at',
-        accessor: 'attributes.path',
+        Header: 'Script',
+        accessor: 'script.attributes.name',
+        Cell: ({ row, value }) => (
+          row.original.script == null ? <i>Unknown</i> : (
+            <Link
+              onClick={(ev) => ev.stopPropagation() }
+              title="View script"
+              to={`/scripts/${row.original.script.id}`}
+            >
+              {value}
+            </Link>
+          )
+        ),
+      },
+      {
+        Header: 'State',
+        accessor: 'attributes.state',
+        Cell: ({ value }) => <Badge color={stateColourMap[value]}>{value}</Badge>,
       },
     ],
     []
@@ -68,7 +77,7 @@ function ScriptsTable({ reloadScripts, scripts }) {
     <Table
       {...getTableProps()}
       bordered
-      className={styles.ScriptsTable}
+      className={styles.JobsTable}
       hover
       striped
     >
@@ -85,7 +94,7 @@ function ScriptsTable({ reloadScripts, scripts }) {
             <TableRow
               key={row.original.id}
               prepareRow={prepareRow}
-              reloadScripts={reloadScripts}
+              reloadJobs={reloadJobs}
               row={row}
             />
           ))
@@ -116,58 +125,29 @@ function TableHeaders({ headerGroup }) {
           </th>
         ))
       }
-      <th></th>
     </tr>
   );
 }
 
-function TableRow({ prepareRow, reloadScripts, row }) {
+function TableRow({ prepareRow, reloadJobs, row }) {
   const history = useHistory();
   prepareRow(row);
-  const rowKey = row.original.id;
+  const job = row.original;
 
   return (
     <tr
       {...row.getRowProps()}
-      onClick={() => history.push(`/scripts/${row.original.id}`)}
+      onClick={() => history.push(`/jobs/${job.id}`)}
     >
       {
         row.cells.map(cell => (
-          <TableCell
-            cell={cell}
-            key={`${rowKey}.${cell.column.id}`}
-          /> 
+          <td {...cell.getCellProps()}>
+            { cell.render('Cell') }
+          </td>
         ))
       }
-      <ActionsCell reloadScripts={reloadScripts} row={row} />
     </tr>
   );
 }
 
-function TableCell({ cell }) {
-  return (
-    <td {...cell.getCellProps()}>
-      { cell.render('Cell') }
-    </td>
-  )
-}
-
-function ActionsCell({ reloadScripts, row }) {
-  const script = row.original;
-  return (
-    <td className={styles.ActionsCell}>
-      <ButtonToolbar>
-        <SubmitScriptButton
-          className="mr-2"
-          script={script}
-        />
-        <DeleteScriptButton
-          onDeleted={reloadScripts}
-          script={script}
-        />
-      </ButtonToolbar>
-    </td>
-  );
-}
-
-export default ScriptsTable;
+export default JobsTable;
