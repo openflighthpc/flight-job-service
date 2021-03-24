@@ -179,7 +179,7 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
       } else if (format.type === 'select' || format.type === 'multiselect') {
         const isMulti = format.type === 'multiselect';
         const answeredValue = isMulti ?
-          answer.valueOrDefault().split(',') :
+          answer.valueOrDefault() :
           [answer.valueOrDefault()];
         formattedAnswer = format.options
           .filter(o => answeredValue.includes(o.value))
@@ -308,12 +308,17 @@ function QuestionInput({ answer, onChange, question }) {
         { value: option.value, label: option.text }
       ));
       const isMulti = format.type === 'multiselect';
-      const defaultValue = options.filter(o => o.value === question.attributes.default);
+      let defaultValue;
+      if (isMulti) {
+        defaultValue = options.filter(o => question.attributes.default.includes(o.value));
+      } else {
+        defaultValue = options.filter(o => o.value === question.attributes.default);
+      }
       let value;
       if (answer.value === "") {
         value = undefined;
       } else {
-        const answeredValue = isMulti ? answer.value.split(',') : [answer.value];
+        const answeredValue = isMulti ? answer.value : [answer.value];
         value = options.filter(o => answeredValue.includes(o.value));
         value = isMulti ? value : value[0];
       }
@@ -325,7 +330,7 @@ function QuestionInput({ answer, onChange, question }) {
           isClearable={isMulti}
           onChange={(selectedOption) => {
             const value = isMulti ?
-              selectedOption.map(o => o.value).join(',') :
+              selectedOption.map(o => o.value) :
               selectedOption.value;
             onChange({target: { value: value }});
           }}
