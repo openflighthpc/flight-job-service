@@ -25,33 +25,33 @@
 # For more information on Flight Job Script Service, please visit:
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
-source 'https://rubygems.org'
 
-git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
+module FlightJobScriptAPI::ModelCache
+  def index(**opts)
+    super.tap do |records|
+      records.each do |record|
+        set_in_cache(record.id, record)
+      end
+    end
+  end
 
-gem 'activemodel', require: 'active_model'
-gem 'activesupport', require: 'active_support'
-gem 'flight_auth', github: "openflighthpc/flight_auth", branch: "297cb7241b820d334e5d593c4e237a81b83a9995"
-gem 'flight_configuration', github: 'openflighthpc/flight_configuration', branch: '24928260e542768f13cc513a3a08af69f690dfbc'
-gem 'concurrent-ruby'
-gem 'json_schemer'
-gem 'rack-parser', require: 'rack/parser'
-gem 'rake'
-gem 'request_store'
-gem 'jwt'
-gem 'puma'
-gem 'sinatra', require: 'sinatra/base'
-gem 'sinja', '~> 1.3'
+  def find(id, **opts)
+    record = get_from_cache(id)
+    return record unless record.nil?
+    super.tap do |record|
+      set_in_cache(id, record) unless record.nil?
+    end
+  end
 
-group :development, :test do
-  gem 'pry'
-  gem 'pry-byebug'
-end
+  private
 
-group :test do
-  gem 'factory_bot'
-  gem 'fakefs', require: 'fakefs/spec_helpers'
-  gem 'rack-test'
-  gem 'rspec'
-  gem 'rspec-collection_matchers'
+  def get_from_cache(id)
+    cache_id = "#{self.name}:#{id}"
+    RequestStore[cache_id]
+  end
+
+  def set_in_cache(id, record)
+    cache_id = "#{self.name}:#{id}"
+    RequestStore[cache_id] = record
+  end
 end

@@ -27,24 +27,28 @@
 #==============================================================================
 
 class Script
-  def self.index(**opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_list_scripts(**opts).tap do |cmd|
-      next if cmd.exitstatus == 0
-      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list scripts'
-    end
-    JSON.parse(cmd.stdout).map do |metadata|
-      new(user: opts[:user], **metadata)
-    end
-  end
+  class << self
+    prepend FlightJobScriptAPI::ModelCache
 
-  def self.find(id, **opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_info_script(id, **opts).tap do |cmd|
-      next if cmd.exitstatus == 0
-      return nil if cmd.exitstatus == 22
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find script: #{id}"
+    def index(**opts)
+      cmd = FlightJobScriptAPI::SystemCommand.flight_list_scripts(**opts).tap do |cmd|
+        next if cmd.exitstatus == 0
+        raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list scripts'
+      end
+      JSON.parse(cmd.stdout).map do |metadata|
+        new(user: opts[:user], **metadata)
+      end
     end
 
-    new(user: opts[:user], **JSON.parse(cmd.stdout))
+    def find(id, **opts)
+      cmd = FlightJobScriptAPI::SystemCommand.flight_info_script(id, **opts).tap do |cmd|
+        next if cmd.exitstatus == 0
+        return nil if cmd.exitstatus == 22
+        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find script: #{id}"
+      end
+
+      new(user: opts[:user], **JSON.parse(cmd.stdout))
+    end
   end
 
   attr_reader :metadata, :user
