@@ -2,8 +2,9 @@ import React from 'react';
 import TimeAgo from 'react-timeago';
 import { Badge, Table } from 'reactstrap';
 import { Link, useHistory } from 'react-router-dom';
-import { useTable, useSortBy } from 'react-table';
+import { useTable, usePagination, useSortBy } from 'react-table';
 
+import PaginationControls from './PaginationControls';
 import styles from './JobsTable.module.css';
 import { stateColourMap } from './utils';
 
@@ -64,16 +65,40 @@ function JobsTable({ reloadJobs, jobs }) {
   const initialState = {
     sortBy: [{ id: 'attributes.createdAt', desc: true }],
   };
-  const tableInstance = useTable({ columns, data, initialState }, useSortBy)
+  const tableInstance = useTable({ columns, data, initialState }, useSortBy, usePagination)
   const {
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    rows,
+    page,
     prepareRow,
+
+    // Pagination functionality.
+    canPreviousPage,
+    canNextPage,
+    pageCount,
+    gotoPage,
+    nextPage,
+    previousPage,
+    state: { pageIndex },
+
   } = tableInstance
 
+  const paginationControls = (
+    <PaginationControls
+      canNextPage={canNextPage}
+      canPreviousPage={canPreviousPage}
+      gotoPage={gotoPage}
+      nextPage={nextPage}
+      pageIndex={pageIndex}
+      pageCount={pageCount}
+      previousPage={previousPage}
+    />
+  );
+
   return (
+    <>
+    {paginationControls}
     <Table
       {...getTableProps()}
       bordered
@@ -90,7 +115,7 @@ function JobsTable({ reloadJobs, jobs }) {
       </thead>
       <tbody {...getTableBodyProps()}>
         {
-          rows.map(row => (
+          page.map(row => (
             <TableRow
               key={row.original.id}
               prepareRow={prepareRow}
@@ -101,6 +126,8 @@ function JobsTable({ reloadJobs, jobs }) {
         }
       </tbody>
     </Table>
+    {paginationControls}
+    </>
   );
 }
 
