@@ -41,6 +41,12 @@ class Template
     end
 
     def find(id, **opts)
+      find!(id, **opts)
+    rescue FlightJobScriptAPI::CommandError
+      nil
+    end
+
+    def find!(id, **opts)
       # The underlying CLI has supports non-deterministic indexing of templates
       # This "okay" in the CLI but makes the API unnecessarily complicated
       # Instead, all "ids" which match an integer will be ignored

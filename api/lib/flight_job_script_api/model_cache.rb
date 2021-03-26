@@ -35,7 +35,7 @@ module FlightJobScriptAPI::ModelCache
     end
   end
 
-  def find(id, **opts)
+  def find!(id, **opts)
     record = get_from_cache(id)
     return record unless record.nil?
     super.tap do |record|

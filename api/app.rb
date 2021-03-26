@@ -112,7 +112,7 @@ class App < Sinatra::Base
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
-        Template.find(id, user: current_user)
+        Template.find!(id, user: current_user)
       end
     end
 
@@ -130,7 +130,7 @@ class App < Sinatra::Base
   resource :scripts, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Script.find(id, user: current_user)
+        Script.find!(id, user: current_user)
       end
     end
 
@@ -146,7 +146,7 @@ class App < Sinatra::Base
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Job.find(id, user: current_user)
+        Job.find!(id, user: current_user)
       end
 
       def validate!

@@ -43,6 +43,12 @@ class Job
     end
 
     def find(id, **opts)
+      find!(id, **opts)
+    rescue FlightJobScriptAPI::CommandError
+      nil
+    end
+
+    def find!(id, **opts)
       cmd = FlightJobScriptAPI::SystemCommand.flight_info_job(id, **opts).tap do |cmd|
         next if cmd.exitstatus == 0
         return nil if cmd.exitstatus == 23
