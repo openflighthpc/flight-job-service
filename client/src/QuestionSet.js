@@ -245,10 +245,15 @@ function SaveButton({ answers, className, state, templateId }) {
   const { loading, post, response } = useGenerateScript(templateId, flattenedAnswers);
 
   const submit = async () => {
-    await post()
-    if (response.ok) {
-      history.push('/scripts');
-    } else {
+    try {
+      await post();
+      if (response.ok) {
+        const script = ( await response.json() ).data;
+        history.push(`/scripts/${script.id}`);
+      } else {
+        throw new Error();
+      }
+    } catch (e) {
       addToast({
         body: (
           <div>
