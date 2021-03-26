@@ -73,6 +73,10 @@ class App < Sinatra::Base
         raise Sinja::UnauthorizedError, 'Could not authenticate your authorization credentials'
       end
     end
+
+    def includes?(resource_name)
+      ( params['include'] || [] ).include?(resource_name)
+    end
   end
 
   configure_jsonapi do |c|
@@ -135,6 +139,7 @@ class App < Sinatra::Base
     end
 
     index do
+      Template.index(user: current_user) if includes?('template')
       Script.index(user: current_user)
     end
 
@@ -159,6 +164,7 @@ class App < Sinatra::Base
     end
 
     index do
+      Script.index(user: current_user) if includes?('script')
       Job.index(user: current_user)
     end
 
