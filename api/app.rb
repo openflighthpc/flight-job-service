@@ -73,6 +73,10 @@ class App < Sinatra::Base
         raise Sinja::UnauthorizedError, 'Could not authenticate your authorization credentials'
       end
     end
+
+    def includes?(resource_name)
+      ( params['include'] || [] ).include?(resource_name)
+    end
   end
 
   configure_jsonapi do |c|
@@ -112,7 +116,7 @@ class App < Sinatra::Base
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
-        Template.find(id, user: current_user)
+        Template.find!(id, user: current_user)
       end
     end
 
@@ -130,11 +134,12 @@ class App < Sinatra::Base
   resource :scripts, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Script.find(id, user: current_user)
+        Script.find!(id, user: current_user)
       end
     end
 
     index do
+      Template.index(user: current_user) if includes?('template')
       Script.index(user: current_user)
     end
 
@@ -146,7 +151,7 @@ class App < Sinatra::Base
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Job.find(id, user: current_user)
+        Job.find!(id, user: current_user)
       end
 
       def validate!
@@ -159,6 +164,7 @@ class App < Sinatra::Base
     end
 
     index do
+      Script.index(user: current_user) if includes?('script')
       Job.index(user: current_user)
     end
 

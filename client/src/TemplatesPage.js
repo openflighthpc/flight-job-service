@@ -37,7 +37,7 @@ function TemplatesPage() {
             </OverlayContainer>
           )
         }
-        { <TemplateCardDeck templates={templates || []} /> }
+        <TemplateCardDeck templates={templates || []} />
       </React.Fragment>
     );
   }

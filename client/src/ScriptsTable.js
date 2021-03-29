@@ -2,9 +2,10 @@ import React from 'react';
 import TimeAgo from 'react-timeago';
 import { ButtonToolbar, Table } from 'reactstrap';
 import { Link, useHistory } from "react-router-dom";
-import { useTable, useSortBy } from 'react-table';
+import { useTable, usePagination, useSortBy } from 'react-table';
 
 import DeleteScriptButton from './DeleteScriptButton';
+import PaginationControls from './PaginationControls';
 import SubmitScriptButton from './SubmitScriptButton';
 import styles from './ScriptsTable.module.css';
 
@@ -55,16 +56,40 @@ function ScriptsTable({ reloadScripts, scripts }) {
   const initialState = {
     sortBy: [{ id: 'attributes.createdAt', desc: true }],
   };
-  const tableInstance = useTable({ columns, data, initialState }, useSortBy)
+  const tableInstance = useTable({ columns, data, initialState }, useSortBy, usePagination)
   const {
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    rows,
+    page,
     prepareRow,
+
+    // Pagination functionality.
+    canPreviousPage,
+    canNextPage,
+    pageCount,
+    gotoPage,
+    nextPage,
+    previousPage,
+    state: { pageIndex },
+
   } = tableInstance
 
+  const paginationControls = (
+    <PaginationControls
+      canNextPage={canNextPage}
+      canPreviousPage={canPreviousPage}
+      gotoPage={gotoPage}
+      nextPage={nextPage}
+      pageIndex={pageIndex}
+      pageCount={pageCount}
+      previousPage={previousPage}
+    />
+  );
+
   return (
+    <>
+    {paginationControls}
     <Table
       {...getTableProps()}
       bordered
@@ -81,7 +106,7 @@ function ScriptsTable({ reloadScripts, scripts }) {
       </thead>
       <tbody {...getTableBodyProps()}>
         {
-          rows.map(row => (
+          page.map(row => (
             <TableRow
               key={row.original.id}
               prepareRow={prepareRow}
@@ -92,6 +117,8 @@ function ScriptsTable({ reloadScripts, scripts }) {
         }
       </tbody>
     </Table>
+    {paginationControls}
+    </>
   );
 }
 

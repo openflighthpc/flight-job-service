@@ -27,32 +27,42 @@
 #==============================================================================
 
 class Template
-  def self.index(**opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_list_templates(**opts).tap do |cmd|
-      next if cmd.exitstatus == 0
-      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
-    end
-    JSON.parse(cmd.stdout).map do |metadata|
-      new(**metadata)
-    end
-  end
+  class << self
+    prepend FlightJobScriptAPI::ModelCache
 
-  def self.find(id, **opts)
-    # The underlying CLI has supports non-deterministic indexing of templates
-    # This "okay" in the CLI but makes the API unnecessarily complicated
-    # Instead, all "ids" which match an integer will be ignored
-    # NOTE: This means templates which are named after an integer may be indexed
-    #       but can't be found. However this is an odd edge case and is currently
-    #       being ignored
-    return if /\A\d+\Z/.match?(id)
-
-    cmd = FlightJobScriptAPI::SystemCommand.flight_info_template(id, **opts).tap do |cmd|
-      next if cmd.exitstatus == 0
-      return nil if cmd.exitstatus == 21
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"
+    def index(**opts)
+      cmd = FlightJobScriptAPI::SystemCommand.flight_list_templates(**opts).tap do |cmd|
+        next if cmd.exitstatus == 0
+        raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
+      end
+      JSON.parse(cmd.stdout).map do |metadata|
+        new(**metadata)
+      end
     end
 
-    new(**JSON.parse(cmd.stdout))
+    def find(id, **opts)
+      find!(id, **opts)
+    rescue FlightJobScriptAPI::CommandError
+      nil
+    end
+
+    def find!(id, **opts)
+      # The underlying CLI has supports non-deterministic indexing of templates
+      # This "okay" in the CLI but makes the API unnecessarily complicated
+      # Instead, all "ids" which match an integer will be ignored
+      # NOTE: This means templates which are named after an integer may be indexed
+      #       but can't be found. However this is an odd edge case and is currently
+      #       being ignored
+      return if /\A\d+\Z/.match?(id)
+
+      cmd = FlightJobScriptAPI::SystemCommand.flight_info_template(id, **opts).tap do |cmd|
+        next if cmd.exitstatus == 0
+        return nil if cmd.exitstatus == 21
+        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"
+      end
+
+      new(**JSON.parse(cmd.stdout))
+    end
   end
 
   attr_reader :metadata

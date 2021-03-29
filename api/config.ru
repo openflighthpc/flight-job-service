@@ -39,6 +39,7 @@ end
 
 v = FlightJobScriptAPI::Configuration::API_VERSION
 app = Rack::Builder.new do
+  use RequestStore::Middleware
   map("/#{v}/render") { run RenderApp }
   map("/#{v}") { run App }
 end

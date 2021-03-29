@@ -29,24 +29,34 @@
 class Job
   class MissingScript < StandardError; end
 
-  def self.index(**opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_list_jobs(**opts).tap do |cmd|
-      next if cmd.exitstatus == 0
-      raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list jobs'
-    end
-    JSON.parse(cmd.stdout).map do |metadata|
-      new(user: opts[:user], **metadata)
-    end
-  end
+  class << self
+    prepend FlightJobScriptAPI::ModelCache
 
-  def self.find(id, **opts)
-    cmd = FlightJobScriptAPI::SystemCommand.flight_info_job(id, **opts).tap do |cmd|
-      next if cmd.exitstatus == 0
-      return nil if cmd.exitstatus == 23
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find job: #{id}"
+    def index(**opts)
+      cmd = FlightJobScriptAPI::SystemCommand.flight_list_jobs(**opts).tap do |cmd|
+        next if cmd.exitstatus == 0
+        raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list jobs'
+      end
+      JSON.parse(cmd.stdout).map do |metadata|
+        new(user: opts[:user], **metadata)
+      end
     end
 
-    new(user: opts[:user], **JSON.parse(cmd.stdout))
+    def find(id, **opts)
+      find!(id, **opts)
+    rescue FlightJobScriptAPI::CommandError
+      nil
+    end
+
+    def find!(id, **opts)
+      cmd = FlightJobScriptAPI::SystemCommand.flight_info_job(id, **opts).tap do |cmd|
+        next if cmd.exitstatus == 0
+        return nil if cmd.exitstatus == 23
+        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find job: #{id}"
+      end
+
+      new(user: opts[:user], **JSON.parse(cmd.stdout))
+    end
   end
 
   attr_reader :metadata, :user
