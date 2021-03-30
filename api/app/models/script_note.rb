@@ -43,6 +43,18 @@ class ScriptNote
   end
 
   def payload
-    @payload ||= script.metadata['notes']
+    script.metadata['notes']
+  end
+
+  def save_payload(content)
+    FlightJobScriptAPI::SystemCommand.flight_edit_script_notes(
+      id, user: script.user, stdin: content
+    ).tap do |cmd|
+      next if cmd.exitstatus == 0
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to update script notes: #{id}"
+    end
+    # Update the script's metadata in case it has been cached
+    # XXX: Should the cache be flagged as dirty instead?
+    script.metadata['notes'] = content
   end
 end

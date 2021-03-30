@@ -55,12 +55,16 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', **opts).tap(&:wait)
     end
 
-    def self.flight_delete_script(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json', **opts).tap(&:wait)
+    def self.flight_create_script(template_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'create-script', template_id, '--json', '--answers', '@-', **opts).tap(&:wait)
     end
 
-    def self.flight_create_script(template_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'create-script', template_id, '--json', '--stdin', **opts).tap(&:wait)
+    def self.flight_edit_script_notes(script_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', **opts).tap(&:wait)
+    end
+
+    def self.flight_delete_script(id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json', **opts).tap(&:wait)
     end
 
     def self.flight_list_jobs(**opts)

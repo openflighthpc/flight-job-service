@@ -156,6 +156,21 @@ class App < Sinatra::Base
     end
   end
 
+  resource :script_notes, pkre: /[\w-]+/ do
+    helpers do
+      def find(id)
+        ScriptNote.find(id, user: current_user)
+      end
+    end
+
+    show
+
+    update do |attr|
+      resource.save_payload(attr[:payload])
+      resource
+    end
+  end
+
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
