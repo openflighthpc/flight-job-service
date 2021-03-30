@@ -45,6 +45,12 @@ module FlightJobScriptAPI::ModelCache
 
   private
 
+  # NOTE: Technically the 'id' is not globally unique for all models and
+  # depends on the user make the request. This is fine whilst the models are
+  # cached on a per-request basis, as they can only be a single user.
+  #
+  # However this assumption might fail if the cache is persisted across requests.
+  # Consider refactoring.
   def get_from_cache(id)
     cache_id = "#{self.name}:#{id}"
     RequestStore[cache_id]

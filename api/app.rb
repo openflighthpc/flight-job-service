@@ -146,6 +146,14 @@ class App < Sinatra::Base
     show
 
     destroy { resource.delete(user: current_user) }
+
+    has_one :note do
+      pluck { resource.find_note }
+    end
+
+    has_one :content do
+      pluck { resource.find_content }
+    end
   end
 
   resource :jobs, pkre: /[\w-]+/ do

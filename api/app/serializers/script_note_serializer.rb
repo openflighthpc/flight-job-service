@@ -26,10 +26,8 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-class ScriptSerializer < ApplicationSerializer
-  attribute(:path) { object.metadata['path'] }
-  attribute(:name) { object.metadata['script_name'] }
-  attribute(:created_at) { object.metadata['created_at'] }
+class ScriptNoteSerializer < ApplicationSerializer
+  attributes(:payload)
 
-  has_one(:template)
+  has_one :script
 end

@@ -86,4 +86,12 @@ class Script
       raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to delete script: #{id}"
     end
   end
+
+  def find_content
+    ScriptContent.find(id, user: user)
+  end
+
+  def find_note
+    ScriptNote.find(id, user: user)
+  end
 end
