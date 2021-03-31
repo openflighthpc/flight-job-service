@@ -28,8 +28,9 @@
 
 class ScriptSerializer < ApplicationSerializer
   attribute(:path) { object.metadata['path'] }
-  attribute(:name) { object.metadata['script_name'] }
   attribute(:created_at) { object.metadata['created_at'] }
+
+  attribute(:name) { object.metadata['public_id'] }
 
   has_one(:template)
 end
