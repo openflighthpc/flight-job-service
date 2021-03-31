@@ -145,7 +145,14 @@ class App < Sinatra::Base
 
     show
 
-    destroy { resource.delete(user: current_user) }
+    update do |attr|
+      if attr.key?(:name)
+        resource.rename(attr[:name])
+      end
+      resource
+    end
+
+    destroy { resource.delete }
 
     has_one :note do
       pluck { resource.find_note }
