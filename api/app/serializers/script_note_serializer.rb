@@ -27,6 +27,10 @@
 #==============================================================================
 
 class ScriptNoteSerializer < ApplicationSerializer
+  def type
+    'notes'
+  end
+
   attributes(:payload)
 
   has_one :script

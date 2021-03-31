@@ -27,6 +27,10 @@
 #==============================================================================
 
 class ScriptContentSerializer < ApplicationSerializer
+  def type
+    'contents'
+  end
+
   attributes(:payload)
 
   has_one :script

@@ -150,7 +150,7 @@ Content-Type: application/vnd.api+json
 }
 ```
 
-## Get - /templates/:id/questions
+## GET - /templates/:id/questions
 
 Return all the `question` resources associated with the given `template` by `template_id`
 
@@ -270,7 +270,7 @@ Content-Type: application/vnd.api+json
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The script's ID
     "attributes": {
-      "scriptName": STRING,     # REQUIRED - The name of the script
+      "name": STRING,           # REQUIRED - The name of the script
       "createdAt": STRING,      # REQUIRED - The creation date-time in RFC3339 format
       "path": STRING            # REQUIRED - The script's path on the filesystem
     },
@@ -371,6 +371,84 @@ Content-Type: application/vnd.api+json
 }
 ```
 
+## PATCH - /scripts/:id
+
+Update the `name` attribute for the given script
+
+```
+PATCH /v0/scripts/:id
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+{
+  "data": {
+    "type": "scripts",
+    "id": STRING,
+    "attributes": {
+      "name": STRING    # RECOMMENDED: # The new script name
+    }
+  }
+}
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": ScriptResource,
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## GET - /scripts/:id/content
+
+Return the `content` of the given `script`.
+
+```
+GET /v0/scripts/:id/content
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": {
+    "type": "contents",   # REQUIRED: Denotes the resource is a content
+    "id": STRING,         # REQUIRED: The ID of the related script
+    "attributes": {
+      "payload": STRING   # REQUIRED: The content of the script
+    }
+  },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## GET - /scripts/:id/note
+
+Return the `notes` about the given `script`.
+
+```
+GET /v0/scripts/:id/note
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": NoteResource,
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
 ## DELETE - /scripts/:id
 
 Permanently remove a script
@@ -381,6 +459,63 @@ Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 204 No Content
+```
+
+## GET - /notes/:id
+
+Return the `notes` about the given `script`.
+
+```
+GET /v0/scripts/:id/note
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": {
+    "type": "notes",      # REQUIRED: Denotes the resource is a note
+    "id": STRING,         # REQUIRED: The ID of the related script
+    "attributes": {
+      "payload": STRING   # REQUIRED: The note itself
+    }
+  },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## PATCH - /notes/:id
+
+Update the `note` about a `script`.
+
+```
+GET /v0/scripts/:id/note
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+{
+  "data": {
+    "id": STRING,
+    "type": "notes",
+    "attributes": {
+      "payload": STRING   # RECOMMENDED: The updated note text
+    }
+  }
+}
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": NoteResource,
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
 ```
 
 ## GET - /jobs
@@ -496,6 +631,13 @@ Content-Type: application/vnd.api+json
 ## POST - /render/:template_id
 
 Renders the template against the provided date and saves it to the filesystem.
+
+The provided keys SHOULD match the `question_ids` associated with the related `template`. The following are OPTIONAL reserved keys which have special meanings:
+
+* `name`: Sets the `name` field on the `script`, and
+* `notes`: Creates the related `notes` resource with the provided text.
+
+*WARNING:* Reserved keys will not be provided as `answers`, which may create a conflict with `questions_ids`. Additional reserved keys maybe added in a minor release, notwithstanding the conflicts they may create.
 
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or

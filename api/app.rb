@@ -163,7 +163,7 @@ class App < Sinatra::Base
     end
   end
 
-  resource :script_notes, pkre: /[\w-]+/ do
+  resource :notes, pkre: /[\w-]+/ do
     helpers do
       def find(id)
         ScriptNote.find(id, user: current_user)
