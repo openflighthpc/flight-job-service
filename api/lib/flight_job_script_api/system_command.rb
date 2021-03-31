@@ -55,8 +55,9 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', '--internal-script-id', **opts).tap(&:wait)
     end
 
-    def self.flight_create_script(template_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'create-script', template_id, '--json', '--answers', '@-', **opts).tap(&:wait)
+    def self.flight_create_script(template_id, name = nil, **opts)
+      args = name ? [template_id, name] : [template_id]
+      new(*FlightJobScriptAPI.config.flight_job, 'create-script', *args, '--json', '--answers', '@-', **opts).tap(&:wait)
     end
 
     def self.flight_edit_script_notes(script_id, **opts)
