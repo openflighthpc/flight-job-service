@@ -263,13 +263,17 @@ class RenderApp < Sinatra::Base
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
     hash = params.to_h.dup
-    # Ensure name is a string and treat nil/empty-string as the same input
-    # NOTE: This prevents a question from using the 'name' key
+    # Ensure name and notes are stringss and treat nil/empty-string as the same input
+    # NOTE: This prevents a question from using the 'name'/'notes' keys
     #       Consider refactoring to be a standard JSON:API route
     name = hash.delete('name').to_s
     name = nil if name.empty?
+    notes = hash.delete('notes').to_s
+    notes = nil if notes.empty?
     answers = hash.to_json
-    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(params[:id], name, user: @current_user, stdin: answers)
+    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(
+      params[:id], name, notes: notes, answers: answers, user: @current_user
+    )
 
     if cmd.exitstatus == 0
       response.headers['Content-Type'] = 'application/vnd.api+json'

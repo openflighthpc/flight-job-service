@@ -26,6 +26,8 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
+require 'tempfile'
+
 module FlightJobScriptAPI
   class CommandError < Sinja::ServiceUnavailable; end
 
@@ -55,9 +57,26 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', '--internal-script-id', **opts).tap(&:wait)
     end
 
-    def self.flight_create_script(template_id, name = nil, **opts)
+    def self.flight_create_script(template_id, name = nil, answers: nil, notes: nil, **opts)
+      answers_file = Tempfile.new('flight-job-script-api')
+      notes_file = Tempfile.new('flight-job-script-api')
       args = name ? [template_id, name] : [template_id]
-      new(*FlightJobScriptAPI.config.flight_job, 'create-script', *args, '--json', '--answers', '@-', **opts).tap(&:wait)
+      if answers
+        answers_file.write(answers)
+        answers_file.rewind
+        args.push('--answers', "@#{answers_file.path}")
+      end
+      if notes
+        notes_file.write(notes)
+        notes_file.rewind
+        args.push('--notes', "@#{notes_file.path}")
+      end
+      new(*FlightJobScriptAPI.config.flight_job, 'create-script', *args, '--json', **opts).tap(&:wait)
+    ensure
+      answers_file&.close
+      answers_file&.unlink
+      notes_file&.close
+      notes_file&.unlink
     end
 
     def self.flight_edit_script_notes(script_id, **opts)
@@ -143,7 +162,7 @@ module FlightJobScriptAPI
             unsetenv_others: true, close_others: true, chdir: passwd.dir,
             out: out_write, err: err_write, in: in_read
           }
-          # NOTE: Kepp the log before the exec for timing purposes
+          # NOTE: Keep the log before the exec for timing purposes
           FlightJobScriptAPI.logger.info("Executing (#{user}): #{cmd.join(' ')}")
           Kernel.exec(env, *cmd, **opts)
         end
