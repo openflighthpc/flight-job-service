@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Link } from 'react-router-dom';
+import { Button } from 'reactstrap';
 
 import MetadataEntry from './MetadataEntry';
 import ScriptActions from './ScriptActions';
 import TimeAgo from './TimeAgo';
 import { RenderedNotesForScript } from './ScriptSummary';
+import ScriptNotesEditor from './ScriptNotesEditor';
 
 function ScriptMetadataCard({ reloadScripts, script }) {
   return (
@@ -59,17 +62,34 @@ function ScriptMetadataCard({ reloadScripts, script }) {
   );
 }
 
-export function ScriptNotesCard({ script }) {
+function ScriptNotesCard({ script }) {
+  const [editing, setEditing] = useState(false);
+
   return (
     <div className="card">
-      <h4 className="card-header">
-        Notes
-      </h4>
+      <div className="card-header d-flex flex-row justify-content-between">
+        <h4 className="mb-0">Notes</h4>
+        <Button
+          color="primary"
+          size="sm"
+          onClick={() => setEditing(!editing)}
+        >
+          <i className="fa fa-edit mr-1"></i>
+          Edit
+        </Button>
+      </div>
       <div className="card-body">
-        <RenderedNotesForScript script={script} />
+        {
+          editing ?
+            <ScriptNotesEditor script={script} /> :
+            <RenderedNotesForScript script={script} />
+        }
       </div>
     </div>
   );
 }
 
+export {
+  ScriptNotesCard,
+};
 export default ScriptMetadataCard;
