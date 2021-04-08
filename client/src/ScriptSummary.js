@@ -34,14 +34,22 @@ function ScriptSummary({ reloadScripts, script }) {
         {
           script == null ?
             "Select a script form the table to view its notes." :
-            <ScriptNotes script={script} />
+            <RenderedNotesForScript script={script} />
         }
       </div>
     </div>
   );
 }
 
-export function ScriptNotes({ script }) {
+export function RenderedNotesForScript({ script }) {
+  if (script.note == null) {
+    return <RenderedAsyncNotesForScript script={script} />;
+  }
+
+  return <RenderedNotes notes={script.note.attributes.payload} />;
+}
+
+export function RenderedAsyncNotesForScript({ script }) {
   const { data, error, loading } = useFetchScriptNotes(script);
   if (loading) {
     return <Spinner center="none" text="Loading script notes..."/>;
@@ -50,7 +58,10 @@ export function ScriptNotes({ script }) {
     return <DefaultErrorMessage />;
   }
 
-  let notes = getNoteFromResponse(data);
+  return <RenderedNotes notes={getNoteFromResponse(data)} />;
+}
+
+export function RenderedNotes({ notes }) {
   if (notes == null || notes === "") {
     return <em>The selected script does not have any notes.</em>;
   }

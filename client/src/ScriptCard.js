@@ -1,21 +1,28 @@
 import { Link } from 'react-router-dom';
 
-import DeleteScriptButton from './DeleteScriptButton';
 import MetadataEntry from './MetadataEntry';
-import SubmitScriptButton from './SubmitScriptButton';
+import ScriptActions from './ScriptActions';
 import TimeAgo from './TimeAgo';
-import { CardFooter } from './CardParts';
+import { RenderedNotesForScript } from './ScriptSummary';
 
-function ScriptCard({ reloadScripts, script }) {
+function ScriptMetadataCard({ reloadScripts, script }) {
   return (
-    <div className="card border-primary">
-      <h5
-        className="card-header ot-cevznel grkg-yvtug text-truncate"
-        title={script.attributes.name}
-      >
-        Script {script.attributes.name}
-      </h5>
-      <div className="card-body">
+    <div className="card">
+      <div className="card-header d-flex flex-row justify-content-between">
+        <h4
+          className="text-truncate mb-0"
+          title={script.attributes.name}
+        >
+          {script.attributes.name}
+        </h4>
+        <ScriptActions
+          className="h-100"
+          includeLink={false}
+          reloadScripts={reloadScripts}
+          script={script}
+        />
+      </div>
+      <div className="card-body d-flex flex-row flex-wrap">
         <dl>
           <MetadataEntry
             format={(value) => <code>{value}</code>}
@@ -48,18 +55,21 @@ function ScriptCard({ reloadScripts, script }) {
           />
         </dl>
       </div>
-      <CardFooter>
-        <div className="btn-toolbar justify-content-center">
-          <DeleteScriptButton
-            className="mr-2"
-            onDeleted={reloadScripts}
-            script={script}
-          />
-          <SubmitScriptButton script={script} />
-        </div>
-      </CardFooter>
     </div>
   );
 }
 
-export default ScriptCard;
+export function ScriptNotesCard({ script }) {
+  return (
+    <div className="card">
+      <h4 className="card-header">
+        Notes
+      </h4>
+      <div className="card-body">
+        <RenderedNotesForScript script={script} />
+      </div>
+    </div>
+  );
+}
+
+export default ScriptMetadataCard;

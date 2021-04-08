@@ -33,4 +33,5 @@ class ScriptSerializer < ApplicationSerializer
   attribute(:name) { object.id }
 
   has_one(:template)
+  has_one(:note) { object.find_note }
 end

@@ -80,7 +80,7 @@ export function useFetchScripts() {
 export function useFetchScript(id) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    `/scripts/${id}?include=template`,
+    `/scripts/${id}?include=template,note`,
     {
       headers: { Accept: 'application/vnd.api+json' },
       interceptors: {
