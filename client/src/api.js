@@ -138,6 +138,20 @@ export function useDeleteScript(script) {
   return request;
 }
 
+export function useFetchScriptNotes(script) {
+  const { currentUser } = useContext(CurrentUserContext);
+  const scriptId = script == null ? undefined : script.id;
+  return useFetch(
+    `/scripts/${scriptId}/note`,
+    {
+      headers: {
+        Accept: 'application/vnd.api+json',
+      },
+    },
+    [ currentUser.authToken, scriptId ],
+  );
+}
+
 function getResourceFromResponse(data) {
   if (!utils.isObject(data)) { return null; }
   return data.data;

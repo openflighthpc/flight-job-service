@@ -1,15 +1,14 @@
 import React from 'react';
 import TimeAgo from 'react-timeago';
-import { ButtonToolbar, Table } from 'reactstrap';
-import { Link, useHistory } from "react-router-dom";
-import { useTable, usePagination, useSortBy } from 'react-table';
+import classNames from 'classnames';
+import { Table } from 'reactstrap';
+import { Link } from "react-router-dom";
+import { useTable, usePagination, useSortBy, useRowSelect } from 'react-table';
 
-import DeleteScriptButton from './DeleteScriptButton';
 import PaginationControls from './PaginationControls';
-import SubmitScriptButton from './SubmitScriptButton';
 import styles from './ScriptsTable.module.css';
 
-function ScriptsTable({ reloadScripts, scripts }) {
+function ScriptsTable({ onRowSelect, scripts }) {
   const data = React.useMemo(() => scripts, [scripts]);
   const columns = React.useMemo(
     () => [
@@ -29,7 +28,7 @@ function ScriptsTable({ reloadScripts, scripts }) {
         ),
       },
       {
-        Header: 'ID',
+        Header: 'Name',
         accessor: 'id',
         Cell: ({ value }) => <code>{value}</code>,
       },
@@ -46,17 +45,18 @@ function ScriptsTable({ reloadScripts, scripts }) {
           </Link>
         ),
       },
-      {
-        Header: 'Located at',
-        accessor: 'attributes.path',
-      },
     ],
     []
   );
   const initialState = {
     sortBy: [{ id: 'attributes.createdAt', desc: true }],
   };
-  const tableInstance = useTable({ columns, data, initialState }, useSortBy, usePagination)
+  const tableInstance = useTable(
+    { columns, data, initialState },
+    useSortBy,
+    usePagination,
+    useRowSelect,
+  );
   const {
     getTableProps,
     getTableBodyProps,
@@ -109,9 +109,10 @@ function ScriptsTable({ reloadScripts, scripts }) {
           page.map(row => (
             <TableRow
               key={row.original.id}
+              onRowSelect={onRowSelect}
               prepareRow={prepareRow}
-              reloadScripts={reloadScripts}
               row={row}
+              tableInstance={tableInstance}
             />
           ))
         }
@@ -143,20 +144,24 @@ function TableHeaders({ headerGroup }) {
           </th>
         ))
       }
-      <th></th>
     </tr>
   );
 }
 
-function TableRow({ prepareRow, reloadScripts, row }) {
-  const history = useHistory();
+function TableRow({onRowSelect=()=>{}, prepareRow, row, tableInstance }) {
   prepareRow(row);
   const rowKey = row.original.id;
 
   return (
     <tr
       {...row.getRowProps()}
-      onClick={() => history.push(`/scripts/${row.original.id}`)}
+      className={classNames({ 'table-primary': row.isSelected })}
+      onClick={() => {
+        const newSelected = !row.isSelected;
+        tableInstance.toggleAllRowsSelected(false);
+        row.toggleRowSelected(newSelected);
+        onRowSelect(newSelected ? row.original : null);
+      }}
     >
       {
         row.cells.map(cell => (
@@ -166,7 +171,6 @@ function TableRow({ prepareRow, reloadScripts, row }) {
           /> 
         ))
       }
-      <ActionsCell reloadScripts={reloadScripts} row={row} />
     </tr>
   );
 }
@@ -177,24 +181,6 @@ function TableCell({ cell }) {
       { cell.render('Cell') }
     </td>
   )
-}
-
-function ActionsCell({ reloadScripts, row }) {
-  const script = row.original;
-  return (
-    <td className={styles.ActionsCell}>
-      <ButtonToolbar>
-        <SubmitScriptButton
-          className="mr-2"
-          script={script}
-        />
-        <DeleteScriptButton
-          onDeleted={reloadScripts}
-          script={script}
-        />
-      </ButtonToolbar>
-    </td>
-  );
 }
 
 export default ScriptsTable;

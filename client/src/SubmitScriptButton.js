@@ -48,4 +48,19 @@ function SubmitScriptButton({ className, script }) {
   );
 }
 
+function Disabled({ className }) {
+  return (
+    <Button
+      className={classNames(className)}
+      disabled
+      size="sm"
+    >
+      <i className={`fa fa-rocket mr-1`}></i>
+      <span>Submit</span>
+    </Button>
+  );
+}
+
+SubmitScriptButton.Disabled = Disabled;
+
 export default SubmitScriptButton;

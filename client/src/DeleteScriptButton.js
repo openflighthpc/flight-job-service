@@ -1,7 +1,6 @@
-import {
-  ConfirmedActionButton,
-  utils,
-} from 'flight-webapp-components';
+import classNames from 'classnames';
+import { Button } from 'reactstrap';
+import { ConfirmedActionButton, utils, } from 'flight-webapp-components';
 import { useDeleteScript } from './api';
 import { useToast } from './ToastContext';
 
@@ -52,6 +51,21 @@ function DeleteScriptButton({
     />
   );
 }
+
+function Disabled({ className }) {
+  return (
+    <Button
+      className={classNames(className)}
+      disabled
+      size="sm"
+    >
+      <i className={`fa fa-trash mr-1`}></i>
+      <span>Delete</span>
+    </Button>
+  );
+}
+
+DeleteScriptButton.Disabled = Disabled;
 
 function deleteFailedToast({ script, errorCode }) {
   let body = (
