@@ -270,7 +270,7 @@ Content-Type: application/vnd.api+json
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The script's ID
     "attributes": {
-      "name": STRING,           # REQUIRED - The name of the script
+      "name": STRING,           # REQUIRED - Same as the ID
       "createdAt": STRING,      # REQUIRED - The creation date-time in RFC3339 format
       "path": STRING            # REQUIRED - The script's path on the filesystem
     },

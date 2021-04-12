@@ -30,7 +30,7 @@ class ScriptSerializer < ApplicationSerializer
   attribute(:path) { object.metadata['path'] }
   attribute(:created_at) { object.metadata['created_at'] }
 
-  attribute(:name) { object.metadata['script_name'] }
+  attribute(:name) { object.id }
 
   has_one(:template)
 end
