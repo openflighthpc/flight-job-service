@@ -80,17 +80,6 @@ class Script
     @template
   end
 
-  def rename(name)
-    FlightJobScriptAPI::SystemCommand.flight_rename_script(id, name, user: user).tap do |cmd|
-      if cmd.exitstatus == 0
-        @metadata = JSON.parse(cmd.stdout)
-      # TODO: Detect name conflicts and raise 422
-      else
-        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to rename script: #{id}"
-      end
-    end
-  end
-
   def delete
     FlightJobScriptAPI::SystemCommand.flight_delete_script(id, user: user).tap do |cmd|
       next if cmd.exitstatus == 0

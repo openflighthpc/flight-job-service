@@ -145,13 +145,6 @@ class App < Sinatra::Base
 
     show
 
-    update do |attr|
-      if attr.key?(:name)
-        resource.rename(attr[:name])
-      end
-      resource
-    end
-
     destroy { resource.delete }
 
     has_one :note do

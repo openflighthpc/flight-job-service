@@ -371,36 +371,6 @@ Content-Type: application/vnd.api+json
 }
 ```
 
-## PATCH - /scripts/:id
-
-Update the `name` attribute for the given script
-
-```
-PATCH /v0/scripts/:id
-Authorization: basic <base64 username:password>
-Accept: application/vnd.api+json
-{
-  "data": {
-    "type": "scripts",
-    "id": STRING,
-    "attributes": {
-      "name": STRING    # RECOMMENDED: # The new script name
-    }
-  }
-}
-
-HTTP/2 200 OK
-Content-Type: application/vnd.api+json
-{
-  "data": ScriptResource,
-  "jsonapi": {
-    "version": "1.0"
-  },
-  "included": [
-  ]
-}
-```
-
 ## GET - /scripts/:id/content
 
 Return the `content` of the given `script`.
