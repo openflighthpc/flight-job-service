@@ -54,7 +54,7 @@ module FlightJobScriptAPI
     end
 
     def self.flight_info_script(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', '--internal-script-id', **opts).tap(&:run)
+      new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', **opts).tap(&:run)
     end
 
     def self.flight_create_script(template_id, name = nil, answers: nil, notes: nil, **opts)
@@ -78,11 +78,11 @@ module FlightJobScriptAPI
     end
 
     def self.flight_edit_script_notes(script_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'edit-script-notes', script_id, '--json', '--internal-script-id', '--notes', '@-', **opts).tap(&:run)
+      new(*FlightJobScriptAPI.config.flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', **opts).tap(&:run)
     end
 
     def self.flight_delete_script(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json', '--internal-script-id', **opts).tap(&:run)
+      new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json',**opts).tap(&:run)
     end
 
     def self.flight_list_jobs(**opts)
@@ -94,7 +94,7 @@ module FlightJobScriptAPI
     end
 
     def self.flight_submit_job(script_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', '--internal-script-id', **opts).tap(&:run)
+      new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', **opts).tap(&:run)
     end
 
     attr_reader :cmd, :user, :mutex, :stdin

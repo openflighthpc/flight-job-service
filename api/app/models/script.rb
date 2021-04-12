@@ -68,7 +68,7 @@ class Script
   end
 
   def id
-    metadata['internal_id']
+    metadata['id']
   end
 
   def template
