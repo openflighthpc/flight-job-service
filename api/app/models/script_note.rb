@@ -28,7 +28,8 @@
 class ScriptNote
   class << self
     def find(script_id, **opts)
-      new Script.find(script_id, **opts)
+      script = Script.find(script_id, **opts)
+      script ? new(script) : nil
     end
   end
 
