@@ -274,6 +274,11 @@ class RenderApp < Sinatra::Base
       status 201
       next JSONAPI::Serializer.serialize(script).to_json
 
+    # The script name/id has already been taken
+    elsif cmd.exitstatus == 7
+      status 409
+      halt
+
     # Technically this should not be reached as it means the template does not exist
     elsif cmd.exitstatus == 21
       status 404

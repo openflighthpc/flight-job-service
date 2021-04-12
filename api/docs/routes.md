@@ -609,6 +609,8 @@ The provided keys SHOULD match the `question_ids` associated with the related `t
 
 *WARNING:* Reserved keys will not be provided as `answers`, which may create a conflict with `questions_ids`. Additional reserved keys maybe added in a minor release, notwithstanding the conflicts they may create.
 
+The `name` MUST be unique otherwise the request SHALL return 409 Conflict.
+
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or
 2. The template being misconfigured.
@@ -633,6 +635,16 @@ Content-Type: application/vnd.api+json
   "data": ScriptResource,
 }
 
+# With a duplicate "name"
+POST /v0/render/:template_id
+Authorization: Bearer <jwt>
+Content-Type: application/json
+Accept: application/vnd.api+json
+{
+  "name": "existing-name"
+}
+
+HTTP/2 409 Conflict
 
 # With invalid credentials
 POST /v0/render/:template_id
