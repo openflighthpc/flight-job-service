@@ -611,6 +611,14 @@ The provided keys SHOULD match the `question_ids` associated with the related `t
 
 The `name` MUST be unique otherwise the request SHALL return 409 Conflict.
 
+The `name` is subject to the following constraints:
+* It MUST start with an alphanumeric character,
+* It SHOULD be primarily alphanumeric characters but MAY contain hypen and underscore,
+* It MUST NOT use any other characters, and
+* It SHOULD be less than 16 characters (depending on the underlining CLI tools configuration).
+
+The response SHALL be 422 Unprocessable Entity if the above `name` constratins are not be met.
+
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or
 2. The template being misconfigured.

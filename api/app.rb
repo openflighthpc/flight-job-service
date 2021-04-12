@@ -279,6 +279,11 @@ class RenderApp < Sinatra::Base
       status 409
       halt
 
+    # Return the error message for invalid inputs
+    elsif cmd.exitstatus == 3
+      status 422
+      halt cmd.stderr.split(':', 2)[1]
+
     # Technically this should not be reached as it means the template does not exist
     elsif cmd.exitstatus == 21
       status 404
