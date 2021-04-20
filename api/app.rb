@@ -240,7 +240,14 @@ class RenderApp < Sinatra::Base
   end
 
   parsers = {
-    'application/json' => ->(body) { JSON.parse(body) }
+    'application/json' => ->(body) do
+      raw = JSON.parse(body).to_h
+      if raw.key?('answers')
+        raw
+      else
+        { 'answers' => raw }
+      end
+    end
   }
 
   before do
@@ -255,15 +262,11 @@ class RenderApp < Sinatra::Base
 
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    hash = params.to_h.dup
-    # Ensure name and notes are stringss and treat nil/empty-string as the same input
-    # NOTE: This prevents a question from using the 'name'/'notes' keys
-    #       Consider refactoring to be a standard JSON:API route
-    name = hash.delete('name').to_s
+    name = params['name'].to_s
     name = nil if name.empty?
-    notes = hash.delete('notes').to_s
+    notes = params['notes'].to_s
     notes = nil if notes.empty?
-    answers = hash.to_json
+    answers = params['answers'].dup.to_json
     cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(
       params[:id], name, notes: notes, answers: answers, user: @current_user
     )

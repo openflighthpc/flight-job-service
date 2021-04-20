@@ -602,14 +602,15 @@ Content-Type: application/vnd.api+json
 
 Renders the template against the provided date and saves it to the filesystem.
 
-The provided keys SHOULD match the `question_ids` associated with the related `template`. The following are OPTIONAL reserved keys which have special meanings:
+There are two formats for the request payload: "Structured" and "Unstructured". The difference between the two is the request payload. The following applies to "Structured" requests. Refer to the end for "Unstructured" format.
 
-* `name`: Sets the `name` field on the `script`, and
-* `notes`: Creates the related `notes` resource with the provided text.
+NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
 
-*WARNING:* Reserved keys will not be provided as `answers`, which may create a conflict with `questions_ids`. Additional reserved keys maybe added in a minor release, notwithstanding the conflicts they may create.
+### Structured Requests
 
-The `name` MUST be unique otherwise the request SHALL return 409 Conflict.
+Structured requests MUST contain the `answers` key. The `answers` SHOULD be an object containing keys which match the `questions_ids` of the associated `template`. 
+
+The `name` is an OPTIONAL field that sets the identifier for the `script`. It MUST be a unique STRING when provided, otherwise the response SHALL be `409 Conflict`.
 
 The `name` is subject to the following constraints:
 * It MUST start with an alphanumeric character,
@@ -617,7 +618,9 @@ The `name` is subject to the following constraints:
 * It MUST NOT use any other characters, and
 * It SHOULD be less than 16 characters (depending on the underlining CLI tools configuration).
 
-The response SHALL be 422 Unprocessable Entity if the above `name` constratins are not be met.
+The response SHALL be 422 Unprocessable Entity if the above `name` constraints are not be met.
+
+The `notes` are OPTIONAL but MUST be a string when included. They SHOULD provided additional details about the script.
 
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or
@@ -625,16 +628,18 @@ Due to the underlining templating engine, this route could fail to render for va
 
 The API may fail to render the script due to a malformed template. The exact behaviour in this situation is undefined.
 
-NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
-
 ```
 POST /v0/render/:template_id
 Authorization: Bearer <jwt>
 Content-Type: application/json
 Accept: application/vnd.api+json
 {
-  "[key]": "[value]",
-  ...
+  "name": STRING,       # OPTIONAL: The name of the script
+  "notes": STRING,      # OPTIONAL: Additional details about the script
+  "answers": {          # REQUIRED: The answers to the associated questions
+    "[key]": "[value]",
+    ...
+  }
 }
 
 HTTP/2 201 CREATED
@@ -669,3 +674,26 @@ Accept: application/vnd.api+json
 HTTP/2 401 Unauthorized
 ```
 
+### Unstructured Requests
+
+Unstructured requests provide backwards compatibility with the original API specification. It will not receive future feature enhancements and SHOULD NOT be used.
+
+Unstructured requests MUST NOT contain the `answers` key. All the top level keys SHOULD match `question_ids` of the top level template.
+
+```
+POST /v0/render/:template_id
+Authorization: Bearer <jwt>
+Content-Type: application/json
+Accept: application/vnd.api+json
+{
+  "[key]": "[value]",
+  ...
+}
+
+HTTP/2 201 CREATED
+Content-Type: application/vnd.api+json
+{
+  "data": ScriptResource,
+}
+
+```
