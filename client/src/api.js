@@ -50,7 +50,9 @@ export function useGenerateScript(templateId, answers) {
         Accept: 'text/plain',
         'Content-Type': 'application/json',
       },
-      body: answers,
+      body: {
+        answers,
+      },
       cachePolicy: 'no-cache',
     },
   );
