@@ -145,7 +145,30 @@ class App < Sinatra::Base
 
     show
 
-    destroy { resource.delete(user: current_user) }
+    destroy { resource.delete }
+
+    has_one :note do
+      pluck { resource.find_note }
+    end
+
+    has_one :content do
+      pluck { resource.find_content }
+    end
+  end
+
+  resource :notes, pkre: /[\w-]+/ do
+    helpers do
+      def find(id)
+        ScriptNote.find(id, user: current_user)
+      end
+    end
+
+    show
+
+    update do |attr|
+      resource.save_payload(attr[:payload])
+      resource
+    end
   end
 
   resource :jobs, pkre: /[\w-]+/ do
@@ -217,7 +240,14 @@ class RenderApp < Sinatra::Base
   end
 
   parsers = {
-    'application/json' => ->(body) { JSON.parse(body) }
+    'application/json' => ->(body) do
+      raw = JSON.parse(body).to_h
+      if raw.key?('answers')
+        raw
+      else
+        { 'answers' => raw }
+      end
+    end
   }
 
   before do
@@ -232,14 +262,30 @@ class RenderApp < Sinatra::Base
 
   # TODO: The :id should be parsed against the same regex as above
   post '/:id' do
-    answers = params.to_json
-    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(params[:id], user: @current_user, stdin: answers)
+    name = params['name'].to_s
+    name = nil if name.empty?
+    notes = params['notes'].to_s
+    notes = nil if notes.empty?
+    answers = params['answers'].dup.to_json
+    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(
+      params[:id], name, notes: notes, answers: answers, user: @current_user
+    )
 
     if cmd.exitstatus == 0
       response.headers['Content-Type'] = 'application/vnd.api+json'
       script = Script.new(user: @current_user, **JSON.parse(cmd.stdout))
       status 201
       next JSONAPI::Serializer.serialize(script).to_json
+
+    # The script name/id has already been taken
+    elsif cmd.exitstatus == 7
+      status 409
+      halt
+
+    # Return the error message for invalid inputs
+    elsif cmd.exitstatus == 3
+      status 422
+      halt cmd.stderr.split(':', 2)[1]
 
     # Technically this should not be reached as it means the template does not exist
     elsif cmd.exitstatus == 21

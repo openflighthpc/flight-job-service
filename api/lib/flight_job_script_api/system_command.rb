@@ -26,6 +26,8 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
+require 'securerandom'
+
 module FlightJobScriptAPI
   class CommandError < Sinja::ServiceUnavailable; end
 
@@ -40,39 +42,59 @@ module FlightJobScriptAPI
     end
 
     def self.flight_list_templates(**opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'list-templates', '--json', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'list-templates', '--json', **opts).tap(&:run)
     end
 
     def self.flight_info_template(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'info-template', id, '--json', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'info-template', id, '--json', **opts).tap(&:run)
     end
 
     def self.flight_list_scripts(**opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'list-scripts', '--json', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'list-scripts', '--json', **opts).tap(&:run)
     end
 
     def self.flight_info_script(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', **opts).tap(&:run)
+    end
+
+    def self.flight_create_script(template_id, name = nil, answers: nil, notes: nil, **opts)
+      # Define the paths so they can be cleaned up
+      # NOTE: Tempfile should not be used as the file permissions will be incorrect
+      #       Instead the paths are defined with UUIDs and then created after the command forks
+      answers_path = File.join('/tmp', "flight-job-script-api-#{SecureRandom.uuid}")
+      notes_path = File.join('/tmp', "flight-job-script-api-#{SecureRandom.uuid}")
+      args = name ? [template_id, name] : [template_id]
+      args.push('--answers', "@#{answers_path}") if answers
+      args.push('--notes', "@#{notes_path}") if notes
+      new(*FlightJobScriptAPI.config.flight_job, 'create-script', *args, '--json', **opts).tap do |sys|
+        sys.run do
+          File.write answers_path, answers if answers
+          File.write notes_path, notes if notes
+        end
+      end
+    ensure
+      FileUtils.rm_f answers_path
+      FileUtils.rm_f notes_path
+    end
+
+    def self.flight_edit_script_notes(script_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', **opts).tap(&:run)
     end
 
     def self.flight_delete_script(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json', **opts).tap(&:wait)
-    end
-
-    def self.flight_create_script(template_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'create-script', template_id, '--json', '--stdin', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json',**opts).tap(&:run)
     end
 
     def self.flight_list_jobs(**opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'list-jobs', '--json', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'list-jobs', '--json', **opts).tap(&:run)
     end
 
     def self.flight_info_job(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'info-job', id, '--json', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'info-job', id, '--json', **opts).tap(&:run)
     end
 
     def self.flight_submit_job(script_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', **opts).tap(&:wait)
+      new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', **opts).tap(&:run)
     end
 
     attr_reader :cmd, :user, :mutex, :stdin
@@ -85,28 +107,7 @@ module FlightJobScriptAPI
       @mutex = self.class.mutexes[user]
     end
 
-    def wait
-      return if @wait
-      run
-      @wait = true
-    end
-
-    private
-
-    def passwd
-      @passwd ||= Etc.getpwnam(user)
-    end
-
-    def env
-      @env ||= {
-        'PATH' => FlightJobScriptAPI.app.config.command_path,
-        'HOME' => passwd.dir,
-        'USER' => user,
-        'LOGNAME' => user
-      }
-    end
-
-    def run
+    def run(&block)
       # Establish pipes for stdout/stderr
       # NOTE: Must be first due to the ensure block
       out_read, out_write = IO.pipe
@@ -129,12 +130,16 @@ module FlightJobScriptAPI
           Process::Sys.setuid(passwd.uid)
           Process.setsid
 
+          # Allow the command to be modified after becoming the requested user
+          # This is useful when trying to create a file with the correct file permissions
+          block.call if block
+
           # Execute the command
           opts = {
             unsetenv_others: true, close_others: true, chdir: passwd.dir,
             out: out_write, err: err_write, in: in_read
           }
-          # NOTE: Kepp the log before the exec for timing purposes
+          # NOTE: Keep the log before the exec for timing purposes
           FlightJobScriptAPI.logger.info("Executing (#{user}): #{cmd.join(' ')}")
           Kernel.exec(env, *cmd, **opts)
         end
@@ -197,6 +202,21 @@ module FlightJobScriptAPI
       err_write.close unless err_write.closed?
       in_read.close unless in_read.closed?
       in_write.close unless in_write.closed?
+    end
+
+    private
+
+    def passwd
+      @passwd ||= Etc.getpwnam(user)
+    end
+
+    def env
+      @env ||= {
+        'PATH' => FlightJobScriptAPI.app.config.command_path,
+        'HOME' => passwd.dir,
+        'USER' => user,
+        'LOGNAME' => user
+      }
     end
   end
 end

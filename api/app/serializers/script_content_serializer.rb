@@ -26,34 +26,12 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-module FlightJobScriptAPI::ModelCache
-  def index(**opts)
-    super.tap do |records|
-      records.each do |record|
-        set_in_cache(record.id, record)
-      end
-    end
+class ScriptContentSerializer < ApplicationSerializer
+  def type
+    'contents'
   end
 
-  def find!(id, **opts)
-    record = get_from_cache(id)
-    return record unless record.nil?
-    super.tap do |record|
-      set_in_cache(id, record) unless record.nil?
-    end
-  end
+  attributes(:payload)
 
-  private
-
-  # NOTE: The 'id' is unique on a per user basis instead of globally. This works
-  #       as the RequestStore cache's 'per request' and thus is also 'per user'.
-  def get_from_cache(id)
-    cache_id = "#{self.name}:#{id}"
-    RequestStore[cache_id]
-  end
-
-  def set_in_cache(id, record)
-    cache_id = "#{self.name}:#{id}"
-    RequestStore[cache_id] = record
-  end
+  has_one :script
 end

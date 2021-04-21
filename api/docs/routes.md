@@ -150,7 +150,7 @@ Content-Type: application/vnd.api+json
 }
 ```
 
-## Get - /templates/:id/questions
+## GET - /templates/:id/questions
 
 Return all the `question` resources associated with the given `template` by `template_id`
 
@@ -270,7 +270,7 @@ Content-Type: application/vnd.api+json
     "type": "scripts",          # REQUIRED - Specfies the resource is a script
     "id": STRING,               # REQUIRED - The script's ID
     "attributes": {
-      "scriptName": STRING,     # REQUIRED - The name of the script
+      "name": STRING,           # REQUIRED - Same as the ID
       "createdAt": STRING,      # REQUIRED - The creation date-time in RFC3339 format
       "path": STRING            # REQUIRED - The script's path on the filesystem
     },
@@ -371,6 +371,54 @@ Content-Type: application/vnd.api+json
 }
 ```
 
+## GET - /scripts/:id/content
+
+Return the `content` of the given `script`.
+
+```
+GET /v0/scripts/:id/content
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": {
+    "type": "contents",   # REQUIRED: Denotes the resource is a content
+    "id": STRING,         # REQUIRED: The ID of the related script
+    "attributes": {
+      "payload": STRING   # REQUIRED: The content of the script
+    }
+  },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## GET - /scripts/:id/note
+
+Return the `notes` about the given `script`.
+
+```
+GET /v0/scripts/:id/note
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": NoteResource,
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
 ## DELETE - /scripts/:id
 
 Permanently remove a script
@@ -381,6 +429,63 @@ Authorization: Bearer <jwt>
 Accept: application/vnd.api+json
 
 HTTP/2 204 No Content
+```
+
+## GET - /notes/:id
+
+Return the `notes` about the given `script`.
+
+```
+GET /v0/scripts/:id/note
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": {
+    "type": "notes",      # REQUIRED: Denotes the resource is a note
+    "id": STRING,         # REQUIRED: The ID of the related script
+    "attributes": {
+      "payload": STRING   # REQUIRED: The note itself
+    }
+  },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## PATCH - /notes/:id
+
+Update the `note` about a `script`.
+
+```
+GET /v0/scripts/:id/note
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+{
+  "data": {
+    "id": STRING,
+    "type": "notes",
+    "attributes": {
+      "payload": STRING   # RECOMMENDED: The updated note text
+    }
+  }
+}
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": NoteResource,
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
 ```
 
 ## GET - /jobs
@@ -497,13 +602,83 @@ Content-Type: application/vnd.api+json
 
 Renders the template against the provided date and saves it to the filesystem.
 
+There are two formats for the request payload: "Structured" and "Unstructured". The difference between the two is the request payload. The following applies to "Structured" requests. Refer to the end for "Unstructured" format.
+
+NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
+
+### Structured Requests
+
+Structured requests MUST contain the `answers` key. The `answers` SHOULD be an object containing keys which match the `questions_ids` of the associated `template`. 
+
+The `name` is an OPTIONAL field that sets the identifier for the `script`. It MUST be a unique STRING when provided, otherwise the response SHALL be `409 Conflict`.
+
+The `name` is subject to the following constraints:
+* It MUST start with an alphanumeric character,
+* It SHOULD be primarily alphanumeric characters but MAY contain hypen and underscore,
+* It MUST NOT use any other characters, and
+* It SHOULD be less than 16 characters (depending on the underlining CLI tools configuration).
+
+The response SHALL be 422 Unprocessable Entity if the above `name` constraints are not be met.
+
+The `notes` are OPTIONAL but MUST be a string when included. They SHOULD provided additional details about the script.
+
 Due to the underlining templating engine, this route could fail to render for various reasons including but not limited to:
 1. The client not sending all the required keys, or
 2. The template being misconfigured.
 
 The API may fail to render the script due to a malformed template. The exact behaviour in this situation is undefined.
 
-NOTE: This route does not conform the JSON:API standard and behaves slightly differently. The authentication/ authorization process is the same however the response body will be empty. The other differences are shown below.
+```
+POST /v0/render/:template_id
+Authorization: Bearer <jwt>
+Content-Type: application/json
+Accept: application/vnd.api+json
+{
+  "name": STRING,       # OPTIONAL: The name of the script
+  "notes": STRING,      # OPTIONAL: Additional details about the script
+  "answers": {          # REQUIRED: The answers to the associated questions
+    "[key]": "[value]",
+    ...
+  }
+}
+
+HTTP/2 201 CREATED
+Content-Type: application/vnd.api+json
+{
+  "data": ScriptResource,
+}
+
+# With a duplicate "name"
+POST /v0/render/:template_id
+Authorization: Bearer <jwt>
+Content-Type: application/json
+Accept: application/vnd.api+json
+{
+  "name": "existing-name"
+}
+
+HTTP/2 409 Conflict
+
+# With invalid credentials
+POST /v0/render/:template_id
+Authorization: Bearer <jwt>
+Accept: application/vnd.api+json
+
+HTPP/2 403 Forbidden
+
+
+# Without credentials
+POST /v0/render/:template_id
+Accept: application/vnd.api+json
+
+HTTP/2 401 Unauthorized
+```
+
+### Unstructured Requests
+
+Unstructured requests provide backwards compatibility with the original API specification. It will not receive future feature enhancements and SHOULD NOT be used.
+
+Unstructured requests MUST NOT contain the `answers` key. All the top level keys SHOULD match `question_ids` of the top level template.
 
 ```
 POST /v0/render/:template_id
@@ -521,19 +696,4 @@ Content-Type: application/vnd.api+json
   "data": ScriptResource,
 }
 
-
-# With invalid credentials
-POST /v0/render/:template_id
-Authorization: Bearer <jwt>
-Accept: application/vnd.api+json
-
-HTPP/2 403 Forbidden
-
-
-# Without credentials
-POST /v0/render/:template_id
-Accept: application/vnd.api+json
-
-HTTP/2 401 Unauthorized
 ```
-
