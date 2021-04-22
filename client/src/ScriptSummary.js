@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown'
 
 import { DefaultErrorMessage, Spinner, utils } from 'flight-webapp-components';
 
+import styles from './ScriptsPage.module.css';
 import ScriptActions from './ScriptActions';
 import {useFetchScriptNotes} from './api';
 
@@ -65,7 +66,11 @@ export function RenderedNotes({ notes }) {
   if (notes == null || notes === "") {
     return <em>The selected script does not have any notes.</em>;
   }
-  return <ReactMarkdown>{notes}</ReactMarkdown>;
+  return (
+    <div className={styles.ScriptContentWrapper}>
+      <ReactMarkdown>{notes}</ReactMarkdown>
+    </div>
+  );
 }
 
 export function ScriptNotesPlaceholder() {
