@@ -1,8 +1,14 @@
+import 'highlight.js/styles/solarized-dark.css';
+import bash from 'highlight.js/lib/languages/bash';
 import classNames from 'classnames';
+import hljs from 'highlight.js/lib/core';
 import { DefaultErrorMessage, Spinner, utils } from 'flight-webapp-components';
+import { useEffect, useRef } from 'react';
 
 import styles from './JobCard.module.css';
 import {useFetchScriptContent} from './api';
+
+hljs.registerLanguage('bash', bash);
 
 function getContentFromResponse(data) {
   if (!utils.isObject(data)) { return null; }
@@ -46,11 +52,18 @@ export function RenderedAsyncContentForScript({ script }) {
 }
 
 export function RenderedContent({ content }) {
+  const contentRef = useRef(null);
+  useEffect(() => {
+    if (contentRef.current) {
+      hljs.highlightElement(contentRef.current, { language: 'bash' });
+    }
+  });
+
   if (content == null || content === "") {
     return <em>The selected script does not have any content.</em>;
   }
   return (
-    <pre className={styles.PreCode}><code>{content}</code></pre>
+    <pre className={styles.PreCode}><code ref={contentRef}>{content}</code></pre>
   );
 }
 
