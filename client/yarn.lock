@@ -4542,9 +4542,9 @@ flatten@^1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.3.tgz#c1283ac9f27b368abc1e36d1ff7b04501a30356b"
 
-"flight-webapp-components@git+https://github.com/openflighthpc/flight-webapp-components#0.1.4":
-  version "0.1.3"
-  resolved "git+https://github.com/openflighthpc/flight-webapp-components#50ee75e7113bdacd93989c94ec4703c23cead612"
+"flight-webapp-components@git+https://github.com/openflighthpc/flight-webapp-components#0.1.5":
+  version "0.1.5"
+  resolved "git+https://github.com/openflighthpc/flight-webapp-components#943814bf05bb5b704406861a101f60150aabf038"
   dependencies:
     classnames "^2.2.6"
     js-gravatar "^1.1.3"
@@ -8148,8 +8148,8 @@ react-error-overlay@^6.0.8:
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.8.tgz#474ed11d04fc6bda3af643447d85e9127ed6b5de"
 
 react-hook-form@^6.15.4:
-  version "6.15.4"
-  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-6.15.4.tgz#328003e1ccc096cd158899ffe7e3b33735a9b024"
+  version "6.15.7"
+  resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-6.15.7.tgz#e5ad7a9f73b0311ee770c56951276a3b85b06656"
 
 react-input-autosize@^3.0.0:
   version "3.0.0"
