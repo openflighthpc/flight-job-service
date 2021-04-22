@@ -26,11 +26,11 @@ function ScriptPage() {
     } else {
       return (
         <Row>
-          <Col md={{ "size": 6 }}>
+          <Col md={12} lg={6}>
             <ScriptMetadataCard script={script} />
             <ScriptContentCard className="mt-4" script={script} />
           </Col>
-          <Col md={{ "size": 6 }}>
+          <Col md={12} lg={6}>
             <ScriptNotesCard script={script} />
           </Col>
         </Row>
