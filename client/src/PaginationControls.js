@@ -14,7 +14,7 @@ function PaginationControls({
     .map(offset => pageIndex + offset)
     .filter(idx => idx >= 0 && idx <= pageCount - 1)
     .map(idx => (
-      <PaginationItem active={idx === pageIndex} >
+      <PaginationItem active={idx === pageIndex} key={idx} >
         <PaginationLink onClick={() => gotoPage(idx)}>
           {idx + 1}
         </PaginationLink>

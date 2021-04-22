@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from "react-router-dom";
+import { Row, Col } from 'reactstrap';
 
 import {
   DefaultErrorMessage,
@@ -10,6 +11,7 @@ import {
   utils,
 } from 'flight-webapp-components';
 
+import ScriptSummary from './ScriptSummary';
 import ScriptsTable from './ScriptsTable';
 import styles from './ScriptsPage.module.css';
 import { useFetchScripts } from './api';
@@ -43,6 +45,8 @@ function ScriptsPage() {
 }
 
 function Layout({ reloadScripts, scripts }) {
+  const [selectedScript, setSelectedScript] = useState(null);
+
   if (scripts == null || !scripts.length) {
     return <NoScriptsFound />;
   }
@@ -50,7 +54,22 @@ function Layout({ reloadScripts, scripts }) {
   return (
     <React.Fragment>
       <IntroCard scripts={scripts} />
-      <ScriptsTable reloadScripts={reloadScripts} scripts={scripts} />
+      <div>
+        <Row>
+          <Col>
+            <ScriptsTable
+              onRowSelect={setSelectedScript}
+              scripts={scripts}
+            />
+          </Col>
+          <Col style={{ paddingTop: 'calc(38px + 16px)' }}>
+            <ScriptSummary
+              reloadScripts={reloadScripts}
+              script={selectedScript}
+            />
+          </Col>
+        </Row>
+      </div>
     </React.Fragment>
   );
 }

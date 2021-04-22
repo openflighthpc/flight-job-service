@@ -50,7 +50,9 @@ export function useGenerateScript(templateId, answers) {
         Accept: 'text/plain',
         'Content-Type': 'application/json',
       },
-      body: answers,
+      body: {
+        answers,
+      },
       cachePolicy: 'no-cache',
     },
   );
@@ -78,7 +80,7 @@ export function useFetchScripts() {
 export function useFetchScript(id) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    `/scripts/${id}?include=template`,
+    `/scripts/${id}?include=template,note,content`,
     {
       headers: { Accept: 'application/vnd.api+json' },
       interceptors: {
@@ -134,6 +136,34 @@ export function useDeleteScript(script) {
     },
   );
   return request;
+}
+
+export function useFetchScriptNotes(script) {
+  const { currentUser } = useContext(CurrentUserContext);
+  const scriptId = script == null ? undefined : script.id;
+  return useFetch(
+    `/scripts/${scriptId}/note`,
+    {
+      headers: {
+        Accept: 'application/vnd.api+json',
+      },
+    },
+    [ currentUser.authToken, scriptId ],
+  );
+}
+
+export function useFetchScriptContent(script) {
+  const { currentUser } = useContext(CurrentUserContext);
+  const scriptId = script == null ? undefined : script.id;
+  return useFetch(
+    `/scripts/${scriptId}/content`,
+    {
+      headers: {
+        Accept: 'application/vnd.api+json',
+      },
+    },
+    [ currentUser.authToken, scriptId ],
+  );
 }
 
 function getResourceFromResponse(data) {

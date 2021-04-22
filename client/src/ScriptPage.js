@@ -1,3 +1,4 @@
+import { Col, Row } from 'reactstrap';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -6,7 +7,8 @@ import {
   Spinner,
 } from 'flight-webapp-components';
 
-import ScriptCard from './ScriptCard';
+import ScriptContentCard from './ScriptContentCard';
+import ScriptMetadataCard, { ScriptNotesCard } from './ScriptCard';
 import { useFetchScript } from './api';
 
 function ScriptPage() {
@@ -23,7 +25,15 @@ function ScriptPage() {
       return <DefaultErrorMessage />;
     } else {
       return (
-        <ScriptCard script={script} />
+        <Row>
+          <Col md={12} lg={6}>
+            <ScriptMetadataCard script={script} />
+            <ScriptContentCard className="mt-4" script={script} />
+          </Col>
+          <Col md={12} lg={6}>
+            <ScriptNotesCard script={script} />
+          </Col>
+        </Row>
       );
     }
   }
