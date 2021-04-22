@@ -7,6 +7,7 @@ import {
   Spinner,
 } from 'flight-webapp-components';
 
+import ScriptContentCard from './ScriptContentCard';
 import ScriptMetadataCard, { ScriptNotesCard } from './ScriptCard';
 import { useFetchScript } from './api';
 
@@ -25,10 +26,11 @@ function ScriptPage() {
     } else {
       return (
         <Row>
-          <Col>
+          <Col md={{ "size": 6 }}>
             <ScriptMetadataCard script={script} />
+            <ScriptContentCard className="mt-4" script={script} />
           </Col>
-          <Col>
+          <Col md={{ "size": 6 }}>
             <ScriptNotesCard script={script} />
           </Col>
         </Row>

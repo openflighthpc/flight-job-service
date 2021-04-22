@@ -34,4 +34,5 @@ class ScriptSerializer < ApplicationSerializer
 
   has_one(:template)
   has_one(:note) { object.find_note }
+  has_one(:content) { object.find_content }
 end
