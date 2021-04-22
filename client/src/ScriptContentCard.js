@@ -5,7 +5,7 @@ import hljs from 'highlight.js/lib/core';
 import { DefaultErrorMessage, Spinner, utils } from 'flight-webapp-components';
 import { useEffect, useRef } from 'react';
 
-import styles from './JobCard.module.css';
+import styles from './index.module.css';
 import {useFetchScriptContent} from './api';
 
 hljs.registerLanguage('bash', bash);
@@ -51,11 +51,37 @@ export function RenderedAsyncContentForScript({ script }) {
   return <RenderedContent content={getContentFromResponse(data)} />;
 }
 
+// Scroll the given element into view without scrolling the document.
+function scrollIntoView(element) {
+  if (element.scrollIntoView == null) { return; }
+
+  const docScroll = document.scrollingElement ?
+    document.scrollingElement :
+    document.html;
+  const initialScrollTop = docScroll.scrollTop;
+
+  element.scrollIntoView();
+  docScroll.scrollTo(0, initialScrollTop);
+}
+
 export function RenderedContent({ content }) {
   const contentRef = useRef(null);
   useEffect(() => {
     if (contentRef.current) {
       hljs.highlightElement(contentRef.current, { language: 'bash' });
+      if (Array.from != null) {
+        const magicRegExp = /^# *>{4,}.*WORKLOAD/;
+        const comments = contentRef.current.querySelectorAll('.hljs-comment');
+        const workloadComment = Array.from(comments)
+          .find(span => span.textContent.match(magicRegExp));
+        if (workloadComment != null) {
+          scrollIntoView(
+            workloadComment.previousElementSibling ?
+              workloadComment.previousElementSibling :
+              workloadComment
+          );
+        }
+      }
     }
   });
 
@@ -63,7 +89,11 @@ export function RenderedContent({ content }) {
     return <em>The selected script does not have any content.</em>;
   }
   return (
-    <pre className={styles.PreCode}><code ref={contentRef}>{content}</code></pre>
+    <pre
+      className={classNames(styles.PreCode, styles.ScriptContent)}
+    >
+      <code ref={contentRef}>{content}</code>
+    </pre>
   );
 }
 
