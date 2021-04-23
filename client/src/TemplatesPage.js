@@ -44,19 +44,7 @@ function TemplatesPage() {
 }
 
 function TemplateCardDeck({ templates }) {
-  const sortedTemplates = templates.sort((a, b) => {
-    const aSynopsis = a.attributes.synopsis.toUpperCase();
-    const bSynopsis = b.attributes.synopsis.toUpperCase();
-    if (aSynopsis < bSynopsis) {
-      return -1;
-    } else if (aSynopsis > bSynopsis) {
-      return 1;
-    } else {
-      return 0
-    }
-  });
-
-  const { groupedItems: groupedTemplates } = useGrouping(sortedTemplates);
+  const { groupedItems: groupedTemplates } = useGrouping(templates);
   const decks = groupedTemplates.map(
     (group, index) => (
       <div key={index} className="card-deck">
