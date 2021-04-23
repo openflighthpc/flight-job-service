@@ -189,6 +189,9 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
       } else {
         formattedAnswer = answer.valueOrDefault();
       }
+      if (formattedAnswer == null) {
+        formattedAnswer = <em>Unspecified</em>;
+      }
       return (
         <React.Fragment key={idx}>
           <dt>{answer.question.attributes.text}</dt>
@@ -241,8 +244,12 @@ function SaveButton({ answers, className, state, templateId }) {
     }
     return accum;
   }, {});
+  const scriptName = flattenedAnswers['%_script_name_%'];
+  delete flattenedAnswers['%_script_name_%'];
 
-  const { loading, post, response } = useGenerateScript(templateId, flattenedAnswers);
+  const { loading, post, response } = useGenerateScript(
+    templateId, flattenedAnswers, scriptName
+  );
 
   const submit = async () => {
     try {

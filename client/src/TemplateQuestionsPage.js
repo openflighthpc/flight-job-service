@@ -10,6 +10,16 @@ import {
 import { useFetchQuestions } from './api';
 import QuestionSet from './QuestionSet';
 
+const scriptNameQuestion = {
+  attributes: {
+    askWhen: null,
+    description: "Give your script a memorable name.  You can use letters, numbers, - and _.  If you leave this field blank a name will be generated for you.",
+    format: { type: "text" },
+    text: "Name your script",
+  },
+  id: "%_script_name_%",
+};
+
 function TemplateQuestionsPage() {
   const { templateId } = useParams();
   const {
@@ -30,7 +40,7 @@ function TemplateQuestionsPage() {
       return (
         <QuestionSet
           templateId={templateId}
-          questions={data.data}
+          questions={[...data.data, scriptNameQuestion]}
         />
       );
     }

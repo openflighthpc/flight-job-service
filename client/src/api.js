@@ -41,7 +41,7 @@ export function useFetchQuestions(templateId) {
   );
 }
 
-export function useGenerateScript(templateId, answers) {
+export function useGenerateScript(templateId, answers, scriptName) {
   const request = useFetch(
     `/render/${templateId}`,
     {
@@ -52,6 +52,7 @@ export function useGenerateScript(templateId, answers) {
       },
       body: {
         answers,
+        name: scriptName,
       },
       cachePolicy: 'no-cache',
     },
