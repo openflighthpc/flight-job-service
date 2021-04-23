@@ -1,0 +1,4 @@
+.fa-background-tasks:before {
+    content: "\f0ae";
+    transform: translate(-50%, -44%);
+}

@@ -5,6 +5,7 @@ import 'flight-webapp-components/dist/styles/flight-webapp-components.css'
 import 'flight-webapp-components/dist/styles/fullscreen.css'
 import 'flight-webapp-components/dist/styles/utils.css'
 
+import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 

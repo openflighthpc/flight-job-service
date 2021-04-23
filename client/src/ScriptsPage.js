@@ -13,7 +13,7 @@ import {
 
 import ScriptSummary from './ScriptSummary';
 import ScriptsTable from './ScriptsTable';
-import styles from './ScriptsPage.module.css';
+import styles from './index.module.css';
 import { useFetchScripts } from './api';
 
 function ScriptsPage() {
@@ -89,10 +89,10 @@ function IntroCard({ scripts }) {
   const scriptOrScripts = scripts.length === 1 ? 'script' : 'scripts';
 
   return (
-    <div className={`${styles.IntroCard} card card-body mb-4`}>
+    <div className={`${styles.IntroCard} ${styles.ScriptsIntroCard} card card-body mb-4`}>
       <p className={`${styles.IntroCardText} card-text`}>
-        You have {scripts.length} saved{' '}{scriptOrScripts}.  Use the
-        {' '}<i>Submit</i> button to submit a script to your cluster.
+        You have {scripts.length} saved{' '}{scriptOrScripts}.  Select a
+        script from the table to view more details about it.
       </p>
     </div>
 
