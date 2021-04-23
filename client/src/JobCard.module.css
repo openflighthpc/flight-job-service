@@ -2,9 +2,6 @@
     display: flex;
     flex-flow: row wrap;
 }
-.JobCardBody > * {
-    /* flex: 1 100%; */
-}
 .MetadataEntryDL {
     flex: 1 auto;
     max-width: 28em;
@@ -15,7 +12,6 @@
     margin-right: 0.5em;
 }
 .MetadataEntryDD {
-    max-width: 20em;
 }
 .ErrorOutput {
     flex: 2 0px;
