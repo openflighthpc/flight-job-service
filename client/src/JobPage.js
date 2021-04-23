@@ -1,3 +1,4 @@
+import { Col, Row } from 'reactstrap';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -6,7 +7,7 @@ import {
   Spinner,
 } from 'flight-webapp-components';
 
-import JobCard from './JobCard';
+import JobMetadataCard, { ErrorOutputCard } from './JobCard';
 import { useFetchJob } from './api';
 
 function JobPage() {
@@ -23,7 +24,14 @@ function JobPage() {
       return <DefaultErrorMessage />;
     } else {
       return (
-        <JobCard job={job} />
+        <Row>
+          <Col md={12} lg={5}>
+            <JobMetadataCard job={job} />
+          </Col>
+          <Col md={12} lg={7}>
+            <ErrorOutputCard job={job} />
+          </Col>
+        </Row>
       );
     }
   }

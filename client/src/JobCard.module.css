@@ -1,9 +1,6 @@
 .JobCardBody {
-    display: flex;
-    flex-flow: row wrap;
 }
 .MetadataEntryDL {
-    flex: 1 auto;
     max-width: 28em;
 }
 .MetadataEntryDT {
@@ -12,9 +9,6 @@
     margin-right: 0.5em;
 }
 .MetadataEntryDD {
-}
-.ErrorOutput {
-    flex: 2 0px;
 }
 .PreCode {
     background: #343a40; /* bg-dark */

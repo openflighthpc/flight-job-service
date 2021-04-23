@@ -15,7 +15,7 @@ function JobCard({ reloadJobs, job }) {
     <div
       className={classNames("card", `border-${colour}`)}
     >
-      <h5
+      <h4
         className="card-header text-truncate justify-content-between d-flex"
         title={job.script ? job.script.attributes.name : 'Unknown'}
       >
@@ -25,7 +25,7 @@ function JobCard({ reloadJobs, job }) {
         <span>
           <Badge color={colour}>{job.attributes.state}</Badge>
         </span>
-      </h5>
+      </h4>
       <div className={classNames("card-body", styles.JobCardBody)}>
         <dl className={styles.MetadataEntryDL}>
           <MetadataEntry
@@ -89,13 +89,12 @@ function JobCard({ reloadJobs, job }) {
             value={outputMerged ?  null : job.attributes.stderrPath}
           />
         </dl>
-        <ErrorOutput job={job} />
       </div>
     </div>
   );
 }
 
-function ErrorOutput({ job }) {
+function ErrorOutputCard({ job }) {
   const failedStates = ['FAILED', 'TERMINATED'];
   if (!failedStates.includes(job.attributes.state)) {
     return null;
@@ -104,13 +103,16 @@ function ErrorOutput({ job }) {
     job.attributes.submitStderr :
     job.attributes.reason;
   return (
-    <div className={styles.ErrorOutput}>
-      <span className="font-weight-bold">
+    <div className="card">
+      <h4 className="card-header">
         Error output
-      </span>
-      <pre className={styles.PreCode}><code>{error}</code></pre>
+      </h4>
+      <div className="card-body">
+        <pre className={styles.PreCode}><code>{error}</code></pre>
+      </div>
     </div>
   );
 }
 
 export default JobCard;
+export { ErrorOutputCard };
