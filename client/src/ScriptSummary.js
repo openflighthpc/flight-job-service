@@ -65,7 +65,11 @@ export function RenderedNotes({ notes }) {
   if (notes == null || notes === "") {
     return <em>The selected script does not have any notes.</em>;
   }
-  return <ReactMarkdown>{notes}</ReactMarkdown>;
+  return (
+    <div style={{ marginBottom: '-1rem' }}>
+      <ReactMarkdown>{notes}</ReactMarkdown>
+    </div>
+  );
 }
 
 export function ScriptNotesPlaceholder() {

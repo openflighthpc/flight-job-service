@@ -25,7 +25,7 @@ function Cards() {
             Create job scripts customized to your needs from predefined
             templates.
           </p>
-          <ol>
+          <ol className="mb-0">
             <li>
               Answer a few simple questions.
             </li>
@@ -56,7 +56,7 @@ function Cards() {
             Once you have created a customized job script, you can submit it
             to be executed by your cluster.
           </p>
-          <ol>
+          <ol className="mb-0">
             <li>
               Select the script to submit.
             </li>
@@ -79,20 +79,21 @@ function Cards() {
 
     (
       <div className="card mb-2">
-        <div className="card-body fa-background fa-background-database">
+        <div className="card-body fa-background fa-background-tasks" >
           <h5 className="card-title text-center">
             Monitor your jobs
           </h5>
           <p className="card-text">
-            Monitor your submitted jobs and view your results.
+            Once you have submitted a job script, you can monitor your job and
+            access your results.
           </p>
         </div>
         <CardFooter>
           <Link
             className="btn btn-success btn-block"
-            to="/scripts"
+            to="/jobs"
           >
-            <i className="fa fa-database mr-1"></i>
+            <i className="fa fa-tasks mr-1"></i>
             <span>Monitor jobs</span>
           </Link>
         </CardFooter>

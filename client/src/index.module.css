@@ -7,3 +7,26 @@
 .ScriptContent {
     max-height: 48em;
 }
+.IntroCard:before {
+    color: var(--success);
+    /* content: "\f0ae"; */
+    font-family: FontAwesome;
+    opacity: 0.2;
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    bottom: unset;
+    right: 32px;
+    right: unset;
+    transform: translateY(-50%);
+    font-size: 3em;
+}
+.JobsIntroCard:before {
+    content: "\f0ae";
+}
+.ScriptsIntroCard:before {
+    content: "\f0f6";
+}
+.IntroCardText {
+    padding-left: 64px;
+}
