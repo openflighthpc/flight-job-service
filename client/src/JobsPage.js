@@ -13,9 +13,12 @@ import {
 import JobsTable from './JobsTable';
 import styles from './index.module.css';
 import { useFetchJobs } from './api';
+import { useInterval } from './utils';
 
 function JobsPage() {
   const { data, error, loading, get } = useFetchJobs();
+  useInterval(get, 1 * 60 * 1000);
+
   if (error) {
     if (utils.errorCode(data) === 'Unauthorized') {
       return <UnauthorizedError />;
@@ -26,19 +29,21 @@ function JobsPage() {
     const jobs = data == null ? null : data.data ;
     return (
       <React.Fragment>
-        {
-          loading && (
-            <OverlayContainer>
-              <Overlay>
-                <Spinner text="Loading jobs..."/>
-              </Overlay>
-            </OverlayContainer>
-          )
-        }
+        { loading && <Loading /> }
         { jobs != null && <Layout reloadJobs={get} jobs={jobs} /> }
       </React.Fragment>
     );
   }
+}
+
+function Loading() {
+  return (
+    <OverlayContainer>
+      <Overlay>
+        <Spinner text="Loading jobs..."/>
+      </Overlay>
+    </OverlayContainer>
+  );
 }
 
 function Layout({ reloadJobs, jobs }) {
