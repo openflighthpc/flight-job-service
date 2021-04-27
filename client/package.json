@@ -9,7 +9,6 @@
     "classnames": "^2.2.6",
     "debug": "^4.3.1",
     "flight-webapp-components": "git+https://github.com/openflighthpc/flight-webapp-components#0.1.5",
-    "highlight.js": "^10.7.2",
     "http-proxy-middleware": "^1.0.6",
     "react": "^17.0.1",
     "react-ace": "^9.4.0",
