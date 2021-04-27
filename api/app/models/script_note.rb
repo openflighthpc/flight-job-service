@@ -52,7 +52,7 @@ class ScriptNote
       id, user: script.user, stdin: content
     ).tap do |cmd|
       next if cmd.exitstatus == 0
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to update script notes: #{id}"
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to update the script's notes: #{id}"
     end
     # Update the script's metadata in case it has been cached
     # XXX: Should the cache be flagged as dirty instead?
