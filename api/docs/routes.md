@@ -459,36 +459,6 @@ Content-Type: application/vnd.api+json
 }
 ```
 
-## PATCH - /notes/:id
-
-Update the `note` about a `script`.
-
-```
-GET /v0/scripts/:id/note
-Authorization: basic <base64 username:password>
-Accept: application/vnd.api+json
-{
-  "data": {
-    "id": STRING,
-    "type": "contents",
-    "attributes": {
-      "payload": STRING   # RECOMMENDED: The updated script contents
-    }
-  }
-}
-
-HTTP/2 200 OK
-Content-Type: application/vnd.api+json
-{
-  "data": ContentResource,
-  "jsonapi": {
-    "version": "1.0"
-  },
-  "included": [
-  ]
-}
-```
-
 ## GET - /notes/:id
 
 Return the `notes` about the given `script`.
