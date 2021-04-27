@@ -8,7 +8,8 @@ import {
 } from 'flight-webapp-components';
 
 import ScriptContentCard from './ScriptContentCard';
-import ScriptMetadataCard, { ScriptNotesCard } from './ScriptCard';
+import ScriptMetadataCard from './ScriptCard';
+import ScriptNotesCard from './ScriptNotesCard';
 import { useFetchScript } from './api';
 
 function ScriptPage() {

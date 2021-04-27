@@ -153,6 +153,21 @@ export function useFetchScriptNotes(script) {
   );
 }
 
+export function useSaveScriptNotes(notes) {
+  const id = notes == null ? undefined : notes.id;
+  return useFetch(
+    `/notes/${id}`,
+    {
+      method: 'put',
+      headers: {
+        Accept: 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json',
+      },
+      cachePolicy: 'no-cache',
+    },
+  );
+}
+
 export function useFetchScriptContent(script) {
   const { currentUser } = useContext(CurrentUserContext);
   const scriptId = script == null ? undefined : script.id;
@@ -164,6 +179,21 @@ export function useFetchScriptContent(script) {
       },
     },
     [ currentUser.authToken, scriptId ],
+  );
+}
+
+export function useSaveScriptContent(contentResource) {
+  const id = contentResource == null ? undefined : contentResource.id;
+  return useFetch(
+    `/contents/${id}`,
+    {
+      method: 'post',
+      headers: {
+        Accept: 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json',
+      },
+      cachePolicy: 'no-cache',
+    },
   );
 }
 

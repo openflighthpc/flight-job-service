@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import MetadataEntry from './MetadataEntry';
 import ScriptActions from './ScriptActions';
 import TimeAgo from './TimeAgo';
-import { RenderedNotesForScript } from './ScriptSummary';
 
 function ScriptMetadataCard({ reloadScripts, script }) {
   return (
@@ -54,19 +53,6 @@ function ScriptMetadataCard({ reloadScripts, script }) {
             value={script.attributes.path}
           />
         </dl>
-      </div>
-    </div>
-  );
-}
-
-export function ScriptNotesCard({ script }) {
-  return (
-    <div className="card">
-      <h4 className="card-header">
-        Notes
-      </h4>
-      <div className="card-body">
-        <RenderedNotesForScript script={script} />
       </div>
     </div>
   );

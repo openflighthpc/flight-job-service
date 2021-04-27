@@ -1,34 +1,36 @@
-import classNames from 'classnames';
 import { Button } from 'reactstrap';
 import { useState } from 'react';
 
-import {useSaveScriptContent} from './api';
-import { ScriptEditor } from './ScriptEditor';
+import { RenderedNotes } from './ScriptSummary';
+import { ScriptNotesEditor } from './ScriptEditor';
+import { useSaveScriptNotes } from './api';
 import { useToast } from './ToastContext';
 
-function buildContentResource(id, newContent) {
+function buildNotesResource(id, newNotes) {
   return {
     data: {
-      type: 'contents',
+      type: 'notes',
       id: id,
       attributes: {
-        payload: newContent,
+        payload: newNotes,
       }
     }
   };
 }
 
-function ScriptContentCard({ className, script }) {
-  const content = script.content.attributes.payload;
+function ScriptNotesCard({ script }) {
+  const [notes, setNotes] = useState(script.note);
   const [editing, setEditing] = useState(false);
-  const [editorContent, setEditorContent] = useState(content);
-  const { loading: saving, patch, response } = useSaveScriptContent(script.content);
+  const [editorContent, setEditorContent] = useState(notes.attributes.payload);
+  const { loading: saving, patch, response } = useSaveScriptNotes(notes);
   const { addToast } = useToast();
 
-  const saveContent = async () => {
+  const saveNotes = async () => {
     try {
-      await patch(buildContentResource(script.content.id, editorContent));
+      await patch(buildNotesResource(notes.id, editorContent));
       if (response.ok) {
+        const noteResource = (await response.json()).data;
+        setNotes(noteResource);
         setEditing(false);
       } else {
         throw new Error();
@@ -38,26 +40,29 @@ function ScriptContentCard({ className, script }) {
     }
   };
 
-
   return (
-    <div className={classNames("card", className)} >
+    <div className="card">
       <div className="card-header d-flex flex-row justify-content-between">
-        <h4 className="mb-0">Content</h4>
+        <h4 className="mb-0">Notes</h4>
         <EditSaveButton
           editing={editing}
           onEdit={() => setEditing(true)}
-          onSave={() => saveContent()}
+          onSave={() => saveNotes()}
           saving={saving}
         />
       </div>
       <div className="card-body">
-        <ScriptEditor
-          focus={editing}
-          name={script.id}
-          onChange={setEditorContent}
-          readOnly={!editing}
-          value={editorContent}
-        />
+        {
+          editing ?
+            <ScriptNotesEditor
+              focus={editing}
+              name={`${script.id}-notes`}
+              onChange={setEditorContent}
+              readOnly={saving}
+              value={editorContent}
+            /> :
+            <RenderedNotes notes={notes.attributes.payload} />
+        }
       </div>
     </div>
   );
@@ -79,8 +84,8 @@ function EditSaveButton({ editing, onEdit, onSave, saving }) {
       { text }
     </Button>
   );
-}
 
+}
 
 function saveFailedToast() {
   let body = (
@@ -98,4 +103,4 @@ function saveFailedToast() {
   };
 }
 
-export default ScriptContentCard;
+export default ScriptNotesCard;

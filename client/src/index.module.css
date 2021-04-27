@@ -30,3 +30,6 @@
 .IntroCardText {
     padding-left: 64px;
 }
+.AceEditor {
+    border-radius: 0.5em;
+}
