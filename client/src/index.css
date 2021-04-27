@@ -2,3 +2,7 @@
     content: "\f0ae";
     transform: translate(-50%, -44%);
 }
+
+.flight_ace_hidden_cursors .ace_hidden-cursors {
+    opacity: 0;
+}

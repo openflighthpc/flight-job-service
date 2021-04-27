@@ -182,6 +182,21 @@ export function useFetchScriptContent(script) {
   );
 }
 
+export function useSaveScriptContent(contentResource) {
+  const id = contentResource == null ? undefined : contentResource.id;
+  return useFetch(
+    `/contents/${id}`,
+    {
+      method: 'post',
+      headers: {
+        Accept: 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json',
+      },
+      cachePolicy: 'no-cache',
+    },
+  );
+}
+
 function getResourceFromResponse(data) {
   if (!utils.isObject(data)) { return null; }
   return data.data;
