@@ -81,6 +81,10 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', **opts).tap(&:run)
     end
 
+    def self.flight_edit_script(script_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'edit-script', script_id, '--json', '--force', '--content', '@-', **opts).tap(&:run)
+    end
+
     def self.flight_delete_script(id, **opts)
       new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json',**opts).tap(&:run)
     end

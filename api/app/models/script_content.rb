@@ -47,4 +47,14 @@ class ScriptContent
   def payload
     @payload ||= File.read(script.metadata['path'])
   end
+
+  def save_payload(content)
+    FlightJobScriptAPI::SystemCommand.flight_edit_script(
+      id, user: script.user, stdin: content
+    ).tap do |cmd|
+      next if cmd.exitstatus == 0
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to update the script's content: #{id}"
+    end
+    @payload = content
+  end
 end
