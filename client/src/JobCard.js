@@ -7,8 +7,19 @@ import TimeAgo from './TimeAgo';
 import styles from './JobCard.module.css';
 import { stateColourMap } from './utils';
 
+function endTimeNameFromState(state) {
+  if (state === 'CANCELLED') {
+    return 'Cancelled';
+  } else if (state === 'FAILED' || state === 'TERMINATED') {
+    return 'Failed';
+  } else {
+    return 'Completed';
+  }
+}
+
 function JobCard({ reloadJobs, job }) {
-  const colour = stateColourMap[job.attributes.state];
+  const jobState = job.attributes.state;
+  const colour = stateColourMap[jobState];
   const outputMerged = job.attributes.stdoutPath === job.attributes.stderrPath;
 
   return (
@@ -23,7 +34,7 @@ function JobCard({ reloadJobs, job }) {
           Job <code>{job.id}</code>
         </span>
         <span>
-          <Badge color={colour}>{job.attributes.state}</Badge>
+          <Badge color={colour}>{jobState}</Badge>
         </span>
       </h4>
       <div className={classNames("card-body", styles.JobCardBody)}>
@@ -43,7 +54,7 @@ function JobCard({ reloadJobs, job }) {
           <MetadataEntry
             format={(value) => <Badge color={colour}>{value}</Badge>}
             name="State"
-            value={job.attributes.state}
+            value={jobState}
           />
           <MetadataEntry
             name="Script"
@@ -73,7 +84,7 @@ function JobCard({ reloadJobs, job }) {
           <MetadataEntry
             format={(value) => <TimeAgo date={value} />}
             hideWhenNull
-            name="Completed"
+            name={endTimeNameFromState(jobState)}
             value={job.attributes.endTime}
           />
           <MetadataEntry

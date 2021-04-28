@@ -33,13 +33,6 @@ function JobsTable({ reloadJobs, jobs }) {
         Cell: ({ value }) => <code>{value}</code>,
       },
       {
-        Header: 'Scheduler ID',
-        accessor: 'attributes.schedulerId',
-        Cell: ({ value }) => (
-          value == null ? <span>&mdash;</span> : <code>{value}</code>
-        ),
-      },
-      {
         Header: 'Script',
         accessor: 'script.attributes.name',
         Cell: ({ row, value }) => (
