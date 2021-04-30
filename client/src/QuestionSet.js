@@ -234,6 +234,8 @@ function Summary({ answers, onEditAnswers, state, templateId }) {
   );
 }
 
+class ApiError extends Error { }
+
 function SaveButton({ answers, className, state, templateId }) {
   const { addToast } = useToast();
   const history = useHistory();
@@ -257,12 +259,20 @@ function SaveButton({ answers, className, state, templateId }) {
       if (response.ok) {
         const script = ( await response.json() ).data;
         history.push(`/scripts/${script.id}`);
+      } else if (response.status === 409) {
+        throw new ApiError(`The script name "${scriptName}" is already taken.`);
+      } else if (response.status === 422) {
+        throw new ApiError(await response.text());
       } else {
-        throw new Error();
+        throw new ApiError();
       }
     } catch (e) {
+      let body;
+      if (e.constructor === ApiError) {
+        body = e.message;
+      }
       addToast({
-        body: (
+        body: body || (
           <div>
             Unfortunately there has been a problem rendering your job
             script.  Please try again and, if problems persist, help us to
