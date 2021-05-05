@@ -29,7 +29,8 @@
 class JobSerializer < ApplicationSerializer
   [
     'created_at', 'stdout_path', 'stderr_path', 'state', 'reason',
-    'start_time', 'end_time', 'scheduler_id', 'submit_stdout', 'submit_stderr'
+    'start_time', 'end_time', 'scheduler_id', 'submit_stdout', 'submit_stderr',
+    'estimated_start_time', 'estimated_end_time'
   ].each do |field|
     attribute(field) { object.metadata[field] }
   end
