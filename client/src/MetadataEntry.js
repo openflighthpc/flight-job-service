@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 
-import styles from './JobCard.module.css';
+import styles from './index.module.css';
 
 function MetadataEntry({ format, hideWhenNull=false, name, value, valueTitle="raw" }) {
   if (hideWhenNull && value == null) {

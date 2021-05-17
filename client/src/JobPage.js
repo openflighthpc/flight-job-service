@@ -9,7 +9,9 @@ import {
   Spinner,
 } from 'flight-webapp-components';
 
-import JobMetadataCard, { ErrorOutputCard } from './JobCard';
+import JobMetadataCard from './JobMetadataCard';
+import JobOutputsCard from './JobOutputsCard';
+import SubmissionFailureOutputCard from './SubmissionFailureOutputCard';
 import { useFetchJob } from './api';
 import { useInterval } from './utils';
 
@@ -45,16 +47,23 @@ function Layout({ job, loading }) {
   if (job == null && !loading) {
     return <DefaultErrorMessage />;
   }
+  const submissionFailed = job.attributes.submitStatus !== 0;
 
   return (
+    <>
     <Row>
       <Col md={12} lg={5}>
         <JobMetadataCard job={job} />
       </Col>
       <Col md={12} lg={7}>
-        <ErrorOutputCard job={job} />
+        {
+          submissionFailed ?
+            <SubmissionFailureOutputCard job={job} /> :
+            <JobOutputsCard job={job} />
+        }
       </Col>
     </Row>
+    </>
   );
 }
 

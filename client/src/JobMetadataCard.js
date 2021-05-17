@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 
 import MetadataEntry from './MetadataEntry';
 import TimeAgo from './TimeAgo';
-import styles from './JobCard.module.css';
 import { stateColourMap } from './utils';
 
 function endTimeNameFromState(state) {
@@ -17,17 +16,16 @@ function endTimeNameFromState(state) {
   }
 }
 
-function JobCard({ reloadJobs, job }) {
+function JobMetadataCard({ job }) {
   const jobState = job.attributes.state;
   const colour = stateColourMap[jobState];
-  const outputMerged = job.attributes.stdoutPath === job.attributes.stderrPath;
 
   return (
     <div
       className={classNames("card", `border-${colour}`)}
     >
       <h4
-        className="card-header text-truncate justify-content-between d-flex"
+        className="card-header text-truncate justify-content-between d-flex align-items-end"
         title={job.script ? job.script.attributes.name : 'Unknown'}
       >
         <span>
@@ -37,8 +35,8 @@ function JobCard({ reloadJobs, job }) {
           <Badge color={colour}>{jobState}</Badge>
         </span>
       </h4>
-      <div className={classNames("card-body", styles.JobCardBody)}>
-        <dl className={styles.MetadataEntryDL}>
+      <div className="card-body">
+        <dl>
           <MetadataEntry
             format={(value) => <code>{value}</code>}
             name="ID"
@@ -55,6 +53,11 @@ function JobCard({ reloadJobs, job }) {
             format={(value) => <Badge color={colour}>{value}</Badge>}
             name="State"
             value={jobState}
+          />
+          <MetadataEntry
+            hideWhenNull
+            name="Reason"
+            value={job.attributes.reason}
           />
           <MetadataEntry
             name="Script"
@@ -87,43 +90,10 @@ function JobCard({ reloadJobs, job }) {
             name={endTimeNameFromState(jobState)}
             value={job.attributes.endTime}
           />
-          <MetadataEntry
-            format={(value) => <code>{value}</code>}
-            hideWhenNull
-            name={outputMerged ? "Output file" : "Standard output"}
-            value={job.attributes.stdoutPath}
-          />
-          <MetadataEntry
-            format={(value) => <code>{value}</code>}
-            hideWhenNull
-            name="Standard error"
-            value={outputMerged ?  null : job.attributes.stderrPath}
-          />
         </dl>
       </div>
     </div>
   );
 }
 
-function ErrorOutputCard({ job }) {
-  const failedStates = ['FAILED', 'TERMINATED'];
-  if (!failedStates.includes(job.attributes.state)) {
-    return null;
-  }
-  const error = job.attributes.schedulerId == null ?
-    job.attributes.submitStderr :
-    job.attributes.reason;
-  return (
-    <div className="card">
-      <h4 className="card-header">
-        Error output
-      </h4>
-      <div className="card-body">
-        <pre className={styles.PreCode}><code>{error}</code></pre>
-      </div>
-    </div>
-  );
-}
-
-export default JobCard;
-export { ErrorOutputCard };
+export default JobMetadataCard;
