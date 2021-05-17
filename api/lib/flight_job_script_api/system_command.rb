@@ -101,6 +101,18 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', **opts).tap(&:run)
     end
 
+    def self.flight_view_job_stdout(job_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'view-job-stdout', job_id, **opts).tap(&:run)
+    end
+
+    def self.flight_view_job_stderr(job_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'view-job-stderr', job_id, **opts).tap(&:run)
+    end
+
+    def self.flight_view_job_results(job_id, filename, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'view-job-results', job_id, filename, **opts).tap(&:run)
+    end
+
     attr_reader :cmd, :user, :mutex, :stdin
     attr_accessor :stdout, :stderr, :exitstatus
 

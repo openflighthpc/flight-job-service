@@ -224,6 +224,16 @@ class App < Sinatra::Base
     end
   end
 
+  resource :files, pkre: /[\w-]+\.[\w=-]+/ do
+    helpers do
+      def find(id)
+        JobFile.find!(id, user: current_user)
+      end
+    end
+
+    show
+  end
+
   freeze_jsonapi
 end
 

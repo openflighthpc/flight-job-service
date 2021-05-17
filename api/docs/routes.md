@@ -629,6 +629,49 @@ Content-Type: application/vnd.api+json
 }
 ```
 
+## GET - /files/:job_id.:encoded_name
+
+Return the results `file` for a particular `job_id`. The `encoded_name` should be one of the following:
+
+* `stdout`: Return the standard output of the job,
+* `stderr`: Return the standard error of the job, or
+* `<filename-base64>`: The relative path to any file contained within the job's working directory as a base64 encoded string \*
+
+\* Base64 is used to encode the file paths to allow for sub directories.
+
+```
+GET /v0/files/:job_id.:encoded_name
+Authorization: Bearer <jwt>
+Accept: application/vnd.api+json
+Content-Type: application/vnd.api+json
+
+HTTP/2 200 OK
+{
+  "data": {                     # REQUIRED - The FileResource
+    "type": "files",            # REQUIRED - Specfies the resource is a file
+    "id": STRING,               # REQUIRED - The file's ID (:job_id.:encoded_name)
+    "attributes":{
+      "filename" STRING,        # RECOMMENDED - The decoded filename (null when returning stdout/stderr)
+      "payload": STRING         # REQUIRED - The content of the file using UTF-8 encoding
+    },
+    "links": {
+      "self": "/v0/files/:id"
+    }
+    "relationships": {
+    }
+  },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+
+# Returns the Standard Output and Error respectively
+GET /v0/files/:job_id.stdout
+GET /v0/files/:job_id.stderr
+```
+
 ## POST - /render/:template_id
 
 Renders the template against the provided date and saves it to the filesystem.

@@ -44,7 +44,7 @@ GEM
       uri_template (~> 0.7)
     jsonapi-serializers (1.0.1)
       activesupport
-    jwt (2.2.2)
+    jwt (2.2.3)
     method_source (1.0.0)
     minitest (5.14.3)
     multi_json (1.15.0)
@@ -103,7 +103,7 @@ GEM
       jsonapi-serializers (>= 0.16.2, < 2)
       sinatra (>= 2.0.0.rc1, < 3)
       sinatra-contrib (>= 2.0.0.rc1, < 3)
-    slop (4.8.2)
+    slop (4.9.0)
     thread_safe (0.3.6)
     tilt (2.0.10)
     tzinfo (1.2.9)
