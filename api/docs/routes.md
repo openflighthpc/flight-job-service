@@ -568,20 +568,26 @@ Content-Type: application/vnd.api+json
       "endTime": DATETIME,      # OPTIONAL - The actual (or predicted) time the job will finish running
       "submitStdout": STRING,   # RECOMMENDED - The standard output of the underlining scheduler command
       "submitStderr": STRING,   # RECOMMENDED - The standard error of the underlining scheduler command
-      "resultsDir": STRING      # RECOMMENDED - The directory that will store the results files (excluding STDOUT/STDERR)
+      "resultsDir": STRING,     # RECOMMENDED - The directory that will store the results files (excluding STDOUT/STDERR)
+      "mergedStderr": BOOLEAN   # RECOMMENDED - Flags if the job's STDERR has been merged with STDOUT
     },
     "links": {
       "self": "/v0/jobs/:id"
     }
     "relationships": {
-      "script": {
+      "script": {               # REQUIRED - The related script resource
         "links": {
           "related": "/v0/jobs/:id/script"
-        },
-        "data": {
-          "type": "scripts",    # RECOMMENDED - Denotes the related resource is a script
-          "id": STRING          # RECOMMENDED - Denotes the script's ID
         }
+      },
+      "stdoutFile": {           # RECOMMENDED - The standard output of the job
+        "links": "/v0/jobs/:id/stdoutFile"
+      },
+      "stderrFile": {           # OPTIONAL - The standard error of the job
+        "links": "/v0/jobs/:id/stderrFile"
+      },
+      "resultFiles": {          # RECOMMENDED - Additional result files
+        "links": "/v0/jobs/:id/resultFiles"
       }
     }
   },
@@ -592,6 +598,31 @@ Content-Type: application/vnd.api+json
   ]
 }
 ```
+
+## GET - /jobs/:id/result-files
+
+Return the related results `files` for the `job` (excludes `stdout` and `stderr`).
+
+```
+GET /v0/jobs/:id/result-files
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": [
+    FileResource,
+    ...
+  ],
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
 
 ## POST - /jobs
 
@@ -639,6 +670,8 @@ Return the results `file` for a particular `job_id`. The `encoded_name` should b
 
 \* Base64 is used to encode the file paths to allow for sub directories.
 
+By default the `payload` of the file is not returned with the request. This provides a performance benefits when using `include` queries. The following is the default return structure for a `files` resource:
+
 ```
 GET /v0/files/:job_id.:encoded_name
 Authorization: Bearer <jwt>
@@ -651,14 +684,12 @@ HTTP/2 200 OK
     "type": "files",            # REQUIRED - Specfies the resource is a file
     "id": STRING,               # REQUIRED - The file's ID (:job_id.:encoded_name)
     "attributes":{
-      "filename" STRING,        # RECOMMENDED - The decoded filename (null when returning stdout/stderr)
-      "payload": STRING         # REQUIRED - The content of the file using UTF-8 encoding
+      "filename" STRING         # RECOMMENDED - The decoded filename (null when returning stdout/stderr)
     },
     "links": {
       "self": "/v0/files/:id"
     }
-    "relationships": {
-    }
+    "meta": "The 'payload' attribute is hidden by default. It can be returned by specifying a sparse fieldset: 'fields[files]=payload'"
   },
   "jsonapi": {
     "version": "1.0"
@@ -670,6 +701,34 @@ HTTP/2 200 OK
 # Returns the Standard Output and Error respectively
 GET /v0/files/:job_id.stdout
 GET /v0/files/:job_id.stderr
+```
+
+A [sparse field set](https://jsonapi.org/format/1.0/#fetching-sparse-fieldsets) can be used to retrieve the `payload` for the `files`. The following example only returns the `payload` attribute, however it can be combined with other `filed` and `include` queries:
+
+```
+GET /v0/files/:job_id.:encoded_name?fields[files]=payload
+Authorization: Bearer <jwt>
+Accept: application/vnd.api+json
+Content-Type: application/vnd.api+json
+
+HTTP/2 200 OK
+{
+  "data": {                     # REQUIRED - The FileResource
+    "type": "files",            # REQUIRED - Specfies the resource is a file
+    "id": STRING,               # REQUIRED - The file's ID (:job_id.:encoded_name)
+    "attributes":{
+      "payload": STRING         # REQUIRED - The content of the file using UTF-8 encoding
+    },
+    "links": {
+      "self": "/v0/files/:id"
+    }
+  },
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
 ```
 
 ## POST - /render/:template_id

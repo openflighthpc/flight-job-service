@@ -35,6 +35,12 @@ class JobSerializer < ApplicationSerializer
     attribute(field) { object.metadata[field] }
   end
 
+  attribute(:merged_stderr) do
+    paths = object.metadata.slice('stdout_path', 'stderr_path').values.uniq
+    return nil if paths.length == 1 && paths.first.nil?
+    paths.length == 1
+  end
+
   has_one :script
   has_one(:stdout_file) { object.find_stdout_file }
   has_one(:stderr_file) { object.find_stderr_file }

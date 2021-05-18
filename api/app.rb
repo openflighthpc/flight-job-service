@@ -236,7 +236,7 @@ class App < Sinatra::Base
 
     has_many :result_files do
       fetch do
-        next resource.index_job_results
+        next resource.index_result_files
       end
     end
   end
