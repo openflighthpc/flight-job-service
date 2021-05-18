@@ -36,4 +36,5 @@ class JobSerializer < ApplicationSerializer
   end
 
   has_one :script
+  has_many(:result_files) { object.index_result_files }
 end

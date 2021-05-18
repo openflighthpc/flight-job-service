@@ -113,6 +113,17 @@ class App < Sinatra::Base
     }
   end
 
+  # Set the default sparse field to prevent the "payload" of files from being
+  # sent with requests. This has significant speed improvements when indexing
+  # "files" resources.
+  before do
+    params["fields"] ||= {}
+    params["fields"]["files"] ||= begin
+      @default_files_sparse_fieldset = true
+      JobFileSerializer::DEFAULT_SPARSE_FIELDSET
+    end
+  end
+
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
@@ -220,6 +231,12 @@ class App < Sinatra::Base
       graft(sideload_on: :create) do |rio|
         raise Sinja::ForbiddenError, "A job's script can not be modified" unless @action == :create
         resource.script_id = rio[:id]
+      end
+    end
+
+    has_many :result_files do
+      fetch do
+        next resource.index_job_results
       end
     end
   end

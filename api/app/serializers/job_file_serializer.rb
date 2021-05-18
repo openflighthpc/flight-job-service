@@ -27,8 +27,20 @@
 #==============================================================================
 
 class JobFileSerializer < ApplicationSerializer
+  # NOTE: Update this constant as new attributes are added
+  DEFAULT_SPARSE_FIELDSET = "filename"
+
   def type
     'files'
+  end
+
+  def meta
+    unless attributes.keys.include?("payload")
+      <<~INFO.squish
+        The 'payload' attribute is hidden by default. It can be returned by
+        specifying a sparse fieldset: 'fields[files]=payload'
+      INFO
+    end
   end
 
   # Forces the file to be UTF-8 encoded

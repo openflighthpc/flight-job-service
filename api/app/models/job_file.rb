@@ -26,13 +26,40 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
+require 'pathname'
+
 class JobFile
   class << self
     prepend FlightJobScriptAPI::ModelCache
 
+    # NOTE: flight job list-job-results is intentionally not used as the recursive
+    # output is hard to parse
+    #
+    # It is far easier to load the job to get its 'results_dir' before manually
+    # running 'find'.
+    #
+    # The job should be loaded using either Job.find or Job.index
+    def index_job_results(job)
+      # Older jobs will not have a results_dir, this is to be expected
+      dir = job.metadata['results_dir']
+      return [] unless dir
+
+      # Find the relevant files
+      cmd = FlightJobScriptAPI::SystemCommand.find(dir, '-type', 'f', user: job.user)
+      unless cmd.exitstatus == 0
+        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to load results files for job: #{job.id}"
+      end
+
+      cmd.stdout.split("\n").map do |abs_path|
+        encoded = Base64.urlsafe_encode64 Pathname.new(abs_path).relative_path_from(dir).to_s
+        candidate = new(job.id, encoded, user: job.user)
+        get_from_cache(candidate.id) || candidate.tap { |c| set_in_cache(c.id, c) }
+      end
+    end
+
     def find!(id, **opts)
       job_id, file_id = id.split('.', 2)
-      new(job_id, file_id, user: opts[:user]).tap do |job_file|
+      new(job_id, file_id, user: job.user).tap do |job_file|
         return nil unless job_file.exists?
       end
     end

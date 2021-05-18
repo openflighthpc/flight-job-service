@@ -113,6 +113,10 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'view-job-results', job_id, filename, **opts).tap(&:run)
     end
 
+    def self.find(*args, **opts)
+      new('find', *args, **opts).tap(&:run)
+    end
+
     attr_reader :cmd, :user, :mutex, :stdin
     attr_accessor :stdout, :stderr, :exitstatus
 

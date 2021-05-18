@@ -107,4 +107,8 @@ class Job
 
     @metadata = JSON.parse(cmd.stdout)
   end
+
+  def index_result_files
+    JobFile.index_job_results(self)
+  end
 end
