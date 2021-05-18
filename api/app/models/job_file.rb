@@ -59,7 +59,7 @@ class JobFile
 
     def find!(id, **opts)
       job_id, file_id = id.split('.', 2)
-      new(job_id, file_id, user: job.user).tap do |job_file|
+      new(job_id, file_id, user: opts[:user]).tap do |job_file|
         return nil unless job_file.exists?
       end
     end

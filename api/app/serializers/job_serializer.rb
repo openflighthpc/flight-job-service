@@ -36,5 +36,7 @@ class JobSerializer < ApplicationSerializer
   end
 
   has_one :script
+  has_one(:stdout_file) { object.find_stdout_file }
+  has_one(:stderr_file) { object.find_stderr_file }
   has_many(:result_files) { object.index_result_files }
 end
