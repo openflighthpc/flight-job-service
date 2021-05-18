@@ -47,7 +47,15 @@ class JobFile
       # Find the relevant files
       cmd = FlightJobScriptAPI::SystemCommand.find(dir, '-type', 'f', user: job.user)
       unless cmd.exitstatus == 0
-        raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to load results files for job: #{job.id}"
+        # NOTE: 'find' could fail for a few different reasons, which boil down to:
+        # * The directory does not exist (yet), or
+        # * The user lacks the appropriate permissions
+        #
+        # Permission issues would be unusual as the job was probably ran from the working
+        # directory. In this case, it can be assumed the user does not have any result files.
+        #
+        # This means all errors should be interpreted as "no result files found"
+        return []
       end
 
       cmd.stdout.split("\n").map do |abs_path|
