@@ -118,10 +118,7 @@ class App < Sinatra::Base
   # "files" resources.
   before do
     params["fields"] ||= {}
-    params["fields"]["files"] ||= begin
-      @default_files_sparse_fieldset = true
-      JobFileSerializer::DEFAULT_SPARSE_FIELDSET
-    end
+    params["fields"]["files"] ||= JobFileSerializer::DEFAULT_SPARSE_FIELDSET
   end
 
   resource :templates, pkre: /[\w.-]+/ do
