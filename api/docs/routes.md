@@ -685,7 +685,9 @@ HTTP/2 200 OK
     "id": STRING,               # REQUIRED - The file's ID (:job_id.:encoded_relative_path)
     "attributes":{
       "filename": STRING,       # REQUIRED - The name of the file
-      "decoded_path": STRING    # OPTIONAL - The clear text version of file's relative path (omitted for stdout/stderr)
+      "mimeType": STRING,       # REQUIRED - The predicted MIME type of the file from the file extension
+                                             Warning: This could be incorrect
+      "decoded_path": STRING,   # OPTIONAL - The clear text version of file's relative path (omitted for stdout/stderr)
       "path": STRING,           # REQUIRED - The path to the file
       "size": INTEGER,          # REQUIRED - The size of the file in Bytes
     },

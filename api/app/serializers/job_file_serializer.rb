@@ -28,7 +28,7 @@
 
 class JobFileSerializer < ApplicationSerializer
   # NOTE: Update this constant as new attributes are added
-  DEFAULT_SPARSE_FIELDSET = "path,decodedPath,filename,size"
+  DEFAULT_SPARSE_FIELDSET = "path,decodedPath,filename,size,mimeType"
 
   def type
     'files'
@@ -49,6 +49,7 @@ class JobFileSerializer < ApplicationSerializer
   end
 
   # Forces the file to be UTF-8 encoded
+  # NOTE: This assumes binary files are not supported
   attribute(:payload) { object.payload.force_encoding('utf-8') }
 
   # Hide that path could be set to "false". This is for internal caching
@@ -57,6 +58,9 @@ class JobFileSerializer < ApplicationSerializer
   attribute(:decoded_path) { object.decoded_file_id || nil }
 
   attribute :filename
+
+  # NOTE: The default is text/plain because the string encoding is forced to be UTF8
+  attribute(:mime_type) { MIME::Types.type_for(object.filename)&.first&.content_type || 'text/plain' }
 
   has_one(:job) { object.find_job }
 end
