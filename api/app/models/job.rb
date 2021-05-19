@@ -109,7 +109,7 @@ class Job
   end
 
   def index_result_files
-    JobFile.index_job_results(self)
+    JobFile.index_job_results!(self.id, user: user)
   end
 
   def find_stdout_file

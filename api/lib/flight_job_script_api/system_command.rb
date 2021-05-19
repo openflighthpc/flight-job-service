@@ -101,6 +101,11 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', **opts).tap(&:run)
     end
 
+    def self.flight_list_job_results(job_id, **opts)
+      env = { 'LC_TIME' => 'POSIX' } # Ensure a consistent time format
+      new(*FlightJobScriptAPI.config.flight_job, 'list-job-results', job_id, '--', '-lAR', env: env, **opts).tap(&:run)
+    end
+
     def self.flight_view_job_stdout(job_id, **opts)
       new(*FlightJobScriptAPI.config.flight_job, 'view-job-stdout', job_id, **opts).tap(&:run)
     end
@@ -113,18 +118,20 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'view-job-results', job_id, filename, **opts).tap(&:run)
     end
 
-    def self.find(*args, **opts)
-      new('find', *args, **opts).tap(&:run)
-    end
-
-    attr_reader :cmd, :user, :mutex, :stdin
+    attr_reader :cmd, :user, :mutex, :stdin, :env
     attr_accessor :stdout, :stderr, :exitstatus
 
-    def initialize(*cmd, user:, mutex: nil, stdin: nil)
+    def initialize(*cmd, user:, mutex: nil, stdin: nil, env: {})
       @cmd = cmd
       @user = user
       @stdin = stdin
       @mutex = self.class.mutexes[user]
+      @env ||= {
+        'PATH' => FlightJobScriptAPI.app.config.command_path,
+        'HOME' => passwd.dir,
+        'USER' => user,
+        'LOGNAME' => user
+      }.merge(env)
     end
 
     def run(&block)
@@ -228,15 +235,6 @@ module FlightJobScriptAPI
 
     def passwd
       @passwd ||= Etc.getpwnam(user)
-    end
-
-    def env
-      @env ||= {
-        'PATH' => FlightJobScriptAPI.app.config.command_path,
-        'HOME' => passwd.dir,
-        'USER' => user,
-        'LOGNAME' => user
-      }
     end
   end
 end

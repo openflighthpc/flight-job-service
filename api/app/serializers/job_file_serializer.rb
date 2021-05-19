@@ -28,7 +28,7 @@
 
 class JobFileSerializer < ApplicationSerializer
   # NOTE: Update this constant as new attributes are added
-  DEFAULT_SPARSE_FIELDSET = "filename"
+  DEFAULT_SPARSE_FIELDSET = "filename,size"
 
   def type
     'files'
@@ -41,6 +41,11 @@ class JobFileSerializer < ApplicationSerializer
         specifying a sparse fieldset: 'fields[files]=payload'
       INFO
     end
+  end
+
+  # Recalculate the file size if the payload will be included in the request
+  attribute(:size) do
+    object.size(recalculate: @_fields.fetch('files', []).include?(:payload))
   end
 
   # Forces the file to be UTF-8 encoded
