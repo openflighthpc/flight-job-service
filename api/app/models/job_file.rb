@@ -156,11 +156,9 @@ class JobFile
       @path = find_job.metadata['stderr_path']
     else
       results_dir = find_job.metadata['results_dir']
-      return @path = false unless results_dir
-      begin
-        @path = File.join(results_dir, Base64.urlsafe_decode64(@file_id))
-      rescue
-        # urlsafe_decode64 may raise ArgumentError if @file_id is invalid
+      if results_dir && decoded_file_id
+        @path = File.join(results_dir, decoded_file_id)
+      else
         @path = false
       end
     end
@@ -177,7 +175,7 @@ class JobFile
   # As these models are already cached, the *should* exist. Thus a 50X server error
   # is more appropriate than 404.
   def payload
-    if payload_command&.exitstatus == 0
+    if payload_command && payload_command.exitstatus == 0
       payload_command.stdout
     else
       raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to load file: #{id}"
@@ -192,14 +190,22 @@ class JobFile
 
   private
 
+  def decoded_file_id
+    @decoded_file_id unless @decoded_file_id.nil?
+    @decoded_file_id ||= Base64.urlsafe_decode64(@file_id)
+  rescue ArgumentError
+    # urlsafe_decode64 may raise ArgumentError if @file_id is invalid
+    @decoded_file_id = false
+  end
+
   def payload_command
     return @payload_command unless @payload_command.nil?
     @payload_command = if @file_id == 'stdout'
       FlightJobScriptAPI::SystemCommand.flight_view_job_stdout(@job_id, user: @user)
     elsif @file_id == 'stderr'
       FlightJobScriptAPI::SystemCommand.flight_view_job_stderr(@job_id, user: @user)
-    elsif filename
-      FlightJobScriptAPI::SystemCommand.flight_view_job_results(@job_id, filename, user: @user)
+    elsif decoded_file_id
+      FlightJobScriptAPI::SystemCommand.flight_view_job_results(@job_id, decoded_file_id, user: @user)
     else
       false
     end
