@@ -86,7 +86,7 @@ class JobFile
         get_from_cache(id) || JobFile.new(job_id, file_id, user: user, size: size).tap do |file|
           set_in_cache(id, file)
         end
-      end.reject(&:nil?)
+      end.reject(&:nil?).sort
     end
 
     def find!(id, **opts)
@@ -166,6 +166,12 @@ class JobFile
     else
       raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to load file: #{id}"
     end
+  end
+
+  protected
+
+  def <=>(other)
+    filename <=> other.filename
   end
 
   private
