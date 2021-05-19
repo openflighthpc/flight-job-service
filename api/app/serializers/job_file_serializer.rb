@@ -28,7 +28,7 @@
 
 class JobFileSerializer < ApplicationSerializer
   # NOTE: Update this constant as new attributes are added
-  DEFAULT_SPARSE_FIELDSET = "path,filename,size"
+  DEFAULT_SPARSE_FIELDSET = "path,decodedPath,filename,size"
 
   def type
     'files'
@@ -54,6 +54,8 @@ class JobFileSerializer < ApplicationSerializer
   # Hide that path could be set to "false". This is for internal caching
   # purposes.
   attribute(:path) { object.path || nil }
+  attribute(:decoded_path) { object.decoded_file_id || nil }
+
   attribute :filename
 
   has_one(:job) { object.find_job }

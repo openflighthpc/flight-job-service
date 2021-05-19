@@ -682,9 +682,10 @@ HTTP/2 200 OK
 {
   "data": {                     # REQUIRED - The FileResource
     "type": "files",            # REQUIRED - Specfies the resource is a file
-    "id": STRING,               # REQUIRED - The file's ID (:job_id.:encoded_name)
+    "id": STRING,               # REQUIRED - The file's ID (:job_id.:encoded_relative_path)
     "attributes":{
-      "filename" STRING,        # REQUIRED - The name of the file
+      "filename": STRING,       # REQUIRED - The name of the file
+      "decoded_path": STRING    # OPTIONAL - The clear text version of file's relative path (omitted for stdout/stderr)
       "path": STRING,           # REQUIRED - The path to the file
       "size": INTEGER,          # REQUIRED - The size of the file in Bytes
     },

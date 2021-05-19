@@ -147,6 +147,15 @@ class JobFile
     Job.find!(@job_id, user: @user)
   end
 
+  def decoded_file_id
+    @decoded_file_id unless @decoded_file_id.nil?
+    return @decoded_file_id = false if ['stdout', 'stderr'].include?(@file_id)
+    @decoded_file_id ||= Base64.urlsafe_decode64(@file_id)
+  rescue ArgumentError
+    # urlsafe_decode64 may raise ArgumentError if @file_id is invalid
+    @decoded_file_id = false
+  end
+
   def path
     @path unless @path.nil?
     case @file_id
@@ -189,14 +198,6 @@ class JobFile
   end
 
   private
-
-  def decoded_file_id
-    @decoded_file_id unless @decoded_file_id.nil?
-    @decoded_file_id ||= Base64.urlsafe_decode64(@file_id)
-  rescue ArgumentError
-    # urlsafe_decode64 may raise ArgumentError if @file_id is invalid
-    @decoded_file_id = false
-  end
 
   def payload_command
     return @payload_command unless @payload_command.nil?
