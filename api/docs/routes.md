@@ -684,7 +684,9 @@ HTTP/2 200 OK
     "type": "files",            # REQUIRED - Specfies the resource is a file
     "id": STRING,               # REQUIRED - The file's ID (:job_id.:encoded_name)
     "attributes":{
-      "filename" STRING         # RECOMMENDED - The decoded filename (null when returning stdout/stderr)
+      "filename" STRING,        # REQUIRED - The name of the file
+      "path": STRING,           # REQUIRED - The path to the file
+      "size": INTEGER,          # REQUIRED - The size of the file in Bytes
     },
     "links": {
       "self": "/v0/files/:id"

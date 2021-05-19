@@ -143,15 +143,31 @@ class JobFile
     raise $!
   end
 
+  def find_job
+    Job.find!(@job_id, user: @user)
+  end
+
+  def path
+    @path unless @path.nil?
+    case @file_id
+    when 'stdout'
+      @path = find_job.metadata['stdout_path']
+    when 'stderr'
+      @path = find_job.metadata['stderr_path']
+    else
+      results_dir = find_job.metadata['results_dir']
+      return @path = false unless results_dir
+      begin
+        @path = File.join(results_dir, Base64.urlsafe_decode64(@file_id))
+      rescue
+        # urlsafe_decode64 may raise ArgumentError if @file_id is invalid
+        @path = false
+      end
+    end
+  end
+
   def filename
-    @filename unless @filename.nil?
-    # XXX: Should the actual name of stdout/stdderr be exposed?
-    #      This would require running another command to load the job
-    @filename = false if ['stdout', 'stderr'].include?(@file_id)
-    @filename = Base64.urlsafe_decode64(@file_id)
-  rescue ArgumentError
-    # urlsafe_decode64 may raise ArgumentError if @file_id is invalid
-    @filename = false
+    @path ? File.basename(path) : nil
   end
 
   # Intentionally raises CommandError if the command exited NotFound (codes 20/23).
