@@ -54,7 +54,7 @@ class JobFile
       cmd.stdout.each_line.map do |line|
         # When flagged to do so, set the current_dir and skip the line
         if current_dir.nil?
-          current_dir ||= line.sub(/:\n\Z/, '')
+          current_dir = line.sub(/:\n\Z/, '')
           results_dir ||= current_dir
           next
         end
@@ -148,16 +148,16 @@ class JobFile
   end
 
   def decoded_file_id
-    @decoded_file_id unless @decoded_file_id.nil?
+    return @decoded_file_id unless @decoded_file_id.nil?
     return @decoded_file_id = false if ['stdout', 'stderr'].include?(@file_id)
-    @decoded_file_id ||= Base64.urlsafe_decode64(@file_id)
+    @decoded_file_id = Base64.urlsafe_decode64(@file_id)
   rescue ArgumentError
     # urlsafe_decode64 may raise ArgumentError if @file_id is invalid
     @decoded_file_id = false
   end
 
   def path
-    @path unless @path.nil?
+    return @path unless @path.nil?
     case @file_id
     when 'stdout'
       @path = find_job.metadata['stdout_path']
