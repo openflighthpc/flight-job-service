@@ -147,6 +147,15 @@ class JobFile
     Job.find!(@job_id, user: @user)
   end
 
+  def relative_path
+    return @relative_path unless @relative_path.nil?
+    @relative_path = if ['stdout', 'stderr'].include?(@file_id) && path
+      Pathname.new(path).relative_path_from(find_job.metadata['results_dir']).to_s
+    else
+      decoded_file_id
+    end
+  end
+
   def decoded_file_id
     return @decoded_file_id unless @decoded_file_id.nil?
     return @decoded_file_id = false if ['stdout', 'stderr'].include?(@file_id)

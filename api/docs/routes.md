@@ -687,8 +687,8 @@ HTTP/2 200 OK
       "filename": STRING,       # REQUIRED - The name of the file
       "mimeType": STRING,       # REQUIRED - The predicted MIME type of the file from the file extension
                                              Warning: This could be incorrect
-      "decoded_path": STRING,   # OPTIONAL - The clear text version of file's relative path (omitted for stdout/stderr)
-      "path": STRING,           # REQUIRED - The path to the file
+      "relative_path": STRING,  # RECOMMENDED - The relative path to the file from the results_dir
+      "path": STRING,           # RECOMMENDED - The path to the file
       "size": INTEGER,          # REQUIRED - The size of the file in Bytes
     },
     "links": {
