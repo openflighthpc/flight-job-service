@@ -236,6 +236,18 @@ class App < Sinatra::Base
         next resource.index_result_files
       end
     end
+
+    has_one :stdout_file do
+      pluck do
+        next resource.find_stdout_file
+      end
+    end
+
+    has_one :stderr_file do
+      pluck do
+        next resource.find_stderr_file
+      end
+    end
   end
 
   resource :files, pkre: /[\w-]+\.[\w=-]+/ do

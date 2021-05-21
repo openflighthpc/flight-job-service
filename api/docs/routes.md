@@ -623,6 +623,47 @@ Content-Type: application/vnd.api+json
 }
 ```
 
+## GET - /jobs/:id/stdout-file
+
+Return the related `stdout` for the `job`.
+
+```
+GET /v0/jobs/:id/stdout-file
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": FileResource,
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
+## GET - /jobs/:id/stderr-file
+
+Return the related `stderr` for the `job`.
+
+```
+GET /v0/jobs/:id/stderr-file
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": FileResource,
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
 
 ## POST - /jobs
 
