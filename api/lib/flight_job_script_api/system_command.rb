@@ -102,7 +102,7 @@ module FlightJobScriptAPI
     end
 
     def self.flight_list_job_results(job_id, **opts)
-      env = { 'LC_TIME' => 'POSIX' } # Ensure a consistent time format
+      env = { 'LC_ALL' => 'POSIX' } # Ensure a consistent output to ls
       new(*FlightJobScriptAPI.config.flight_job, 'list-job-results', job_id, '--', '-lAR', env: env, **opts).tap(&:run)
     end
 
