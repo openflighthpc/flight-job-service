@@ -33,12 +33,14 @@ class JobFile
     prepend FlightJobScriptAPI::ModelCache
 
     def index_job_results!(job_id, user:)
-      # Find the relevant files
-      cmd = FlightJobScriptAPI::SystemCommand.flight_list_job_results(job_id, user: user)
+      # Load up the job
+      job = Job.find!(job_id, user: user)
+      return nil unless job
+      return nil unless job.metadata['results_dir']
+      results_dir = job.metadata['results_dir']
 
-      # Return nil if the job is missing
-      # NOTE: This distinguishes between job's without any result files and missing jobs
-      return nil if cmd.exitstatus == 23
+      # Find the relevant files
+      cmd = FlightJobScriptAPI::SystemCommand.recursive_glob_dir(results_dir, user: user)
 
       # Return empty array if the results directory is missing
       return [] if cmd.exitstatus == 20
@@ -48,45 +50,13 @@ class JobFile
         raise CommandError, "Failed to load the result files for job: #{job_id}"
       end
 
-      # Process the output from ls
-      results_dir = nil
-      current_dir = nil
-      cmd.stdout.each_line.map do |line|
-        # When flagged to do so, set the current_dir and skip the line
-        if current_dir.nil?
-          current_dir = line.sub(/:\n\Z/, '')
-          results_dir ||= current_dir
-          next
-        end
-
-        # Skip total lines
-        next if /\Atotal \d+\Z/.match?(line)
-
-        # Flag the next line will be the current_dir and skip
-        if line == "\n"
-          current_dir = nil
-          next
-        end
-
-        # Split the line into its components
-        # NOTE: Maxing it out as 9 fields allows for files which contain a space character
-        perm, _l, _u, _g, size, _m, _d, _t, name = line.chomp.split(' ', 9)
-
-        # Skip directories and symbolic links
-        # NOTE: Following symbolic links may cause security issues if not handled with care
-        #       For the time being it's best to ignore them
-        next if perm.include?('d') || perm.include?('l')
-
-        # Generate the relative path and file_id
-        rel_path = Pathname.new(name).expand_path(current_dir).relative_path_from(results_dir).to_s
-        file_id = Base64.urlsafe_encode64(rel_path)
-        id = "#{job_id}.#{file_id}"
-
-        # Load or build and cache a new file
-        get_from_cache(id) || JobFile.new(job_id, file_id, user: user, size: size).tap do |file|
-          set_in_cache(id, file)
-        end
-      end.reject(&:nil?).sort
+      # Construct the files
+      JSON.parse(cmd.stdout).map do |payload|
+        file = payload['file']
+        size = payload['size']
+        file_id = Base64.urlsafe_encode64 Pathname.new(file).relative_path_from(results_dir).to_s
+        JobFile.new(job.id, file_id, user: user, size: size)
+      end
     end
 
     def find!(id, **opts)
