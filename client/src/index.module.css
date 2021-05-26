@@ -4,9 +4,6 @@
     padding: 0.5em;
     border-radius: 0.5em;
 }
-.ScriptContent {
-    max-height: 48em;
-}
 .IntroCard:before {
     color: var(--success);
     /* content: "\f0ae"; */
@@ -32,4 +29,25 @@
 }
 .AceEditor {
     border-radius: 0.5em;
+}
+.MetadataEntryDT {
+    float: left;
+    width: 9em;
+    margin-right: 0.5em;
+}
+.MetadataEntryDD {
+}
+.ResultsListing {
+    max-height: 20em;
+    overflow-y: auto;
+    overflow-y: overlay;
+}
+.FileContent {
+    max-height: 40em;
+}
+.FileItemNonViewable {
+    /* cursor: not-allowed; */
+}
+.FileItemActiveColor {
+    color: #fff;
 }

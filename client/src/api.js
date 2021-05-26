@@ -202,6 +202,10 @@ function getResourceFromResponse(data) {
   return data.data;
 }
 
+function isSameResource(r1, r2) {
+  return r1.type === r2.type && r1.id === r2.id;
+}
+
 function denormalizeResponse(response, { isArray=false }={}) {
   const data = response.data;
   let resources;
@@ -225,9 +229,13 @@ function denormalizeResponse(response, { isArray=false }={}) {
             get: function() {
               if (relNeedle == null) { return null; }
               const haystack = data.included || [];
-              return haystack.find((hay) => {
-                return hay.type === relNeedle.type && hay.id === relNeedle.id;
-              });
+              if (Array.isArray(relNeedle)) {
+                return haystack.filter(
+                  hay => relNeedle.find(needle => isSameResource(hay, needle))
+                );
+              } else {
+                return haystack.find((hay) => isSameResource(hay, relNeedle));
+              }
             },
           },
         );
@@ -258,7 +266,7 @@ export function useFetchJobs() {
 export function useFetchJob(id) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    `/jobs/${id}?include=script`,
+    `/jobs/${id}?include=script,resultFiles,stdoutFile,stderrFile`,
     {
       headers: { Accept: 'application/vnd.api+json' },
       interceptors: {
@@ -271,4 +279,15 @@ export function useFetchJob(id) {
       }
     },
     [ currentUser.authToken ]);
+}
+
+export function useFetchFileContent(file) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/${file.type}/${file.id}?fields[files]=payload`,
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+      // cachePolicy: 'no-cache',
+    },
+    [ currentUser.authToken, file.id ]);
 }

@@ -21,7 +21,7 @@ function ScriptMetadataCard({ reloadScripts, script }) {
           script={script}
         />
       </div>
-      <div className="card-body d-flex flex-row flex-wrap">
+      <div className="card-body">
         <dl>
           <MetadataEntry
             format={(value) => <code>{value}</code>}
