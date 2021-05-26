@@ -1,13 +1,13 @@
 {
   "environment": {
-    "name": "University of BigV dev env",
-    "description": "This is a dev environment for the University of BigV.",
+    "name": "Dev cluster",
+    "description": "This is a dev environment.",
     "logo": {
       "url": "",
       "classNames": ""
     }
   },
   "organisation": {
-    "name": "University of BigV"
+    "name": ""
   }
 }

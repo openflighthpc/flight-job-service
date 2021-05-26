@@ -27,4 +27,5 @@
 
 bind_address: tcp://0.0.0.0:6310
 log_level: debug
+shared_secret_path: /opt/flight/etc/shared-secret.conf
 sso_cookie_name: flight_web_auth_dev
