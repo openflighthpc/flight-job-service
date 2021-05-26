@@ -35,6 +35,7 @@ gem 'flight_auth', github: "openflighthpc/flight_auth", branch: "297cb7241b820d3
 gem 'flight_configuration', github: 'openflighthpc/flight_configuration', branch: '24928260e542768f13cc513a3a08af69f690dfbc'
 gem 'concurrent-ruby'
 gem 'json_schemer'
+gem 'mime-types'
 gem 'rack-parser', require: 'rack/parser'
 gem 'rake'
 gem 'request_store'

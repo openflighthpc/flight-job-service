@@ -26,30 +26,41 @@
 # https://github.com/openflighthpc/flight-job-script-service
 #==============================================================================
 
-module FlightJobScriptAPI
-  autoload(:Configuration, 'flight_job_script_api/configuration')
-  autoload(:ModelCache, 'flight_job_script_api/model_cache')
-  autoload(:SystemCommand, 'flight_job_script_api/system_command')
-  autoload(:CommandError, 'flight_job_script_api/system_command')
+class JobFileSerializer < ApplicationSerializer
+  # NOTE: Update this constant as new attributes are added
+  DEFAULT_SPARSE_FIELDSET = "path,relativePath,filename,size,mimeType"
 
-  class UnexpectedError < StandardError; end
-
-  class << self
-    def app
-      # XXX: Eventually extract this to a Application object when the need arises
-      @app ||= Struct.new(:config).new(
-        Configuration.load
-      )
-    end
-
-    def config
-      app.config
-    end
-
-    def logger
-      @logger ||= Logger.new($stdout, level: config.log_level.to_sym)
-    end
-
-    alias_method :load_configuration, :config
+  def type
+    'files'
   end
+
+  def meta
+    unless attributes.keys.include?("payload")
+      <<~INFO.squish
+        The 'payload' attribute is hidden by default. It can be returned by
+        specifying a sparse fieldset: 'fields[files]=payload'
+      INFO
+    end
+  end
+
+  # Recalculate the file size if the payload will be included in the request
+  attribute(:size) do
+    object.size(recalculate: @_fields.fetch('files', []).include?(:payload))
+  end
+
+  # Forces the file to be UTF-8 encoded
+  # NOTE: This assumes binary files are not supported
+  attribute(:payload) { object.payload.force_encoding('utf-8') }
+
+  # Hide that path could be set to "false". This is for internal caching
+  # purposes.
+  attribute(:path) { object.path || nil }
+  attribute(:relative_path) { object.relative_path || nil }
+
+  attribute :filename
+
+  # NOTE: The default is text/plain because the string encoding is forced to be UTF8
+  attribute(:mime_type) { MIME::Types.type_for(object.filename)&.first&.content_type || 'text/plain' }
+
+  has_one(:job) { object.find_job }
 end

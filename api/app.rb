@@ -113,6 +113,14 @@ class App < Sinatra::Base
     }
   end
 
+  # Set the default sparse field to prevent the "payload" of files from being
+  # sent with requests. This has significant speed improvements when indexing
+  # "files" resources.
+  before do
+    params["fields"] ||= {}
+    params["fields"]["files"] ||= JobFileSerializer::DEFAULT_SPARSE_FIELDSET
+  end
+
   resource :templates, pkre: /[\w.-]+/ do
     helpers do
       def find(id)
@@ -222,6 +230,34 @@ class App < Sinatra::Base
         resource.script_id = rio[:id]
       end
     end
+
+    has_many :result_files do
+      fetch do
+        next resource.index_result_files
+      end
+    end
+
+    has_one :stdout_file do
+      pluck do
+        next resource.find_stdout_file
+      end
+    end
+
+    has_one :stderr_file do
+      pluck do
+        next resource.find_stderr_file
+      end
+    end
+  end
+
+  resource :files, pkre: /[\w-]+\.[\w=-]+/ do
+    helpers do
+      def find(id)
+        JobFile.find!(id, user: current_user)
+      end
+    end
+
+    show
   end
 
   freeze_jsonapi

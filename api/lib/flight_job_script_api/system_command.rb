@@ -27,6 +27,7 @@
 #==============================================================================
 
 require 'securerandom'
+require 'pathname'
 
 module FlightJobScriptAPI
   class CommandError < Sinja::ServiceUnavailable; end
@@ -101,14 +102,47 @@ module FlightJobScriptAPI
       new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', **opts).tap(&:run)
     end
 
-    attr_reader :cmd, :user, :mutex, :stdin
+    def self.flight_view_job_stdout(job_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'view-job-stdout', job_id, **opts).tap(&:run)
+    end
+
+    def self.flight_view_job_stderr(job_id, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'view-job-stderr', job_id, **opts).tap(&:run)
+    end
+
+    def self.flight_view_job_results(job_id, filename, **opts)
+      new(*FlightJobScriptAPI.config.flight_job, 'view-job-results', job_id, filename, **opts).tap(&:run)
+    end
+
+    def self.recursive_glob_dir(dir, **opts)
+      new(:noop, 'recursively glob directory', **opts).tap do |sys|
+        sys.run do
+          exit 20 unless Dir.exists?(dir)
+          json = Dir.glob(File.join(dir, '**/*'))
+                    .map { |p| Pathname.new(p) }
+                    .reject(&:directory?)
+                    .reject(&:symlink?)
+                    .select(&:readable?) # XXX: Non-readable files would be an odd occurrence
+                    .map { |p| { file: p.to_s, size: p.size } }
+          puts JSON.generate(json)
+        end
+      end
+    end
+
+    attr_reader :cmd, :user, :mutex, :stdin, :env
     attr_accessor :stdout, :stderr, :exitstatus
 
-    def initialize(*cmd, user:, mutex: nil, stdin: nil)
+    def initialize(*cmd, user:, mutex: nil, stdin: nil, env: {})
       @cmd = cmd
       @user = user
       @stdin = stdin
       @mutex = self.class.mutexes[user]
+      @env ||= {
+        'PATH' => FlightJobScriptAPI.app.config.command_path,
+        'HOME' => passwd.dir,
+        'USER' => user,
+        'LOGNAME' => user
+      }.merge(env)
     end
 
     def run(&block)
@@ -124,6 +158,10 @@ module FlightJobScriptAPI
 
         FlightJobScriptAPI.logger.debug("Forking Process")
         pid = Kernel.fork do
+          # Log the command has been forked
+          log_cmd = (cmd.first == :noop ? cmd[1..-1] : cmd).join(' ')
+          FlightJobScriptAPI.logger.info("Forked Command (#{user}): #{log_cmd}")
+
           # Close the parent pipes
           out_read.close
           err_read.close
@@ -136,16 +174,22 @@ module FlightJobScriptAPI
 
           # Allow the command to be modified after becoming the requested user
           # This is useful when trying to create a file with the correct file permissions
+          $stdout = out_write
+          $stderr = err_write
           block.call if block
 
-          # Execute the command
-          opts = {
-            unsetenv_others: true, close_others: true, chdir: passwd.dir,
-            out: out_write, err: err_write, in: in_read
-          }
-          # NOTE: Keep the log before the exec for timing purposes
-          FlightJobScriptAPI.logger.info("Executing (#{user}): #{cmd.join(' ')}")
-          Kernel.exec(env, *cmd, **opts)
+          if cmd.first == :noop
+             FlightJobScriptAPI.logger.debug("Nothing to exec")
+          else
+            # Execute the command
+            opts = {
+              unsetenv_others: true, close_others: true, chdir: passwd.dir,
+              out: out_write, err: err_write, in: in_read
+            }
+            # NOTE: Keep the log before the exec for timing purposes
+            FlightJobScriptAPI.logger.info("Executing (#{user}): #{cmd.join(' ')}")
+            Kernel.exec(env, *cmd, **opts)
+          end
         end
 
         # Close the child pipes
@@ -212,15 +256,6 @@ module FlightJobScriptAPI
 
     def passwd
       @passwd ||= Etc.getpwnam(user)
-    end
-
-    def env
-      @env ||= {
-        'PATH' => FlightJobScriptAPI.app.config.command_path,
-        'HOME' => passwd.dir,
-        'USER' => user,
-        'LOGNAME' => user
-      }
     end
   end
 end
