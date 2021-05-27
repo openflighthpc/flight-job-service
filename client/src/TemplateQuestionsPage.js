@@ -23,13 +23,7 @@ const scriptNameQuestion = {
 
 function TemplateQuestionsPage() {
   const { templateId } = useParams();
-  const ref = useRef();
-
-  // During page transitions, useParams may return undefined
-  // In these cases, the previously stored reference value is used
-  if (templateId) {
-    ref.current = templateId
-  }
+  const ref = useRef(templateId);
 
   const {
     data,
