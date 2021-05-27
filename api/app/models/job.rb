@@ -109,14 +109,14 @@ class Job
   end
 
   def index_result_files
-    JobFile.index_job_results!(self.id, user: user)
+    JobFile.index_job_results(self.id, user: user)
   end
 
   def find_stdout_file
-    JobFile.find!("#{id}.stdout", user: user)
+    JobFile.find("#{id}.stdout", user: user)
   end
 
   def find_stderr_file
-    JobFile.find!("#{id}.stderr", user: user)
+    JobFile.find("#{id}.stderr", user: user)
   end
 end

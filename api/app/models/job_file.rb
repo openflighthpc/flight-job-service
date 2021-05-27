@@ -59,11 +59,23 @@ class JobFile
       end
     end
 
+    def index_job_results(job_id, user:)
+      index_job_results!(job_id, user: user)
+    rescue FlightJobScriptAPI::CommandError
+      nil
+    end
+
     def find!(id, **opts)
       job_id, file_id = id.split('.', 2)
       new(job_id, file_id, user: opts[:user]).tap do |job_file|
         return nil unless job_file.exists?
       end
+    end
+
+    def find(id, **opts)
+      find!(id, **opts)
+    rescue FlightJobScriptAPI::CommandError
+      nil
     end
   end
 
