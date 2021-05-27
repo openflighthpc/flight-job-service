@@ -322,7 +322,9 @@ class RenderApp < Sinatra::Base
       params[:id], name, notes: notes, answers: answers, user: @current_user
     )
 
-    if cmd.exitstatus == 0
+    # The job submitted correctly OR failed on submission,
+    # Either way, the 'job' resource was created
+    if [0, 2].include?(cmd.exitstatus)
       response.headers['Content-Type'] = 'application/vnd.api+json'
       script = Script.new(user: @current_user, **JSON.parse(cmd.stdout))
       status 201
