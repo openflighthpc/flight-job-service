@@ -1,6 +1,7 @@
 import React from 'react';
 import { Col, Row } from 'reactstrap';
 import { useParams } from 'react-router-dom';
+import { useRef } from 'react';
 
 import {
   DefaultErrorMessage,
@@ -17,7 +18,8 @@ import { useInterval } from './utils';
 
 function JobPage() {
   const { id } = useParams();
-  const { data, error, loading, get } = useFetchJob(id);
+  const ref = useRef(id);
+  const { data, error, loading, get } = useFetchJob(ref.current);
   useInterval(get, 1 * 60 * 1000);
 
   if (error) {
