@@ -1,13 +1,31 @@
+import React from 'react';
 import classNames from 'classnames';
 import { Button, ButtonToolbar, ListGroup, ListGroupItem } from 'reactstrap';
 import { useState } from 'react';
 
-import { DefaultErrorMessage, Spinner, utils } from 'flight-webapp-components';
+import {
+  DefaultErrorMessage,
+  Overlay,
+  OverlayContainer,
+  Spinner,
+  utils,
+} from 'flight-webapp-components';
 
 import humanFileSize from './humanFileSize';
 import styles from './index.module.css';
 import { mimeTypeToIcon } from './mimeType';
-import { useFetchFileContent } from './api';
+import {
+  useFetchStdoutFile,
+  useFetchStderrFile,
+  useFetchResultFiles,
+  useFetchFileContent,
+} from './api';
+
+
+export function getResourceFromResponse(data) {
+  if (!utils.isObject(data)) { return null; }
+  return data.data;
+}
 
 function JobOutputsCard({ job }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -19,7 +37,8 @@ function JobOutputsCard({ job }) {
     return selectedFile != null && selectedFile.id === file.id;
   }
 
-  const hasFiles = job.resultFiles.length > 0 || job.stdoutFile || job.stderrFile;
+  // const hasFiles = resultFiles.length > 0 || job.stdoutFile || job.stderrFile;
+  const hasFiles = true;
 
   return (
     <div className="card">
@@ -28,7 +47,7 @@ function JobOutputsCard({ job }) {
       </div>
       <div className="card-body">
         <h6 className="font-weight-bold">Job script output</h6>
-        <OutputListing
+        <OutputListingAsync
           className="ml-4 mb-3"
           isSelected={isSelected}
           job={job}
@@ -45,9 +64,8 @@ function JobOutputsCard({ job }) {
           </span>
           <OpenDirectoryButtons dir={job.attributes.resultsDir} />
         </h6>
-        <ResultsListing
+        <ResultsListingAsync
           className="ml-4 mb-3"
-          files={job.resultFiles}
           isSelected={isSelected}
           job={job}
           toggleFile={toggleFile}
@@ -108,14 +126,42 @@ function FileItem({ file, isSelected, name, nameTag="span", toggleFile }) {
   );
 }
 
-function OutputListing({ className, isSelected, job, toggleFile }) {
+function OutputListingAsync({ className, isSelected, job, toggleFile }) {
+  const { data: stdoutData, error: stdoutErr, loading: stdoutLoading } =
+    useFetchStdoutFile(job.id);
+  const { data: stderrData, error: stderrErr, loading: stderrLoading } =
+    useFetchStderrFile(job.id);
+
+  if (stdoutErr || stderrErr) {
+    return <DefaultErrorMessage />;
+  } else {
+    const stdoutFile = getResourceFromResponse(stdoutData);
+    const stderrFile = getResourceFromResponse(stderrData);
+
+    return (
+      <React.Fragment>
+        { (stdoutLoading || stderrLoading) && <Loading text="Loading job output files..." /> }
+        <OutputListing
+          className={className}
+          isSelected={isSelected}
+          job={job}
+          stderrFile={stderrFile}
+          stdoutFile={stdoutFile}
+          toggleFile={toggleFile}
+        />
+      </React.Fragment>
+    );
+  }
+}
+
+function OutputListing({ className, isSelected, job, stdoutFile, stderrFile, toggleFile }) {
   const mergedStderr = job.attributes.mergedStderr;
   const files = [];
-  if (job.stdoutFile) {
-    files.push(job.stdoutFile);
+  if (stdoutFile) {
+    files.push(stdoutFile);
   }
-  if (!mergedStderr && job.stderrFile) {
-    files.push(job.stderrFile);
+  if (!mergedStderr && stderrFile) {
+    files.push(stderrFile);
   }
 
   if (files.length === 0) {
@@ -147,6 +193,29 @@ function OutputListing({ className, isSelected, job, toggleFile }) {
       }
     </ListGroup>
   );
+}
+
+function ResultsListingAsync({ className, isSelected, job, toggleFile }) {
+  const { data, error, loading } = useFetchResultFiles(job.id);
+
+  if (error) {
+    return <DefaultErrorMessage />;
+  } else {
+    const files = utils.getResourcesFromResponse(data) || [];
+
+    return (
+      <React.Fragment>
+        { loading && <Loading text="Loading job results..." /> }
+        <ResultsListing
+          className={className}
+          isSelected={isSelected}
+          job={job}
+          files={files}
+          toggleFile={toggleFile}
+        />
+      </React.Fragment>
+    );
+  }
 }
 
 function ResultsListing({ className, files, isSelected, job, toggleFile }) {
@@ -249,6 +318,16 @@ function OpenDirectoryButtons({ dir }) {
         Open in console
       </Button>
     </ButtonToolbar>
+  );
+}
+
+function Loading({ text }) {
+  return (
+    <OverlayContainer>
+      <Overlay>
+        <Spinner text={text} />
+      </Overlay>
+    </OverlayContainer>
   );
 }
 

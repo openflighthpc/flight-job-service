@@ -266,7 +266,7 @@ export function useFetchJobs() {
 export function useFetchJob(id) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
-    `/jobs/${id}?include=script,resultFiles,stdoutFile,stderrFile`,
+    `/jobs/${id}?include=script`,
     {
       headers: { Accept: 'application/vnd.api+json' },
       interceptors: {
@@ -281,13 +281,42 @@ export function useFetchJob(id) {
     [ currentUser.authToken ]);
 }
 
+export function useFetchResultFiles(id) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/jobs/${id}/result-files`,
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+    },
+    [ currentUser.authToken, id ]);
+}
+
+export function useFetchStdoutFile(id) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/jobs/${id}/stdout-file`,
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+    },
+    [ currentUser.authToken, id ]);
+}
+
+export function useFetchStderrFile(id) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/jobs/${id}/stderr-file`,
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+    },
+    [ currentUser.authToken, id ]);
+}
+
 export function useFetchFileContent(file) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
     `/${file.type}/${file.id}?fields[files]=payload`,
     {
       headers: { Accept: 'application/vnd.api+json' },
-      // cachePolicy: 'no-cache',
     },
     [ currentUser.authToken, file.id ]);
 }
