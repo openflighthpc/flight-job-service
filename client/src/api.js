@@ -281,30 +281,20 @@ export function useFetchJob(id) {
     [ currentUser.authToken ]);
 }
 
+export function useFetchOutputFiles(id) {
+  const { currentUser } = useContext(CurrentUserContext);
+  return useFetch(
+    `/jobs/${id}/output-files`,
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+    },
+    [ currentUser.authToken, id ]);
+}
+
 export function useFetchResultFiles(id) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
     `/jobs/${id}/result-files`,
-    {
-      headers: { Accept: 'application/vnd.api+json' },
-    },
-    [ currentUser.authToken, id ]);
-}
-
-export function useFetchStdoutFile(id) {
-  const { currentUser } = useContext(CurrentUserContext);
-  return useFetch(
-    `/jobs/${id}/stdout-file`,
-    {
-      headers: { Accept: 'application/vnd.api+json' },
-    },
-    [ currentUser.authToken, id ]);
-}
-
-export function useFetchStderrFile(id) {
-  const { currentUser } = useContext(CurrentUserContext);
-  return useFetch(
-    `/jobs/${id}/stderr-file`,
     {
       headers: { Accept: 'application/vnd.api+json' },
     },

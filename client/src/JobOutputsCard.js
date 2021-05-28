@@ -15,8 +15,7 @@ import humanFileSize from './humanFileSize';
 import styles from './index.module.css';
 import { mimeTypeToIcon } from './mimeType';
 import {
-  useFetchStdoutFile,
-  useFetchStderrFile,
+  useFetchOutputFiles,
   useFetchResultFiles,
   useFetchFileContent,
 } from './api';
@@ -37,7 +36,6 @@ function JobOutputsCard({ job }) {
     return selectedFile != null && selectedFile.id === file.id;
   }
 
-  // const hasFiles = resultFiles.length > 0 || job.stdoutFile || job.stderrFile;
   const hasFiles = true;
 
   return (
@@ -127,26 +125,32 @@ function FileItem({ file, isSelected, name, nameTag="span", toggleFile }) {
 }
 
 function OutputListingAsync({ className, isSelected, job, toggleFile }) {
-  const { data: stdoutData, error: stdoutErr, loading: stdoutLoading } =
-    useFetchStdoutFile(job.id);
-  const { data: stderrData, error: stderrErr, loading: stderrLoading } =
-    useFetchStderrFile(job.id);
+  const { data, error, loading } = useFetchOutputFiles(job.id);
 
-  if (stdoutErr || stderrErr) {
-    return <DefaultErrorMessage />;
+  if (error) {
+    return (
+      <div className={className}>
+        The job's output files are not currently available.
+      </div>
+    );
+  } else if (!data && loading) {
+    // Loading the files for the first time.
+    return (
+      <div className="mb-2">
+        <Spinner text="Loading job output files..." />
+      </div>
+    );
   } else {
-    const stdoutFile = getResourceFromResponse(stdoutData);
-    const stderrFile = getResourceFromResponse(stderrData);
+    const files = utils.getResourcesFromResponse(data) || [];
 
     return (
       <React.Fragment>
-        { (stdoutLoading || stderrLoading) && <Loading text="Loading job output files..." /> }
+        { loading && <Loading text="Loading job output files..." /> }
         <OutputListing
           className={className}
           isSelected={isSelected}
           job={job}
-          stderrFile={stderrFile}
-          stdoutFile={stdoutFile}
+          files={files}
           toggleFile={toggleFile}
         />
       </React.Fragment>
@@ -154,15 +158,8 @@ function OutputListingAsync({ className, isSelected, job, toggleFile }) {
   }
 }
 
-function OutputListing({ className, isSelected, job, stdoutFile, stderrFile, toggleFile }) {
+function OutputListing({ className, isSelected, job, files, toggleFile }) {
   const mergedStderr = job.attributes.mergedStderr;
-  const files = [];
-  if (stdoutFile) {
-    files.push(stdoutFile);
-  }
-  if (!mergedStderr && stderrFile) {
-    files.push(stderrFile);
-  }
 
   if (files.length === 0) {
     return (
@@ -171,6 +168,8 @@ function OutputListing({ className, isSelected, job, stdoutFile, stderrFile, tog
       </div>
     );
   }
+
+  const isStdErrFile = (file) => file.id === `${job.id}.stderr`;
 
   return (
     <ListGroup className={className}>
@@ -181,7 +180,7 @@ function OutputListing({ className, isSelected, job, stdoutFile, stderrFile, tog
             file={file}
             isSelected={isSelected}
             name={
-              file === job.stderrFile ?
+              isStdErrFile(file) ?
                 'Standard error' :
                 mergedStderr ?
                 'Standard output and error' :
@@ -199,7 +198,15 @@ function ResultsListingAsync({ className, isSelected, job, toggleFile }) {
   const { data, error, loading } = useFetchResultFiles(job.id);
 
   if (error) {
-    return <DefaultErrorMessage />;
+    <div className={className}>
+      The job did not report its results directory.
+    </div>
+  } else if (!data && loading) {
+    return (
+      <div className="mb-2">
+        <Spinner text="Loading job results..." />
+      </div>
+    );
   } else {
     const files = utils.getResourcesFromResponse(data) || [];
 
