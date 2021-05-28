@@ -237,6 +237,12 @@ class App < Sinatra::Base
       end
     end
 
+    has_many :output_files do
+      fetch do
+        next resource.index_output_files
+      end
+    end
+
     has_one :stdout_file do
       pluck do
         next resource.find_stdout_file

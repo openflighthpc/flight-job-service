@@ -623,6 +623,30 @@ Content-Type: application/vnd.api+json
 }
 ```
 
+## GET - /jobs/:id/output-files
+
+Return the related output `files` for the `job` that is `stdout` and `stderr`.
+
+```
+GET /v0/jobs/:id/output-files
+Authorization: basic <base64 username:password>
+Accept: application/vnd.api+json
+
+HTTP/2 200 OK
+Content-Type: application/vnd.api+json
+{
+  "data": [
+    FileResource,
+    ...
+  ],
+  "jsonapi": {
+    "version": "1.0"
+  },
+  "included": [
+  ]
+}
+```
+
 ## GET - /jobs/:id/stdout-file
 
 Return the related `stdout` for the `job`.

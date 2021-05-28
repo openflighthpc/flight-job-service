@@ -112,6 +112,10 @@ class Job
     JobFile.index_job_results(self.id, user: user)
   end
 
+  def index_output_files
+    [ find_stdout_file, find_stderr_file ].compact
+  end
+
   def find_stdout_file
     JobFile.find("#{id}.stdout", user: user)
   end
