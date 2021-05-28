@@ -19,7 +19,7 @@ import {
   useFetchResultFiles,
   useFetchFileContent,
 } from './api';
-
+import { useInterval } from './utils';
 
 export function getResourceFromResponse(data) {
   if (!utils.isObject(data)) { return null; }
@@ -125,7 +125,8 @@ function FileItem({ file, isSelected, name, nameTag="span", toggleFile }) {
 }
 
 function OutputListingAsync({ className, isSelected, job, toggleFile }) {
-  const { data, error, loading } = useFetchOutputFiles(job.id);
+  const { data, error, loading, get } = useFetchOutputFiles(job.id);
+  useInterval(get, 1 * 60 * 1000);
 
   if (error) {
     return (
@@ -195,7 +196,8 @@ function OutputListing({ className, isSelected, job, files, toggleFile }) {
 }
 
 function ResultsListingAsync({ className, isSelected, job, toggleFile }) {
-  const { data, error, loading } = useFetchResultFiles(job.id);
+  const { data, error, loading, get } = useFetchResultFiles(job.id);
+  useInterval(get, 1 * 60 * 1000);
 
   if (error) {
     <div className={className}>
