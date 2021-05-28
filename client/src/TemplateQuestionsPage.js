@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { useRef } from 'react';
 
 import {
   DefaultErrorMessage,
@@ -22,11 +23,13 @@ const scriptNameQuestion = {
 
 function TemplateQuestionsPage() {
   const { templateId } = useParams();
+  const ref = useRef(templateId);
+
   const {
     data,
     error: questionsLoadingError,
     loading: questionsLoading,
-  } = useFetchQuestions(templateId);
+  } = useFetchQuestions(ref.current);
 
   if (questionsLoading) {
     return <Loading />;
@@ -39,7 +42,7 @@ function TemplateQuestionsPage() {
     } else {
       return (
         <QuestionSet
-          templateId={templateId}
+          templateId={ref.current}
           questions={[...data.data, scriptNameQuestion]}
         />
       );

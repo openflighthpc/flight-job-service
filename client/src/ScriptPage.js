@@ -1,5 +1,6 @@
 import { Col, Row } from 'reactstrap';
 import { useParams } from 'react-router-dom';
+import { useRef } from 'react';
 
 import {
   DefaultErrorMessage,
@@ -14,10 +15,11 @@ import { useFetchScript } from './api';
 
 function ScriptPage() {
   const { id } = useParams();
-  const { data, error, loading } = useFetchScript(id);
+  const ref = useRef(id);
+  const { data, error, loading } = useFetchScript(ref.current);
 
   if (loading) {
-    return <Loading id={id} />;
+    return <Loading id={ref.current} />;
   } else if (error) {
     return <DefaultErrorMessage />;
   } else {
