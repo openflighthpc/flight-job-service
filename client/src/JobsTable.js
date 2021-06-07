@@ -52,6 +52,16 @@ function JobsTable({ reloadJobs, jobs }) {
         accessor: 'attributes.state',
         Cell: ({ value }) => <Badge color={stateColourMap[value]}>{value}</Badge>,
       },
+      {
+        Header: 'Start time',
+        accessor: (job) => [job.attributes.startTime, job.attributes.estimatedStartTime],
+        Cell: TimeCell,
+      },
+      {
+        Header: 'End time',
+        accessor: (job) => [job.attributes.endTime, job.attributes.estimatedEndTime],
+        Cell: TimeCell,
+      },
     ],
     []
   );
@@ -167,6 +177,37 @@ function TableRow({ prepareRow, reloadJobs, row }) {
         ))
       }
     </tr>
+  );
+}
+
+function TimeCell({row, value, ...rest}) {
+  const known = value[0];
+  const estimated = value[1];
+
+  if (known == null && estimated == null) {
+    const jobState = row.original.attributes.state;
+    if (jobState === 'FAILED' || jobState === 'UNKNOWN') {
+      return <i>N/A</i>;
+    }
+    return <i>Unknown</i>;
+  }
+  return (
+    <React.Fragment>
+      <TimeAgo
+        date={known != null ? known : estimated}
+        minPeriod={5}
+        formatter={(_v, unit, suffix, _e, nextFormatter) => (
+          unit === 'second' ?
+          `A few seconds ${suffix}` :
+          nextFormatter()
+        )}
+      />
+      {
+        known != null ?
+          null :
+          <Badge className="ml-1" color="warning" pill>Estimated</Badge>
+      }
+    </React.Fragment>
   );
 }
 
