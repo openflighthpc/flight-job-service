@@ -88,7 +88,7 @@ function JobMetadataCard({ job }) {
             job={job}
             estimated={job.attributes.estimatedStartTime}
             known={job.attributes.startTime}
-            name="Estimated start"
+            name="Starts"
           />
           <MetadataEntry
             format={(value) => <TimeAgo date={value} />}
@@ -100,7 +100,7 @@ function JobMetadataCard({ job }) {
             estimated={job.attributes.estimatedEndTime}
             job={job}
             known={job.attributes.endTime}
-            name="Estimated end"
+            name="Completes"
           />
         </dl>
       </div>
@@ -119,7 +119,10 @@ function EstimatedTime({estimated, job, known, name}) {
       format={
         (value) => value === unknown_estimate ?
           <em>{value}</em> :
-          <TimeAgo date={value} />
+          <>
+            <TimeAgo date={value} />
+            <Badge className="ml-1" color="warning" pill>Estimated</Badge>
+          </>
       }
       hide={known != null}
       name={name}
