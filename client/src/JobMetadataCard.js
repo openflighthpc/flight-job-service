@@ -9,7 +9,7 @@ import { stateColourMap } from './utils';
 function endTimeNameFromState(state) {
   if (state === 'CANCELLED') {
     return 'Cancelled';
-  } else if (state === 'FAILED' || state === 'TERMINATED') {
+  } else if (state === 'FAILED') {
     return 'Failed';
   } else {
     return 'Completed';
@@ -84,15 +84,50 @@ function JobMetadataCard({ job }) {
             name="Started"
             value={job.attributes.startTime}
           />
+          <EstimatedTime
+            job={job}
+            estimated={job.attributes.estimatedStartTime}
+            known={job.attributes.startTime}
+            name="Starts"
+          />
           <MetadataEntry
             format={(value) => <TimeAgo date={value} />}
             hideWhenNull
             name={endTimeNameFromState(jobState)}
             value={job.attributes.endTime}
           />
+          <EstimatedTime
+            estimated={job.attributes.estimatedEndTime}
+            job={job}
+            known={job.attributes.endTime}
+            name="Completes"
+          />
         </dl>
       </div>
     </div>
+  );
+}
+
+function EstimatedTime({estimated, job, known, name}) {
+  let unknown_estimate = "currently unknown";
+  if (job.attributes.state === 'FAILED' || job.attributes.state === 'UNKNOWN') {
+    unknown_estimate = 'N/A';
+  }
+
+  return (
+    <MetadataEntry
+      format={
+        (value) => value === unknown_estimate ?
+          <em>{value}</em> :
+          <>
+            <TimeAgo date={value} />
+            <Badge className="ml-1" color="warning" pill>Estimated</Badge>
+          </>
+      }
+      hide={known != null}
+      name={name}
+      value={estimated == null ? unknown_estimate : estimated}
+    />
   );
 }
 

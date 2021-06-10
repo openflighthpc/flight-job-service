@@ -29,11 +29,14 @@
 class JobSerializer < ApplicationSerializer
   [
     'created_at', 'stdout_path', 'stderr_path', 'state', 'reason',
-    'start_time', 'end_time', 'scheduler_id', 'submit_stdout', 'submit_stderr',
-    'results_dir', 'submit_status'
+    'scheduler_id', 'submit_stdout', 'submit_stderr',
+    'estimated_start_time', 'estimated_end_time', 'results_dir', 'submit_status'
   ].each do |field|
     attribute(field) { object.metadata[field] }
   end
+
+  attribute(:start_time) { object.metadata['actual_start_time'] }
+  attribute(:end_time) { object.metadata['actual_end_time'] }
 
   attribute(:merged_stderr) do
     paths = object.metadata.slice('stdout_path', 'stderr_path').values.uniq

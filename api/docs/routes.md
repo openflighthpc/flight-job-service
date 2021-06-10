@@ -564,8 +564,10 @@ Content-Type: application/vnd.api+json
       "stderrPath": STRING,     # RECOMMENDED - The path where the job's STDERR was redirected
       "state": STRING,          # REQUIRED - The current point in the job's life cycle
       "reason": STRING,         # OPTIONAL - Additional information about the state
-      "startTime": DATETIME,    # OPTIONAL - The actual (or predicted) time the job started running
-      "endTime": DATETIME,      # OPTIONAL - The actual (or predicted) time the job will finish running
+      "startTime": DATETIME,    # OPTIONAL - The actual time the job started running
+      "endTime": DATETIME,      # OPTIONAL - The actual time the job finished running
+      "estimatedStartTime": DATETIME, # OPTIONAL - The predicted time the job will start running
+      "estimatedEndTime": DATETIME,   # OPTIONAL - The predicted time the job will finish running
       "submitStdout": STRING,   # RECOMMENDED - The standard output of the underlining scheduler command
       "submitStderr": STRING,   # RECOMMENDED - The standard error of the underlining scheduler command
       "resultsDir": STRING,     # RECOMMENDED - The directory that will store the results files (excluding STDOUT/STDERR)

@@ -2,8 +2,8 @@ import classNames from 'classnames';
 
 import styles from './index.module.css';
 
-function MetadataEntry({ format, hideWhenNull=false, name, value, valueTitle="raw" }) {
-  if (hideWhenNull && value == null) {
+function MetadataEntry({ format, hide=false, hideWhenNull=false, name, value, valueTitle="raw" }) {
+  if (hide || (hideWhenNull && value == null)) {
     return null;
   }
   const formatted = typeof format === "function" ? format(value) : value;
