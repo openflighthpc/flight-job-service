@@ -69,6 +69,9 @@ class Script
 
     # Flag that the template has not been loaded
     @template = false
+
+    # Cache the related resources
+    cache_related_resources
   end
 
   def id
@@ -97,5 +100,13 @@ class Script
 
   def find_note
     ScriptNote.find(id, user: user)
+  end
+
+  private
+
+  def cache_related_resources
+    if template_data = metadata['template']
+      Template.cache(**template_data)
+    end
   end
 end

@@ -158,8 +158,7 @@ class App < Sinatra::Base
     end
 
     index do
-      Template.index(user: current_user) if includes?('template')
-      Script.index(user: current_user)
+      Script.index(user: current_user, include: include_string)
     end
 
     show
