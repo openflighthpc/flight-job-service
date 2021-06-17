@@ -240,8 +240,14 @@ module FlightJobScriptAPI
         # Get the exitstatus and prevent a busy loop
         unless exitstatus
           begin
-            _, status = Timeout.timeout(step) { Process.wait2(pid) }
-            self.exitstatus = process_status(status)
+            _, status = Timeout.timeout(step) do
+              begin
+                Process.wait2(pid)
+              rescue Errno::ECHILD, Errno::ESRCH
+                # NOOP - See kill below
+              end
+            end
+            self.exitstatus = process_status(status) if status
           rescue Timeout::Error
             # NOOP
           end
@@ -256,7 +262,16 @@ module FlightJobScriptAPI
           now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           if now - start > FlightJobScriptAPI.config.command_timeout
             FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
-            Process.kill(-Signal.list[signal], pid)
+            begin
+              Process.kill(-Signal.list[signal], pid)
+            rescue Errno::ECHILD, Errno::ESRCH
+              # Rapidly starting SystemCommands may cause the fork to fail
+              FlightJobScriptAPI.logger.error(<<~ERROR.chomp)
+                Failed to start/locate process: #{pid}
+              ERROR
+              self.exitstatus = 128
+              return
+            end
             signal = 'KILL'
             start = now
           end
