@@ -130,8 +130,9 @@ module FlightJobScriptAPI
       end
     end
 
-    attr_reader :cmd, :user, :mutex, :stdin, :env, :stdout, :stderr
-    attr_accessor :exitstatus
+    attr_reader :cmd, :user, :mutex, :stdin, :env, :stdout, :stderr,
+      :out_read, :out_write, :err_read, :err_write, :in_read, :in_write
+    attr_accessor :exitstatus, :pid
 
     def initialize(*cmd, user:, mutex: nil, stdin: nil, env: {})
       @stdout = ""
@@ -149,18 +150,12 @@ module FlightJobScriptAPI
     end
 
     def run(&block)
-      # Establish pipes for stdout/stderr
-      # NOTE: Must be first due to the ensure block
-      out_read, out_write = IO.pipe
-      err_read, err_write = IO.pipe
-      in_read,  in_write  = IO.pipe
-
-      mutex.synchronize do
+      with_pipes_and_mutex do
         # Write the standard input if required
         in_write.write(stdin) if stdin
 
         FlightJobScriptAPI.logger.debug("Forking Process")
-        pid = Kernel.fork do
+        self.pid = Kernel.fork do
           # Log the command has been forked
           FlightJobScriptAPI.logger.debug("Forked Command (#{user}): #{stringified_cmd}")
 
@@ -194,105 +189,123 @@ module FlightJobScriptAPI
           end
         end
 
-        # Close the child pipes
-        out_write.close
-        err_write.close
-        in_read.close
-
-        # Various control variables
-        signal = 'TERM'
-        loop_stdout = true
-        loop_stderr = true
-        first = true
-        start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
-        # Incrementally read the buffers until the command finishes/timesout
-        FlightJobScriptAPI.logger.info("Waiting for pid: #{pid}")
-        while loop_stdout && loop_stderr && !exitstatus
-          # Prevent a busy loop
-          if first
-            first = false
-          else
-            sleep FlightJobScriptAPI.config.command_timeout_step
-          end
-
-          # Read data from the stdout buffer
-          if loop_stdout
-            begin
-              loop { self.stdout << out_read.read_nonblock(1024) }
-            rescue *NON_BLOCKING_ERRORS
-              # NOOP
-            rescue EOFError
-              loop_stdout = false
-            end
-          end
-
-          # Read data from the stderr buffer
-          if loop_stderr
-            begin
-              loop { self.stderr << err_read.read_nonblock(1024) }
-            rescue *NON_BLOCKING_ERRORS
-              # NOOP
-            rescue EOFError
-              loop_stderr = false
-            end
-          end
-
-          unless exitstatus
-            # Kill the process after a timeout
-            now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-            if now - start > FlightJobScriptAPI.config.command_timeout
-              FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
-              Process.kill(-Signal.list[signal], pid)
-              signal = 'KILL'
-              start = now
-            end
-
-            # Attempt to get the status
-            if Process.wait(pid, Process::WNOHANG)
-              status = $?
-              if status.exitstatus
-                self.exitstatus = status.exitstatus
-              elsif status.signaled?
-                FlightJobScriptAPI.logger.warn <<~WARN.chomp
-                  Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{pid})
-                WARN
-                self.exitstatus = status.termsig + 128
-              else
-                FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
-                self.exitstatus = 128
-              end
-            end
-          end
-        end
-
-        FlightJobScriptAPI.logger.debug <<~DEBUG
-
-          COMMAND: #{cmd.join(' ')}
-          USER: #{user}
-          PID: #{pid}
-          STATUS: #{exitstatus}
-          STDIN:
-          #{stdin.to_s}
-          STDOUT:
-          #{stdout}
-          STDERR:
-          #{stderr}
-        DEBUG
+        wait_for_command
+        log_command
       end
-    ensure
-      out_read.close unless out_read.closed?
-      out_write.close unless out_write.closed?
-      err_read.close unless err_read.closed?
-      err_write.close unless err_write.closed?
-      in_read.close unless in_read.closed?
-      in_write.close unless in_write.closed?
     end
 
     private
 
     def passwd
       @passwd ||= Etc.getpwnam(user)
+    end
+
+    def with_pipes_and_mutex
+      mutex.synchronize do
+        begin
+          # Create the pipes
+          @out_read,  @out_write = IO.pipe
+          @err_read,  @err_write = IO.pipe
+          @in_read,   @in_write  = IO.pipe
+
+          # Yield control
+          yield if block_given?
+
+        ensure
+          # Close the pipes
+          out_read.close  if out_read   && !out_read.closed?
+          out_write.close if out_write  && !out_write.closed?
+          err_read.close  if err_read   && !err_read.closed?
+          err_write.close if err_write  && !err_write.closed?
+          in_read.close   if in_read    && !in_read.closed?
+          in_write.close  if in_write   && !in_write.closed?
+        end
+      end
+    end
+
+    def wait_for_command
+      # Close the child pipes
+      out_write.close
+      err_write.close
+      in_read.close
+
+      # Various control variables
+      signal = 'TERM'
+      loop_stdout = true
+      loop_stderr = true
+      first = true
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      step = FlightJobScriptAPI.config.command_timeout / 1000.to_f
+
+      # Incrementally read the buffers until the command finishes/timesout
+      FlightJobScriptAPI.logger.info("Waiting for pid: #{pid}")
+      while loop_stdout && loop_stderr && !exitstatus
+        # Prevent a busy loop
+        first ? first = false : sleep(step)
+
+        # Read the data from stdout/stderr
+        loop_stdout = read_io(out_read, self.stdout) if loop_stdout
+        loop_stderr = read_io(err_read, self.stderr) if loop_stderr
+
+        unless exitstatus
+          # Kill the process after a timeout
+          now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          if now - start > FlightJobScriptAPI.config.command_timeout
+            FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
+            Process.kill(-Signal.list[signal], pid)
+            signal = 'KILL'
+            start = now
+          end
+
+          # Attempt to get the status
+          self.exitstatus = process_status($?) if Process.wait(pid, Process::WNOHANG)
+        end
+      end
+    end
+
+    def process_status(status)
+      if status.exitstatus
+        status.exitstatus
+      elsif status.signaled?
+        FlightJobScriptAPI.logger.warn <<~WARN.chomp
+          Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{pid})
+        WARN
+        status.termsig + 128
+      else
+        FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
+        128
+      end
+    end
+
+    def read_io(io, buffer)
+      begin
+        loop { buffer << io.read_nonblock(1024) }
+      rescue *NON_BLOCKING_ERRORS
+        # There *may* be more data
+        return true
+      rescue EOFError
+        # There will not be more data
+        return false
+      end
+    end
+
+    def log_command
+      FlightJobScriptAPI.logger.info <<~INFO.chomp
+
+        COMMAND: #{stringified_cmd}
+        USER: #{user}
+        PID: #{pid}
+        STATUS: #{exitstatus}
+      INFO
+      FlightJobScriptAPI.logger.debug <<~DEBUG
+
+        STDIN:
+        #{stdin.to_s}
+        STDOUT:
+        #{stdout}
+        STDERR:
+        #{stderr}
+      DEBUG
     end
 
     def stringified_cmd

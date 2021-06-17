@@ -85,9 +85,5 @@ module FlightJobScriptAPI
     def auth_decoder
       @auth_decoder ||= FlightAuth::Builder.new(shared_secret_path)
     end
-
-    def command_timeout_step
-      @command_timeout_step ||= command_timeout / 1000.to_f
-    end
   end
 end
