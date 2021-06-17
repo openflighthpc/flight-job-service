@@ -153,7 +153,7 @@ class App < Sinatra::Base
   resource :scripts, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Script.find!(id, user: current_user)
+        Script.find!(id, user: current_user, include: include_string)
       end
     end
 
