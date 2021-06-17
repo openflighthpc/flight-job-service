@@ -159,8 +159,7 @@ module FlightJobScriptAPI
         FlightJobScriptAPI.logger.debug("Forking Process")
         pid = Kernel.fork do
           # Log the command has been forked
-          log_cmd = (cmd.first == :noop ? cmd[1..-1] : cmd).join(' ')
-          FlightJobScriptAPI.logger.info("Forked Command (#{user}): #{log_cmd}")
+          FlightJobScriptAPI.logger.debug("Forked Command (#{user}): #{stringified_cmd}")
 
           # Close the parent pipes
           out_read.close
@@ -187,7 +186,7 @@ module FlightJobScriptAPI
               out: out_write, err: err_write, in: in_read
             }
             # NOTE: Keep the log before the exec for timing purposes
-            FlightJobScriptAPI.logger.info("Executing (#{user}): #{cmd.join(' ')}")
+            FlightJobScriptAPI.logger.debug("Executing (#{user}): #{stringified_cmd}")
             Kernel.exec(env, *cmd, **opts)
           end
         end
@@ -256,6 +255,11 @@ module FlightJobScriptAPI
 
     def passwd
       @passwd ||= Etc.getpwnam(user)
+    end
+
+    def stringified_cmd
+      @stringified_cmd ||= (cmd.first == :noop ? cmd[1..-1] : cmd)
+        .map { |s| s.empty? ? '""' : s }.join(' ')
     end
   end
 end
