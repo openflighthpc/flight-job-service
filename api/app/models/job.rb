@@ -67,6 +67,8 @@ class Job
 
     # Flag that the script has not been loaded
     @script = false
+
+    cache_related_resources
   end
 
   def id
@@ -122,5 +124,13 @@ class Job
 
   def find_stderr_file
     JobFile.find("#{id}.stderr", user: user)
+  end
+
+  private
+
+  def cache_related_resources
+    if script_data = metadata['script']
+      Script.cache(user: user, **script_data)
+    end
   end
 end

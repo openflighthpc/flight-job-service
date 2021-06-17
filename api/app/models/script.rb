@@ -55,6 +55,10 @@ class Script
 
       new(user: opts[:user], **cmd.stdout)
     end
+
+    def cache(**options)
+      new(**options)
+    end
   end
 
   attr_reader :metadata, :user

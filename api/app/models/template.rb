@@ -47,7 +47,7 @@ class Template
     end
 
     def find!(id, **opts)
-      # The underlying CLI has supports non-deterministic indexing of templates
+      # The underlying CLI supports non-deterministic indexing of templates
       # This "okay" in the CLI but makes the API unnecessarily complicated
       # Instead, all "ids" which match an integer will be ignored
       # NOTE: This means templates which are named after an integer may be indexed

@@ -77,6 +77,10 @@ class App < Sinatra::Base
     def includes?(resource_name)
       ( params['include'] || [] ).include?(resource_name)
     end
+
+    def include_param
+      params.fetch('include', '')
+    end
   end
 
   configure_jsonapi do |c|
@@ -197,7 +201,7 @@ class App < Sinatra::Base
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Job.find!(id, user: current_user)
+        Job.find!(id, user: current_user, include: include_param)
       end
 
       def validate!
