@@ -234,8 +234,18 @@ class App < Sinatra::Base
     end
 
     has_one :script do
+      helpers do
+        # XXX: The 'serialize_linkage' method gets called on sideloads before its
+        # result is discarded. However it is in-inadvertently triggering a SystemCommand
+        def serialize_linkage(**_)
+          return {} if @action == :create
+          super
+        end
+      end
+
       graft(sideload_on: :create) do |rio|
         raise Sinja::ForbiddenError, "A job's script can not be modified" unless @action == :create
+
         resource.script_id = rio[:id]
       end
     end
