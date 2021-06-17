@@ -78,8 +78,15 @@ class App < Sinatra::Base
       ( params['include'] || [] ).include?(resource_name)
     end
 
-    def include_param
-      params.fetch('include', '')
+    def include_string
+      case params.fetch('include')
+      when String
+        params.fetch('include')
+      when Array
+        params.fetch('include').join(',')
+      else
+        ''
+      end
     end
   end
 
@@ -201,7 +208,7 @@ class App < Sinatra::Base
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Job.find!(id, user: current_user, include: include_param)
+        Job.find!(id, user: current_user, include: include_string)
       end
 
       def validate!
@@ -214,8 +221,7 @@ class App < Sinatra::Base
     end
 
     index do
-      Script.index(user: current_user) if includes?('script')
-      Job.index(user: current_user)
+      Job.index(user: current_user, include: include_string)
     end
 
     show
