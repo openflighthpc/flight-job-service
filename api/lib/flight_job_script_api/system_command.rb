@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
 #
@@ -33,6 +32,8 @@ module FlightJobScriptAPI
   class CommandError < Sinja::ServiceUnavailable; end
 
   class SystemCommand
+    NON_BLOCKING_ERRORS = [Errno::EWOULDBLOCK, Errno::EINTR, Errno::EAGAIN, IO::WaitReadable]
+
     # Used to ensure each user is only running a single command at at time
     # NOTE: These objects will be indefinitely cached in memory until the server
     #       is restarted. This may constitute a memory leak if an indefinite
@@ -129,10 +130,12 @@ module FlightJobScriptAPI
       end
     end
 
-    attr_reader :cmd, :user, :mutex, :stdin, :env
-    attr_accessor :stdout, :stderr, :exitstatus
+    attr_reader :cmd, :user, :mutex, :stdin, :env, :stdout, :stderr
+    attr_accessor :exitstatus
 
     def initialize(*cmd, user:, mutex: nil, stdin: nil, env: {})
+      @stdout = ""
+      @stderr = ""
       @cmd = cmd
       @user = user
       @stdin = stdin
@@ -196,37 +199,72 @@ module FlightJobScriptAPI
         err_write.close
         in_read.close
 
-        # Wait for the command to finish within the timelimit
+        # Various control variables
         signal = 'TERM'
-        begin
-          FlightJobScriptAPI.logger.debug("Waiting for pid: #{pid}")
-          _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
-            Process.wait2(pid)
+        loop_stdout = true
+        loop_stderr = true
+        first = true
+        start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+        # Incrementally read the buffers until the command finishes/timesout
+        FlightJobScriptAPI.logger.info("Waiting for pid: #{pid}")
+        while loop_stdout && loop_stderr && !exitstatus
+          # Prevent a busy loop
+          if first
+            first = false
+          else
+            sleep FlightJobScriptAPI.config.command_timeout_step
           end
-        rescue Timeout::Error
-          FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
-          Process.kill(-Signal.list[signal], pid)
-          signal = 'KILL'
-          retry
+
+          # Read data from the stdout buffer
+          if loop_stdout
+            begin
+              loop { self.stdout << out_read.read_nonblock(1024) }
+            rescue *NON_BLOCKING_ERRORS
+              # NOOP
+            rescue EOFError
+              loop_stdout = false
+            end
+          end
+
+          # Read data from the stderr buffer
+          if loop_stderr
+            begin
+              loop { self.stderr << err_read.read_nonblock(1024) }
+            rescue *NON_BLOCKING_ERRORS
+              # NOOP
+            rescue EOFError
+              loop_stderr = false
+            end
+          end
+
+          unless exitstatus
+            # Kill the process after a timeout
+            now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            if now - start > FlightJobScriptAPI.config.command_timeout
+              FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
+              Process.kill(-Signal.list[signal], pid)
+              signal = 'KILL'
+              start = now
+            end
+
+            # Attempt to get the status
+            if Process.wait(pid, Process::WNOHANG)
+              status = $?
+              if status.exitstatus
+                self.exitstatus = status.exitstatus
+              elsif status.signaled?
+                FlightJobScriptAPI.logger.warn <<~WARN.chomp
+                  Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{pid})
+                WARN
+                self.exitstatus = status.termsig + 128
+              else
+                FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
+                self.exitstatus = 128
+              end
+            end
+          end
         end
-
-        # Store the results
-        if status.exitstatus
-          self.exitstatus = status.exitstatus
-
-        # The exit status from signals aren't always set, instead they can be inferred
-        elsif status.signaled?
-          FlightJobScriptAPI.logger.warn "Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{pid})"
-          self.exitstatus = status.termsig + 128
-
-        # If all else fails, say 128
-        else
-          FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
-          self.exitstatus = 128
-        end
-
-        self.stdout = out_read.read
-        self.stderr = err_read.read
 
         FlightJobScriptAPI.logger.debug <<~DEBUG
 

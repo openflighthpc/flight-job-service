@@ -67,7 +67,8 @@ module FlightJobScriptAPI
       {
         name: 'command_timeout',
         env_var: true,
-        default: 5
+        default: 5,
+        transform: :to_f
       },
       {
         name: 'log_level',
@@ -83,6 +84,10 @@ module FlightJobScriptAPI
 
     def auth_decoder
       @auth_decoder ||= FlightAuth::Builder.new(shared_secret_path)
+    end
+
+    def command_timeout_step
+      @command_timeout_step ||= command_timeout / 1000.to_f
     end
   end
 end
