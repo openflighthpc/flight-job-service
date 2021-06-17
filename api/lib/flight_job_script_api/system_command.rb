@@ -32,8 +32,6 @@ module FlightJobScriptAPI
   class CommandError < Sinja::ServiceUnavailable; end
 
   class SystemCommand
-    NON_BLOCKING_ERRORS = [Errno::EWOULDBLOCK, Errno::EINTR, Errno::EAGAIN, IO::WaitReadable]
-
     # Used to ensure each user is only running a single command at at time
     # NOTE: These objects will be indefinitely cached in memory until the server
     #       is restarted. This may constitute a memory leak if an indefinite
@@ -233,22 +231,28 @@ module FlightJobScriptAPI
       signal = 'TERM'
       loop_stdout = true
       loop_stderr = true
-      first = true
       start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       step = FlightJobScriptAPI.config.command_timeout / 1000.to_f
 
       # Incrementally read the buffers until the command finishes/timesout
       FlightJobScriptAPI.logger.info("Waiting for pid: #{pid}")
-      while loop_stdout && loop_stderr && !exitstatus
-        # Prevent a busy loop
-        first ? first = false : sleep(step)
+      while loop_stdout || loop_stderr || !exitstatus
+        # Get the exitstatus and prevent a busy loop
+        unless exitstatus
+          begin
+            _, status = Timeout.timeout(step) { Process.wait2(pid) }
+            self.exitstatus = process_status(status)
+          rescue Timeout::Error
+            # NOOP
+          end
+        end
 
         # Read the data from stdout/stderr
         loop_stdout = read_io(out_read, self.stdout) if loop_stdout
         loop_stderr = read_io(err_read, self.stderr) if loop_stderr
 
+        # Kill the process after a timeout
         unless exitstatus
-          # Kill the process after a timeout
           now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           if now - start > FlightJobScriptAPI.config.command_timeout
             FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
@@ -256,9 +260,6 @@ module FlightJobScriptAPI
             signal = 'KILL'
             start = now
           end
-
-          # Attempt to get the status
-          self.exitstatus = process_status($?) if Process.wait(pid, Process::WNOHANG)
         end
       end
     end
@@ -280,7 +281,7 @@ module FlightJobScriptAPI
     def read_io(io, buffer)
       begin
         loop { buffer << io.read_nonblock(1024) }
-      rescue *NON_BLOCKING_ERRORS
+      rescue Errno::EWOULDBLOCK, Errno::EINTR, Errno::EAGAIN, IO::WaitReadable
         # There *may* be more data
         return true
       rescue EOFError
