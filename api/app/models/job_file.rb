@@ -76,8 +76,7 @@ class JobFile
     def find!(id, **opts)
       job_id, file_id = id.split('.', 2)
       new(job_id, file_id, user: opts[:user]).tap do |job_file|
-        # NOTE: Intentionally cache 'false' if the file doesn't exist
-        return false unless job_file.exists?
+        return nil unless job_file.exists?
       end
     end
 
