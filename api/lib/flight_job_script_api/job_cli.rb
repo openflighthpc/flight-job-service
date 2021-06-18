@@ -135,20 +135,6 @@ module FlightJobScriptAPI
         new(*flight_job, 'view-job-results', job_id, filename, **opts).run
       end
 
-      def recursive_glob_dir(dir, **opts)
-        sys = new(:noop, 'recursively glob directory', **opts)
-        sys.run do |stdout, stderr|
-          exit 20 unless Dir.exists?(dir)
-          json = Dir.glob(File.join(dir, '**/*'))
-            .map { |p| Pathname.new(p) }
-            .reject(&:directory?)
-            .reject(&:symlink?)
-            .select(&:readable?) # XXX: Non-readable files would be an odd occurrence
-            .map { |p| { file: p.to_s, size: p.size } }
-          stdout.puts(JSON.generate(json))
-        end
-      end
-
       private
 
       def flight_job
@@ -178,7 +164,7 @@ module FlightJobScriptAPI
             timeout: FlightJobScriptAPI.config.command_timeout,
             username: @user,
           )
-          sp.run(@cmd.first == :noop ? nil : @cmd, @stdin, &block)
+          sp.run(@cmd, @stdin, &block)
         end
       parse_result(result)
       log_command(result)
@@ -204,7 +190,7 @@ module FlightJobScriptAPI
     end
 
     def expect_json_response?
-      @cmd.first != :noop && @cmd.any? {|i| i.strip == '--json'}
+      @cmd.any? {|i| i.strip == '--json'}
     end
 
     def log_command(result)
@@ -225,7 +211,7 @@ module FlightJobScriptAPI
     end
 
     def stringified_cmd
-      @stringified_cmd ||= (@cmd.first == :noop ? @cmd[1..-1] : @cmd)
+      @stringified_cmd ||= @cmd
         .map { |s| s.empty? ? '""' : s }.join(' ')
     end
   end

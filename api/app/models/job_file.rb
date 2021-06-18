@@ -36,30 +36,34 @@ class JobFile
       Base64.urlsafe_encode64 Pathname.new(file_path).relative_path_from(results_dir).to_s
     end
 
+    # NOTE: There is a bit of back and forth between Job and JobFile here
+    #       This is due to how the 'includes' was retrofitted over the original implementation
+    #       Consider refactoring
     def index_job_results!(job_id, user:)
-      # Load up the job
-      job = Job.find!(job_id, user: user)
-      return nil unless job
-      return nil unless job.metadata['results_dir']
-      results_dir = job.metadata['results_dir']
+      # Attempt to load the cached version of Job
+      job = Job.find!(job_id, user: user, include: ['result_files'])
 
-      # Find the relevant files
-      cmd = FlightJobScriptAPI::JobCLI.recursive_glob_dir(results_dir, user: user)
-
-      # Return empty array if the results directory is missing
-      return [] if cmd.exitstatus == 20
-
-      # Error if the system command otherwise failed
-      unless cmd.exitstatus == 0
-        raise FlightJobScriptAPI::CommandError, "Failed to load the result files for job: #{job_id}"
+      # NOTE: If the Job is pre-cached, it must be loaded with --include result_files
+      # This *should* already be the case due to the 'includes' mechanism
+      # Revisit if required
+      unless job.metadata.key? 'result_files'
+        FlightJobScriptAPI.logger.error <<~ERROR.chomp
+          The job '#{job_id}' was unexpectedly loaded without its results_files
+        ERROR
+        raise FlightJobScriptAPI::CommandError, "Failed to load the results files for job: #{job_id}"
       end
 
-      # Construct the files
-      JSON.parse(cmd.stdout).map do |payload|
-        file = payload['file']
-        size = payload['size']
-        file_id = generate_file_id(results_dir, file)
-        JobFile.new(job.id, file_id, user: user, size: size)
+      # Fetch the pre-cached files
+      # NOTE: 'result_files' maybe nil if results_dir was missing OR not reported
+      #       The exact API specification is "unclear" for these situations
+      #
+      #       It's being typed-casted to an array here for consistency. Possible the
+      #       serializer is the best place to enforce the spec?
+      (job.metadata['result_files'] || []).map do |data|
+        # NOTE: 'results_dir' must be set otherwise the files would be empty
+        file_id = generate_file_id(job.metadata['results_dir'], data['file'])
+        id = "#{job.id}.#{file_id}"
+        find!(id, user: user)
       end
     end
 
