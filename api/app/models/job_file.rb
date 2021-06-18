@@ -32,6 +32,10 @@ class JobFile
   class << self
     prepend FlightJobScriptAPI::ModelCache
 
+    def generate_file_id(results_dir, file_path)
+      Base64.urlsafe_encode64 Pathname.new(file_path).relative_path_from(results_dir).to_s
+    end
+
     def index_job_results!(job_id, user:)
       # Load up the job
       job = Job.find!(job_id, user: user)
@@ -54,7 +58,7 @@ class JobFile
       JSON.parse(cmd.stdout).map do |payload|
         file = payload['file']
         size = payload['size']
-        file_id = Base64.urlsafe_encode64 Pathname.new(file).relative_path_from(results_dir).to_s
+        file_id = generate_file_id(results_dir, file)
         JobFile.new(job.id, file_id, user: user, size: size)
       end
     end

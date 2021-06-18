@@ -43,14 +43,16 @@ module FlightJobScriptAPI::ModelCache
     end
   end
 
-  def cache(**opts)
-    id = opts['id']
+  def cache(*args, **opts)
+    model = new(*args, **opts)
+    id = model.id
     if record = get_from_cache(id)
       # NOTE: Records are not re-cached as it may cause duplicate resources
       # when loading many-to-one relationships
       record
     else
-      super.tap { |r| set_in_cache(id, r) }
+      set_in_cache(id, model)
+      model
     end
   end
 

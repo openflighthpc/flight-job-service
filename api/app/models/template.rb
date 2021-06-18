@@ -63,10 +63,6 @@ class Template
 
       new(**cmd.stdout)
     end
-
-    def cache(**opts)
-      new(**opts)
-    end
   end
 
   attr_reader :metadata

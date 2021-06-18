@@ -57,10 +57,6 @@ class Job
 
       new(user: opts[:user], **cmd.stdout)
     end
-
-    def cache(**opts)
-      new(**opts)
-    end
   end
 
   attr_reader :metadata, :user
@@ -135,6 +131,15 @@ class Job
   def cache_related_resources
     if script_data = metadata['script']
       Script.cache(user: user, **script_data)
+    end
+
+    if files_data = metadata['result_files']
+      files_data.each do |opts|
+        file = opts['file']
+        size = opts['size']
+        file_id = JobFile.generate_file_id(metadata['results_dir'], file)
+        JobFile.cache(id, file_id, user: user, size: size)
+      end
     end
   end
 end
