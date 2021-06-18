@@ -123,18 +123,6 @@ module FlightJobScriptAPI
         new(*flight_job, 'submit-job', script_id, '--json', *includes, **opts).run
       end
 
-      def view_job_stdout(job_id, **opts)
-        new(*flight_job, 'view-job-stdout', job_id, **opts).run
-      end
-
-      def view_job_stderr(job_id, **opts)
-        new(*flight_job, 'view-job-stderr', job_id, **opts).run
-      end
-
-      def view_job_results(job_id, filename, **opts)
-        new(*flight_job, 'view-job-results', job_id, filename, **opts).run
-      end
-
       private
 
       def flight_job

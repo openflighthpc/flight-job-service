@@ -123,14 +123,7 @@ class JobFile
     payload # Attempts to load the payload
     true
   rescue FlightJobScriptAPI::CommandError
-    # The file does not exists due to a bad name
-    return false unless payload_command
-
-    # The file or job legitimately does not exist
-    return false if [20, 23].include? payload_command.exitstatus
-
-    # Something else has gone wrong, re-raise the error
-    raise $!
+    return false
   end
 
   def find_job
@@ -179,18 +172,24 @@ class JobFile
     @path ? File.basename(path) : nil
   end
 
-  # Intentionally raises CommandError if the command exited NotFound (codes 20/23).
+  # Intentionally raises CommandError if the file is not loadable.
   # This is because a JobFile may be cached based on the result of a list
   # command which did not load the payload.
   #
   # As these models are already cached, the *should* exist. Thus a 50X server error
   # is more appropriate than 404.
   def payload
-    if payload_command && payload_command.exitstatus == 0
-      payload_command.stdout
-    else
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to load file: #{id}"
+    return @payload if @payload
+
+    if !path || !File.exists?(path)
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to read file: #{id}"
     end
+
+    unless is_readable?(path)
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to read file: #{id}"
+    end
+
+    @payload = File.read path
   end
 
   protected
@@ -199,18 +198,20 @@ class JobFile
     filename <=> other.filename
   end
 
-  private
-
-  def payload_command
-    return @payload_command unless @payload_command.nil?
-    @payload_command = if @file_id == 'stdout'
-      FlightJobScriptAPI::JobCLI.view_job_stdout(@job_id, user: @user)
-    elsif @file_id == 'stderr'
-      FlightJobScriptAPI::JobCLI.view_job_stderr(@job_id, user: @user)
-    elsif decoded_file_id
-      FlightJobScriptAPI::JobCLI.view_job_results(@job_id, decoded_file_id, user: @user)
-    else
-      false
+  # Confirm the user has permission to access the file.
+  #
+  # We directly check the file permissions here to avoid launching a new
+  # `flight job` command
+  def is_readable?(path, **opts)
+    sp = Subprocess.new(
+      env: {},
+      logger: FlightJobScriptAPI.logger,
+      timeout: FlightJobScriptAPI.config.command_timeout,
+      username: @user,
+    )
+    result = sp.run(nil, nil) do
+      File.stat(path).readable? ? exit(0) : exit(1)
     end
+    result.exitstatus == 0
   end
 end

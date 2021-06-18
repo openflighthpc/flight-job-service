@@ -79,7 +79,7 @@ class App < Sinatra::Base
     end
 
     def include_string
-      case params.fetch('include')
+      case params.fetch('include', nil)
       when String
         params.fetch('include').underscore
       when Array
