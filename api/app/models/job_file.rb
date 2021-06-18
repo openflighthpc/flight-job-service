@@ -76,7 +76,8 @@ class JobFile
     def find!(id, **opts)
       job_id, file_id = id.split('.', 2)
       new(job_id, file_id, user: opts[:user]).tap do |job_file|
-        return nil unless job_file.exists?
+        # NOTE: Intentionally cache 'false' if the file doesn't exist
+        return false unless job_file.exists?
       end
     end
 
@@ -119,11 +120,14 @@ class JobFile
     @size ||= payload.length
   end
 
+  # Checks the file exists and the user has permission to access it
   def exists?
-    payload # Attempts to load the payload
-    true
-  rescue FlightJobScriptAPI::CommandError
-    return false
+    return @exists unless @exists.nil?
+    return @exists = false unless path
+    return @exists = false unless File.exists?(path)
+    # NOTE: The permission check prevents malicious user's querying the
+    # filesystem.
+    @exists = is_readable?(id, path)
   end
 
   def find_job
@@ -181,14 +185,9 @@ class JobFile
   def payload
     return @payload if @payload
 
-    if !path || !File.exists?(path)
+    unless exists?
       raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to read file: #{id}"
     end
-
-    unless is_readable?(path)
-      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to read file: #{id}"
-    end
-
     @payload = File.read path
   end
 
@@ -202,7 +201,7 @@ class JobFile
   #
   # We directly check the file permissions here to avoid launching a new
   # `flight job` command
-  def is_readable?(path, **opts)
+  def is_readable?(id, path)
     sp = Subprocess.new(
       env: {},
       logger: FlightJobScriptAPI.logger,
@@ -210,8 +209,16 @@ class JobFile
       username: @user,
     )
     result = sp.run(nil, nil) do
-      File.stat(path).readable? ? exit(0) : exit(1)
+      File.stat(path).readable? ? exit(0) : exit(20)
     end
-    result.exitstatus == 0
+    case result.exitstatus
+    when 0
+      true
+    when 20
+      false
+    else
+      # We really shouldn't ever end up here.
+      raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to determine if the file exists: #{id}"
+    end
   end
 end
