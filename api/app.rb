@@ -207,7 +207,8 @@ class App < Sinatra::Base
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Job.find!(id, user: current_user, include: include_string)
+        j = Job.find!(id, user: current_user, include: include_string)
+        j ? j : nil
       end
 
       def validate!

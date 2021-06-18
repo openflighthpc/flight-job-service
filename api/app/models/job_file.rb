@@ -122,12 +122,11 @@ class JobFile
 
   # Checks the file exists and the user has permission to access it
   def exists?
-    return @exists unless @exists.nil?
-    return @exists = false unless path
-    return @exists = false unless File.exists?(path)
+    return false unless path
+    return false unless File.exists?(path)
     # NOTE: The permission check prevents malicious user's querying the
     # filesystem.
-    @exists = is_readable?(id, path)
+    is_readable?(id, path)
   end
 
   def find_job

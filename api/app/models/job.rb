@@ -141,5 +141,15 @@ class Job
         JobFile.cache(id, file_id, user: user, size: size)
       end
     end
+
+    # NOTE: This pre-populates the stdout/stderr files in the cache
+    # and bypasses the existence check on 'find'
+    if stdout_size = metadata['stdout_size']
+      JobFile.cache(id, 'stdout', user: user, size: stdout_size)
+    end
+
+    if stderr_size = metadata['stderr_size']
+      JobFile.cache(id, 'stderr', user: user, size: stderr_size)
+    end
   end
 end
