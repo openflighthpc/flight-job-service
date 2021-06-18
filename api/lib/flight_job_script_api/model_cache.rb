@@ -31,6 +31,7 @@ module FlightJobScriptAPI::ModelCache
     super.tap do |records|
       records.each do |record|
         set_in_cache(record.id, record)
+        record.cache_related_resources if record.respond_to?(:cache_related_resources)
       end
     end
   end
@@ -40,6 +41,7 @@ module FlightJobScriptAPI::ModelCache
     return record unless record.nil?
     super.tap do |record|
       set_in_cache(id, record) unless record.nil?
+      record.cache_related_resources if record.respond_to?(:cache_related_resources)
     end
   end
 
@@ -52,6 +54,7 @@ module FlightJobScriptAPI::ModelCache
       record
     else
       set_in_cache(id, model)
+      model.cache_related_resources if model.respond_to?(:cache_related_resources)
       model
     end
   end
