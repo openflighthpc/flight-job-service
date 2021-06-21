@@ -128,17 +128,15 @@ module FlightJobScriptAPI
       end
     end
 
-    attr_reader :cmd, :user, :mutex, :stdin, :env, :stdout, :stderr,
-      :out_read, :out_write, :err_read, :err_write, :in_read, :in_write
+    attr_reader :cmd, :user, :mutex, :stdin, :env, :stdout, :stderr
     attr_accessor :exitstatus, :pid
 
-    def initialize(*cmd, user:, mutex: nil, stdin: nil, env: {})
+    def initialize(*cmd, user:, stdin: nil, env: {})
       @stdout = ""
       @stderr = ""
       @cmd = cmd
       @user = user
       @stdin = stdin
-      @mutex = self.class.mutexes[user]
       @env ||= {
         'PATH' => FlightJobScriptAPI.app.config.command_path,
         'HOME' => passwd.dir,
@@ -148,7 +146,7 @@ module FlightJobScriptAPI
     end
 
     def run(&block)
-      with_pipes_and_mutex do
+      with_pipes_mutex_and_threads do
         # Write the standard input if required
         in_write.write(stdin) if stdin
 
@@ -158,9 +156,9 @@ module FlightJobScriptAPI
           FlightJobScriptAPI.logger.debug("Forked Command (#{user}): #{stringified_cmd}")
 
           # Close the parent pipes
-          out_read.close
-          err_read.close
-          in_write.close
+          @out_read.close
+          @err_read.close
+          @in_write.close
 
           # Become the user
           Process::Sys.setgid(passwd.gid)
@@ -169,8 +167,8 @@ module FlightJobScriptAPI
 
           # Allow the command to be modified after becoming the requested user
           # This is useful when trying to create a file with the correct file permissions
-          $stdout = out_write
-          $stderr = err_write
+          $stdout = @out_write
+          $stderr = @err_write
           block.call if block
 
           if cmd.first == :noop
@@ -179,7 +177,7 @@ module FlightJobScriptAPI
             # Execute the command
             opts = {
               unsetenv_others: true, close_others: true, chdir: passwd.dir,
-              out: out_write, err: err_write, in: in_read
+              out: @out_write, err: @err_write, in: @in_read
             }
             # NOTE: Keep the log before the exec for timing purposes
             FlightJobScriptAPI.logger.debug("Executing (#{user}): #{stringified_cmd}")
@@ -187,9 +185,15 @@ module FlightJobScriptAPI
           end
         end
 
-        wait_for_command
-        log_command
+        # Close the child pipes
+        @out_write.close
+        @err_write.close
+        @in_read.close
+
+        wait_for_status
       end
+
+      log_command
     end
 
     private
@@ -198,89 +202,79 @@ module FlightJobScriptAPI
       @passwd ||= Etc.getpwnam(user)
     end
 
-    def with_pipes_and_mutex
-      mutex.synchronize do
+    def with_pipes_mutex_and_threads
+      self.class.mutexes[user].synchronize do
         begin
+          # Flag the start time
+          start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
           # Create the pipes
           @out_read,  @out_write = IO.pipe
           @err_read,  @err_write = IO.pipe
           @in_read,   @in_write  = IO.pipe
 
+          # Start the thread
+          @threads = [[@out_read, self.stdout], [@err_read, self.stderr]].map do |io, buffer|
+            Thread.new do
+              begin
+                loop { buffer << io.readpartial(1024) }
+              rescue IOError
+                # NOOP - Both EOF and IO closed errors need to be caught
+              end
+            end
+          end
+
           # Yield control
           yield if block_given?
 
         ensure
-          # Close the pipes
-          out_read.close  if out_read   && !out_read.closed?
-          out_write.close if out_write  && !out_write.closed?
-          err_read.close  if err_read   && !err_read.closed?
-          err_write.close if err_write  && !err_write.closed?
-          in_read.close   if in_read    && !in_read.closed?
-          in_write.close  if in_write   && !in_write.closed?
-        end
-      end
-    end
-
-    def wait_for_command
-      # Close the child pipes
-      out_write.close
-      err_write.close
-      in_read.close
-
-      # Various control variables
-      signal = 'TERM'
-      loop_stdout = true
-      loop_stderr = true
-      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      step = FlightJobScriptAPI.config.command_timeout / 1000.to_f
-
-      # Incrementally read the buffers until the command finishes/timesout
-      FlightJobScriptAPI.logger.info("Waiting for pid: #{pid}")
-      while loop_stdout || loop_stderr || !exitstatus
-        # Get the exitstatus and prevent a busy loop
-        unless exitstatus
-          begin
-            _, status = Timeout.timeout(step) do
-              begin
-                Process.wait2(pid)
-              rescue Errno::ECHILD, Errno::ESRCH
-                # NOOP - See kill below
-              end
-            end
-            self.exitstatus = process_status(status) if status
-          rescue Timeout::Error
-            # NOOP
+          # Confirm the threads have naturally finished
+          if @threads.any?(&:alive?)
+            FlightJobScriptAPI.logger.error <<~ERROR.chomp
+              Failed to read all of stdout/stderr for pid: #{pid}
+            ERROR
+            self.exitstatus = 128
           end
-        end
 
-        # Read the data from stdout/stderr
-        loop_stdout = read_io(out_read, self.stdout) if loop_stdout
-        loop_stderr = read_io(err_read, self.stderr) if loop_stderr
+          # Close the pipes and force the threads to finish
+          @out_read.close  if @out_read   && !@out_read.closed?
+          @out_write.close if @out_write  && !@out_write.closed?
+          @err_read.close  if @err_read   && !@err_read.closed?
+          @err_write.close if @err_write  && !@err_write.closed?
+          @in_read.close   if @in_read    && !@in_read.closed?
+          @in_write.close  if @in_write   && !@in_write.closed?
 
-        # Kill the process after a timeout
-        unless exitstatus
-          now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          if now - start > FlightJobScriptAPI.config.command_timeout
-            FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
+          # Join the threads
+          (@threads || []).each do |thread|
             begin
-              Process.kill(-Signal.list[signal], pid)
-            rescue Errno::ECHILD, Errno::ESRCH
-              # Rapidly starting SystemCommands may cause the fork to fail
-              FlightJobScriptAPI.logger.error(<<~ERROR.chomp)
-                Failed to start/locate process: #{pid}
+              thread.join
+            rescue
+              FlightJobScriptAPI.logger.error <<~ERROR.chomp
+                An error occur when joining stdout/stdderr thread: #{$!}
               ERROR
-              self.exitstatus = 128
-              return
             end
-            signal = 'KILL'
-            start = now
           end
         end
       end
     end
 
-    def process_status(status)
-      if status.exitstatus
+    def wait_for_status
+      # Wait for the command to finish within the timelimit
+      signal = 'TERM'
+      begin
+        FlightJobScriptAPI.logger.debug("Waiting for pid: #{pid}")
+        Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
+          Process.wait(pid)
+        end
+      rescue Timeout::Error
+        FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
+        Process.kill(-Signal.list[signal], pid)
+        signal = 'KILL'
+        retry
+      end
+
+      status =  $?
+      self.exitstatus = if status.exitstatus
         status.exitstatus
       elsif status.signaled?
         FlightJobScriptAPI.logger.warn <<~WARN.chomp
@@ -290,18 +284,6 @@ module FlightJobScriptAPI
       else
         FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
         128
-      end
-    end
-
-    def read_io(io, buffer)
-      begin
-        loop { buffer << io.read_nonblock(1024) }
-      rescue Errno::EWOULDBLOCK, Errno::EINTR, Errno::EAGAIN, IO::WaitReadable
-        # There *may* be more data
-        return true
-      rescue EOFError
-        # There will not be more data
-        return false
       end
     end
 
