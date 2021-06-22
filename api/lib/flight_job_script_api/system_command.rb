@@ -146,54 +146,39 @@ module FlightJobScriptAPI
     end
 
     def run(&block)
-      with_pipes_mutex_and_threads do
-        # Write the standard input if required
-        in_write.write(stdin) if stdin
+      with_fork do
+        # Log the command has been forked
+        FlightJobScriptAPI.logger.debug("Forked Command (#{user}): #{stringified_cmd}")
 
-        FlightJobScriptAPI.logger.debug("Forking Process")
-        self.pid = Kernel.fork do
-          # Log the command has been forked
-          FlightJobScriptAPI.logger.debug("Forked Command (#{user}): #{stringified_cmd}")
+        # Close the parent pipes
+        @out_read.close
+        @err_read.close
+        @in_write.close
 
-          # Close the parent pipes
-          @out_read.close
-          @err_read.close
-          @in_write.close
+        # Become the user
+        Process::Sys.setgid(passwd.gid)
+        Process::Sys.setuid(passwd.uid)
+        Process.setsid
 
-          # Become the user
-          Process::Sys.setgid(passwd.gid)
-          Process::Sys.setuid(passwd.uid)
-          Process.setsid
+        # Allow the command to be modified after becoming the requested user
+        # This is useful when trying to create a file with the correct file permissions
+        $stdout = @out_write
+        $stderr = @err_write
+        block.call if block
 
-          # Allow the command to be modified after becoming the requested user
-          # This is useful when trying to create a file with the correct file permissions
-          $stdout = @out_write
-          $stderr = @err_write
-          block.call if block
-
-          if cmd.first == :noop
-             FlightJobScriptAPI.logger.debug("Nothing to exec")
-          else
-            # Execute the command
-            opts = {
-              unsetenv_others: true, close_others: true, chdir: passwd.dir,
-              out: @out_write, err: @err_write, in: @in_read
-            }
-            # NOTE: Keep the log before the exec for timing purposes
-            FlightJobScriptAPI.logger.debug("Executing (#{user}): #{stringified_cmd}")
-            Kernel.exec(env, *cmd, **opts)
-          end
+        if cmd.first == :noop
+           FlightJobScriptAPI.logger.debug("Nothing to exec")
+        else
+          # Execute the command
+          opts = {
+            unsetenv_others: true, close_others: true, chdir: passwd.dir,
+            out: @out_write, err: @err_write, in: @in_read
+          }
+          # NOTE: Keep the log before the exec for timing purposes
+          FlightJobScriptAPI.logger.debug("Executing (#{user}): #{stringified_cmd}")
+          Kernel.exec(env, *cmd, **opts)
         end
-
-        # Close the child pipes
-        @out_write.close
-        @err_write.close
-        @in_read.close
-
-        wait_for_status
       end
-
-      log_command
     end
 
     private
@@ -202,7 +187,7 @@ module FlightJobScriptAPI
       @passwd ||= Etc.getpwnam(user)
     end
 
-    def with_pipes_mutex_and_threads
+    def with_fork(&block)
       self.class.mutexes[user].synchronize do
         begin
           # Flag the start time
@@ -224,8 +209,23 @@ module FlightJobScriptAPI
             end
           end
 
-          # Yield control
-          yield if block_given?
+          # Write the standard input if required
+          # NOTE: This could *technically* block if stdin exceeds ~60KiB (system dependent)
+          #       The large 'notes'/'answer' inputs are already "passed by file"
+          #       Consider refactoring if it causes an issue
+          in_write.write(stdin) if stdin
+
+          # Fork the child process
+          FlightJobScriptAPI.logger.debug("Forking Process")
+          self.pid = Kernel.fork(&block)
+
+          # Close the child pipes
+          @out_write.close
+          @err_write.close
+          @in_read.close
+
+          # Wait for the child to end
+          wait_for_status
 
           # Use the remaining time out to allow the threads to end naturally
           @threads.each do |thread|
@@ -241,7 +241,7 @@ module FlightJobScriptAPI
             FlightJobScriptAPI.logger.error <<~ERROR.chomp
               Failed to read all of stdout/stderr for pid: #{pid}
             ERROR
-            self.exitstatus = 128
+            self.exitstatus = 128 if self.exitstatus < 128 || self.exitstatus > 159
           end
 
           # Close the pipes and force the threads to finish
@@ -255,13 +255,15 @@ module FlightJobScriptAPI
           # Join the threads
           (@threads || []).each do |thread|
             begin
-              thread.join
+              thread.join # NOTE: Dead threads can be joined multiple times without error
             rescue
               FlightJobScriptAPI.logger.error <<~ERROR.chomp
                 An error occur when joining stdout/stdderr thread: #{$!}
               ERROR
             end
           end
+
+          log_command
         end
       end
     end
