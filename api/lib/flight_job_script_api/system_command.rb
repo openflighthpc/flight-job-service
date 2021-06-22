@@ -227,6 +227,14 @@ module FlightJobScriptAPI
           # Yield control
           yield if block_given?
 
+          # Use the remaining time out to allow the threads to end naturally
+          @threads.each do |thread|
+            next unless thread.alive?
+            now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            remaining = FlightJobScriptAPI.config.command_timeout + start - now
+            break unless remaining > 0
+            thread.join(remaining)
+          end
         ensure
           # Confirm the threads have naturally finished
           if @threads.any?(&:alive?)
