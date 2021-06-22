@@ -237,7 +237,7 @@ module FlightJobScriptAPI
           end
         ensure
           # Confirm the threads have naturally finished
-          if @threads.any?(&:alive?)
+          if @threads && @threads.any?(&:alive?)
             FlightJobScriptAPI.logger.error <<~ERROR.chomp
               Failed to read all of stdout/stderr for pid: #{pid}
             ERROR
