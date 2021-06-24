@@ -31,6 +31,7 @@ module FlightJobScriptAPI
   autoload(:ModelCache, 'flight_job_script_api/model_cache')
   autoload(:SystemCommand, 'flight_job_script_api/system_command')
   autoload(:CommandError, 'flight_job_script_api/system_command')
+  autoload(:Subprocess, 'flight_job_script_api/subprocess')
 
   class UnexpectedError < StandardError; end
 
