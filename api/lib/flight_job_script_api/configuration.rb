@@ -67,7 +67,8 @@ module FlightJobScriptAPI
       {
         name: 'command_timeout',
         env_var: true,
-        default: 5
+        default: 5,
+        transform: :to_f
       },
       {
         name: 'log_level',

@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 #==============================================================================
 # Copyright (C) 2021-present Alces Flight Ltd.
 #
@@ -129,14 +128,15 @@ module FlightJobScriptAPI
       end
     end
 
-    attr_reader :cmd, :user, :mutex, :stdin, :env
-    attr_accessor :stdout, :stderr, :exitstatus
+    attr_reader :cmd, :user, :mutex, :stdin, :env, :stdout, :stderr
+    attr_accessor :exitstatus, :pid
 
-    def initialize(*cmd, user:, mutex: nil, stdin: nil, env: {})
+    def initialize(*cmd, user:, stdin: nil, env: {})
+      @stdout = ""
+      @stderr = ""
       @cmd = cmd
       @user = user
       @stdin = stdin
-      @mutex = self.class.mutexes[user]
       @env ||= {
         'PATH' => FlightJobScriptAPI.app.config.command_path,
         'HOME' => passwd.dir,
@@ -146,116 +146,179 @@ module FlightJobScriptAPI
     end
 
     def run(&block)
-      # Establish pipes for stdout/stderr
-      # NOTE: Must be first due to the ensure block
-      out_read, out_write = IO.pipe
-      err_read, err_write = IO.pipe
-      in_read,  in_write  = IO.pipe
+      with_fork do
+        # Log the command has been forked
+        FlightJobScriptAPI.logger.debug("Forked Command (#{user}): #{stringified_cmd}")
 
-      mutex.synchronize do
-        # Write the standard input if required
-        in_write.write(stdin) if stdin
+        # Close the parent pipes
+        @out_read.close
+        @err_read.close
+        @in_write.close
 
-        FlightJobScriptAPI.logger.debug("Forking Process")
-        pid = Kernel.fork do
-          # Log the command has been forked
-          log_cmd = (cmd.first == :noop ? cmd[1..-1] : cmd).join(' ')
-          FlightJobScriptAPI.logger.info("Forked Command (#{user}): #{log_cmd}")
+        # Become the user
+        Process::Sys.setgid(passwd.gid)
+        Process::Sys.setuid(passwd.uid)
+        Process.setsid
 
-          # Close the parent pipes
-          out_read.close
-          err_read.close
-          in_write.close
+        # Allow the command to be modified after becoming the requested user
+        # This is useful when trying to create a file with the correct file permissions
+        $stdout = @out_write
+        $stderr = @err_write
+        block.call if block
 
-          # Become the user
-          Process::Sys.setgid(passwd.gid)
-          Process::Sys.setuid(passwd.uid)
-          Process.setsid
-
-          # Allow the command to be modified after becoming the requested user
-          # This is useful when trying to create a file with the correct file permissions
-          $stdout = out_write
-          $stderr = err_write
-          block.call if block
-
-          if cmd.first == :noop
-             FlightJobScriptAPI.logger.debug("Nothing to exec")
-          else
-            # Execute the command
-            opts = {
-              unsetenv_others: true, close_others: true, chdir: passwd.dir,
-              out: out_write, err: err_write, in: in_read
-            }
-            # NOTE: Keep the log before the exec for timing purposes
-            FlightJobScriptAPI.logger.info("Executing (#{user}): #{cmd.join(' ')}")
-            Kernel.exec(env, *cmd, **opts)
-          end
-        end
-
-        # Close the child pipes
-        out_write.close
-        err_write.close
-        in_read.close
-
-        # Wait for the command to finish within the timelimit
-        signal = 'TERM'
-        begin
-          FlightJobScriptAPI.logger.debug("Waiting for pid: #{pid}")
-          _, status = Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
-            Process.wait2(pid)
-          end
-        rescue Timeout::Error
-          FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
-          Process.kill(-Signal.list[signal], pid)
-          signal = 'KILL'
-          retry
-        end
-
-        # Store the results
-        if status.exitstatus
-          self.exitstatus = status.exitstatus
-
-        # The exit status from signals aren't always set, instead they can be inferred
-        elsif status.signaled?
-          FlightJobScriptAPI.logger.warn "Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{pid})"
-          self.exitstatus = status.termsig + 128
-
-        # If all else fails, say 128
+        if cmd.first == :noop
+           FlightJobScriptAPI.logger.debug("Nothing to exec")
         else
-          FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
-          self.exitstatus = 128
+          # Execute the command
+          opts = {
+            unsetenv_others: true, close_others: true, chdir: passwd.dir,
+            out: @out_write, err: @err_write, in: @in_read
+          }
+          # NOTE: Keep the log before the exec for timing purposes
+          FlightJobScriptAPI.logger.debug("Executing (#{user}): #{stringified_cmd}")
+          Kernel.exec(env, *cmd, **opts)
         end
-
-        self.stdout = out_read.read
-        self.stderr = err_read.read
-
-        FlightJobScriptAPI.logger.debug <<~DEBUG
-
-          COMMAND: #{cmd.join(' ')}
-          USER: #{user}
-          PID: #{pid}
-          STATUS: #{exitstatus}
-          STDIN:
-          #{stdin.to_s}
-          STDOUT:
-          #{stdout}
-          STDERR:
-          #{stderr}
-        DEBUG
       end
-    ensure
-      out_read.close unless out_read.closed?
-      out_write.close unless out_write.closed?
-      err_read.close unless err_read.closed?
-      err_write.close unless err_write.closed?
-      in_read.close unless in_read.closed?
-      in_write.close unless in_write.closed?
     end
 
     private
 
     def passwd
       @passwd ||= Etc.getpwnam(user)
+    end
+
+    def with_fork(&block)
+      self.class.mutexes[user].synchronize do
+        begin
+          # Flag the start time
+          start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+          # Create the pipes
+          @out_read,  @out_write = IO.pipe
+          @err_read,  @err_write = IO.pipe
+          @in_read,   @in_write  = IO.pipe
+
+          # Start the thread
+          @threads = [[@out_read, self.stdout], [@err_read, self.stderr]].map do |io, buffer|
+            Thread.new do
+              begin
+                loop { buffer << io.readpartial(1024) }
+              rescue IOError
+                # NOOP - Both EOF and IO closed errors need to be caught
+              end
+            end
+          end
+
+          # Write the standard input if required
+          # NOTE: This could *technically* block if stdin exceeds ~60KiB (system dependent)
+          #       The large 'notes'/'answer' inputs are already "passed by file"
+          #       Consider refactoring if it causes an issue
+          in_write.write(stdin) if stdin
+
+          # Fork the child process
+          FlightJobScriptAPI.logger.debug("Forking Process")
+          self.pid = Kernel.fork(&block)
+
+          # Close the child pipes
+          @out_write.close
+          @err_write.close
+          @in_read.close
+
+          # Wait for the child to end
+          wait_for_status
+
+          # Use the remaining time out to allow the threads to end naturally
+          @threads.each do |thread|
+            next unless thread.alive?
+            now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+            remaining = FlightJobScriptAPI.config.command_timeout + start - now
+            break unless remaining > 0
+            thread.join(remaining)
+          end
+        ensure
+          # Confirm the threads have naturally finished
+          if @threads && @threads.any?(&:alive?)
+            FlightJobScriptAPI.logger.error <<~ERROR.chomp
+              Failed to read all of stdout/stderr for pid: #{pid}
+            ERROR
+            self.exitstatus = 128 if self.exitstatus < 128 || self.exitstatus > 159
+          end
+
+          # Close the pipes and force the threads to finish
+          @out_read.close  if @out_read   && !@out_read.closed?
+          @out_write.close if @out_write  && !@out_write.closed?
+          @err_read.close  if @err_read   && !@err_read.closed?
+          @err_write.close if @err_write  && !@err_write.closed?
+          @in_read.close   if @in_read    && !@in_read.closed?
+          @in_write.close  if @in_write   && !@in_write.closed?
+
+          # Join the threads
+          (@threads || []).each do |thread|
+            begin
+              thread.join # NOTE: Dead threads can be joined multiple times without error
+            rescue
+              FlightJobScriptAPI.logger.error <<~ERROR.chomp
+                An error occur when joining stdout/stdderr thread: #{$!}
+              ERROR
+            end
+          end
+
+          log_command
+        end
+      end
+    end
+
+    def wait_for_status
+      # Wait for the command to finish within the timelimit
+      signal = 'TERM'
+      begin
+        FlightJobScriptAPI.logger.debug("Waiting for pid: #{pid}")
+        Timeout.timeout(FlightJobScriptAPI.app.config.command_timeout) do
+          Process.wait(pid)
+        end
+      rescue Timeout::Error
+        FlightJobScriptAPI.logger.error("Sending #{signal} to: #{pid}")
+        Process.kill(-Signal.list[signal], pid)
+        signal = 'KILL'
+        retry
+      end
+
+      status =  $?
+      self.exitstatus = if status.exitstatus
+        status.exitstatus
+      elsif status.signaled?
+        FlightJobScriptAPI.logger.warn <<~WARN.chomp
+          Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{pid})
+        WARN
+        status.termsig + 128
+      else
+        FlightJobScriptAPI.logger.error "No exit code provided (pid: #{pid})!"
+        128
+      end
+    end
+
+    def log_command
+      FlightJobScriptAPI.logger.info <<~INFO.chomp
+
+        COMMAND: #{stringified_cmd}
+        USER: #{user}
+        PID: #{pid}
+        STATUS: #{exitstatus}
+      INFO
+      FlightJobScriptAPI.logger.debug <<~DEBUG
+
+        STDIN:
+        #{stdin.to_s}
+        STDOUT:
+        #{stdout}
+        STDERR:
+        #{stderr}
+      DEBUG
+    end
+
+    def stringified_cmd
+      @stringified_cmd ||= (cmd.first == :noop ? cmd[1..-1] : cmd)
+        .map { |s| s.empty? ? '""' : s }.join(' ')
     end
   end
 end

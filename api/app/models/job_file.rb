@@ -47,7 +47,7 @@ class JobFile
 
       # Error if the system command otherwise failed
       unless cmd.exitstatus == 0
-        raise CommandError, "Failed to load the result files for job: #{job_id}"
+        raise FlightJobScriptAPI::CommandError, "Failed to load the result files for job: #{job_id}"
       end
 
       # Construct the files
