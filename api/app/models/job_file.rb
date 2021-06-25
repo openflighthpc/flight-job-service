@@ -105,6 +105,8 @@ class JobFile
   end
 
   # Checks the file exists and the user has permission to access it
+  #
+  # NOTE: This method may raise CommandError.
   def exists?
     return false unless path
     return false unless File.exists?(path)

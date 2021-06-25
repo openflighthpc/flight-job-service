@@ -74,10 +74,6 @@ class App < Sinatra::Base
       end
     end
 
-    def includes?(resource_name)
-      ( params['include'] || [] ).include?(resource_name)
-    end
-
     def include_string
       case params.fetch('include', nil)
       when String
@@ -235,7 +231,7 @@ class App < Sinatra::Base
 
     has_one :script do
       helpers do
-        # XXX: The 'serialize_linkage' method gets called on sideloads before its
+        # NOTE: The 'serialize_linkage' method gets called on sideloads before its
         # result is discarded. However it is in-inadvertently triggering a SystemCommand
         def serialize_linkage(**_)
           return {} if @action == :create
