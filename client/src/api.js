@@ -12,6 +12,7 @@ export function useFetchTemplates() {
     "/templates",
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
       cacheLife: 600000, //ms
       cachePolicy: 'cache-first'
     },
@@ -34,6 +35,7 @@ export function useFetchTemplate(id) {
           return response;
         }
       },
+      persist: true,
       cacheLife: 600000, //ms
       cachePolicy: 'cache-first'
     },
@@ -46,6 +48,7 @@ export function useFetchQuestions(templateId) {
     `/templates/${templateId}/questions`,
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
       cacheLife: 600000, //ms
       cachePolicy: 'cache-first'
     },
@@ -69,6 +72,8 @@ export function useGenerateScript(templateId, answers, scriptName) {
       cachePolicy: 'no-cache',
     },
   );
+  // Clear the cache
+  localStorage.removeItem("useHTTPcache");
   return request;
 }
 
@@ -86,6 +91,7 @@ export function useFetchScripts() {
           return response;
         }
       },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -106,6 +112,7 @@ export function useFetchScript(id) {
           return response;
         }
       },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -137,6 +144,8 @@ export function useSubmitScript(script) {
       cachePolicy: 'no-cache',
     },
   );
+  // Clear the cache
+  localStorage.removeItem("useHTTPcache");
   return request;
 }
 
@@ -152,6 +161,8 @@ export function useDeleteScript(script) {
       cachePolicy: 'no-cache',
     },
   );
+  // Clear the cache
+  localStorage.removeItem("useHTTPcache");
   return request;
 }
 
@@ -164,6 +175,7 @@ export function useFetchScriptNotes(script) {
       headers: {
         Accept: 'application/vnd.api+json',
       },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -173,6 +185,8 @@ export function useFetchScriptNotes(script) {
 
 export function useSaveScriptNotes(notes) {
   const id = notes == null ? undefined : notes.id;
+  // Clear the cache
+  localStorage.removeItem("useHTTPcache");
   return useFetch(
     `/notes/${id}`,
     {
@@ -195,6 +209,7 @@ export function useFetchScriptContent(script) {
       headers: {
         Accept: 'application/vnd.api+json',
       },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -204,6 +219,8 @@ export function useFetchScriptContent(script) {
 
 export function useSaveScriptContent(contentResource) {
   const id = contentResource == null ? undefined : contentResource.id;
+  // Clear the cache
+  localStorage.removeItem("useHTTPcache");
   return useFetch(
     `/contents/${id}`,
     {
@@ -278,6 +295,7 @@ export function useFetchJobs() {
           return response;
         }
       },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -299,6 +317,7 @@ export function useFetchJob(id) {
           return response;
         }
       },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -311,6 +330,7 @@ export function useFetchOutputFiles(id) {
     `/jobs/${id}/output-files`,
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -323,6 +343,7 @@ export function useFetchResultFiles(id) {
     `/jobs/${id}/result-files`,
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
@@ -335,6 +356,7 @@ export function useFetchFileContent(file) {
     `/${file.type}/${file.id}?fields[files]=payload`,
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
       cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
