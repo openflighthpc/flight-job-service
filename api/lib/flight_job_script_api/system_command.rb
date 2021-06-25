@@ -215,7 +215,7 @@ module FlightJobScriptAPI
           # NOTE: This could *technically* block if stdin exceeds ~60KiB (system dependent)
           #       The large 'notes'/'answer' inputs are already "passed by file"
           #       Consider refactoring if it causes an issue
-          in_write.write(stdin) if stdin
+          @in_write.write(stdin) if stdin
 
           # Fork the child process
           FlightJobScriptAPI.logger.debug("Forking Process")
