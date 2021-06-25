@@ -192,9 +192,6 @@ module FlightJobScriptAPI
     def with_fork(&block)
       self.class.mutexes[user].synchronize do
         begin
-          # Flag the start time
-          start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-
           # Create the pipes
           @out_read,  @out_write = IO.pipe
           @err_read,  @err_write = IO.pipe
@@ -216,6 +213,9 @@ module FlightJobScriptAPI
           #       The large 'notes'/'answer' inputs are already "passed by file"
           #       Consider refactoring if it causes an issue
           @in_write.write(stdin) if stdin
+
+          # Flag the start time
+          start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
           # Fork the child process
           FlightJobScriptAPI.logger.debug("Forking Process")
