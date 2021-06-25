@@ -192,6 +192,7 @@ class JobFile
       username: @user,
     )
     result = sp.run(nil, nil) do
+      exit(20) unless File.exists?(path)
       File.stat(path).readable? ? exit(0) : exit(20)
     end
     case result.exitstatus
