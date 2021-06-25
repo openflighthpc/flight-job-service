@@ -77,6 +77,16 @@
 # sso_cookie_name: flight_login
 
 #-------------------------------------------------------------------------------
+# Cache Control Periods
+# Set the max-age fields in the CacheControl header. There is a short and long
+# period depending on the request. Not all requests are cacheable.
+# The environment variable flight_JOB_SCRIPT_API_short_cache_control and
+# flight_JOB_SCRIPT_API_long_cache_control takes precedence
+#-------------------------------------------------------------------------------
+# short_cache_control: 60
+# long_cache_control: 600
+
+#-------------------------------------------------------------------------------
 # Log Level
 # Specify the logging level
 # The environment variable flight_JOB_SCRIPT_API_log_level takes precedence

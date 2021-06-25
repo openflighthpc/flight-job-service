@@ -84,6 +84,21 @@ class App < Sinatra::Base
         ''
       end
     end
+
+    # Default requests to no caches
+    before { cache_control :no_store }
+
+    # Default index actions to short caches
+    def before_index
+      cache_control :private, max_age: FlightJobScriptAPI.config.short_cache_control
+    end
+    alias_method :before_fetch, :before_index
+
+    # Default show actions to long caches
+    def before_show
+      cache_control :private, max_age: FlightJobScriptAPI.config.long_cache_control
+    end
+    alias_method :before_pluck, :before_show
   end
 
   configure_jsonapi do |c|
