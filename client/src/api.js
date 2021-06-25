@@ -12,7 +12,7 @@ export function useFetchTemplates() {
     "/templates",
     {
       headers: { Accept: 'application/vnd.api+json' },
-      cacheLife: 600,
+      cacheLife: 600000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -34,7 +34,7 @@ export function useFetchTemplate(id) {
           return response;
         }
       },
-      cacheLife: 600,
+      cacheLife: 600000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -46,7 +46,7 @@ export function useFetchQuestions(templateId) {
     `/templates/${templateId}/questions`,
     {
       headers: { Accept: 'application/vnd.api+json' },
-      cacheLife: 600,
+      cacheLife: 600000, //ms
       cachePolicy: 'cache-first'
     },
     [ templateId, currentUser.authToken ]
@@ -86,7 +86,7 @@ export function useFetchScripts() {
           return response;
         }
       },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -106,7 +106,7 @@ export function useFetchScript(id) {
           return response;
         }
       },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -164,7 +164,7 @@ export function useFetchScriptNotes(script) {
       headers: {
         Accept: 'application/vnd.api+json',
       },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, scriptId ],
@@ -195,7 +195,7 @@ export function useFetchScriptContent(script) {
       headers: {
         Accept: 'application/vnd.api+json',
       },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, scriptId ],
@@ -278,7 +278,7 @@ export function useFetchJobs() {
           return response;
         }
       },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -299,7 +299,7 @@ export function useFetchJob(id) {
           return response;
         }
       },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -311,7 +311,7 @@ export function useFetchOutputFiles(id) {
     `/jobs/${id}/output-files`,
     {
       headers: { Accept: 'application/vnd.api+json' },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, id ]);
@@ -323,7 +323,7 @@ export function useFetchResultFiles(id) {
     `/jobs/${id}/result-files`,
     {
       headers: { Accept: 'application/vnd.api+json' },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, id ]);
@@ -335,7 +335,7 @@ export function useFetchFileContent(file) {
     `/${file.type}/${file.id}?fields[files]=payload`,
     {
       headers: { Accept: 'application/vnd.api+json' },
-      cacheLife: 60,
+      cacheLife: 60000, //ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, file.id ]);
