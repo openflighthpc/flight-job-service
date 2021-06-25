@@ -41,24 +41,9 @@ class JobFile
     #       Consider refactoring
     def index_job_results!(job_id, user:)
       # Attempt to load the cached version of Job
-      job = Job.find!(job_id, user: user, include: ['result_files'])
+      job = Job.find!(job_id, user: user)
 
-      # NOTE: If the Job is pre-cached, it must be loaded with --include result_files
-      # This *should* already be the case due to the 'includes' mechanism
-      # Revisit if required
-      unless job.metadata.key? 'result_files'
-        FlightJobScriptAPI.logger.error <<~ERROR.chomp
-          The job '#{job_id}' was unexpectedly loaded without its results_files
-        ERROR
-        raise FlightJobScriptAPI::CommandError, "Failed to load the results files for job: #{job_id}"
-      end
-
-      # Fetch the pre-cached files
-      # NOTE: 'result_files' maybe nil if results_dir was missing OR not reported
-      #       The exact API specification is "unclear" for these situations
-      #
-      #       It's being typed-casted to an array here for consistency. Possible the
-      #       serializer is the best place to enforce the spec?
+      # Fetch the files
       (job.metadata['result_files'] || []).map do |data|
         # NOTE: 'results_dir' must be set otherwise the files would be empty
         file_id = generate_file_id(job.metadata['results_dir'], data['file'])
