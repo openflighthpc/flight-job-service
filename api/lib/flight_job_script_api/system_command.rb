@@ -179,6 +179,8 @@ module FlightJobScriptAPI
           Kernel.exec(env, *cmd, **opts)
         end
       end
+    ensure
+      log_command
     end
 
     private
@@ -262,8 +264,6 @@ module FlightJobScriptAPI
               ERROR
             end
           end
-
-          log_command
         end
       end
     end
