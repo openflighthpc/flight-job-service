@@ -80,16 +80,6 @@ module FlightJobScriptAPI
         env_var: true,
         default: 'flight_login',
       },
-      {
-        name: 'long_cache_control',
-        env_var: true,
-        default: 600
-      },
-      {
-        name: 'short_cache_control',
-        env_var: true,
-        default: 60
-      }
     ].each { |opt| attribute(opt[:name], **opt) }
 
     def auth_decoder

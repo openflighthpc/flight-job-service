@@ -84,28 +84,6 @@ class App < Sinatra::Base
         ''
       end
     end
-
-    # Default requests to no caches
-    before { cache_control :no_store }
-
-    # Default index actions to short caches
-    def before_index
-      cache_control :private, max_age: FlightJobScriptAPI.config.short_cache_control
-    end
-    alias_method :before_fetch, :before_index
-
-    # Default show actions to long caches
-    def before_show
-      cache_control :private, max_age: FlightJobScriptAPI.config.long_cache_control
-    end
-    alias_method :before_pluck, :before_show
-
-    # Do not cache non 200 responses
-    after do
-      unless status == 200
-        cache_control :no_store
-      end
-    end
   end
 
   configure_jsonapi do |c|
@@ -234,13 +212,6 @@ class App < Sinatra::Base
         else
           raise Sinja::ForbiddenError, 'Jobs can not be modfied!'
         end
-      end
-    end
-
-    # Reset the cache control to short if the resource isn't terminated
-    after do
-      if @resource && !['FAILED', 'COMPLETED', 'CANCELLED', 'UNKNOWN'].include?(@resource.metadata['state'])
-        cache_control :private, max_age: FlightJobScriptAPI.config.short_cache_control
       end
     end
 
