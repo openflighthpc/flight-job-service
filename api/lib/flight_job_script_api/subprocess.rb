@@ -120,31 +120,33 @@ module FlightJobScriptAPI
 
     def wait_for_process
       signal = 'TERM'
+      timeout = @timeout
       begin
-        @logger.debug("Waiting for pid: #{@pid}")
-        Timeout.timeout(@timeout) do
+        @logger.debug("Waiting for pid: #{@pid} for #{timeout} seconds")
+        Timeout.timeout(timeout) do
           Process.wait(@pid)
         end
       rescue Timeout::Error
-        @logger.error("Sending #{signal} to: #{@pid}")
+        @logger.error("Sending #{signal} to #{@pid}")
         Process.kill(-Signal.list[signal], @pid)
         signal = 'KILL'
+        timeout = 1
         retry
       end
       $?
     end
 
     def determine_exit_code(status)
-      if @read_threads.any?(&:alive?)
-        @logger.warn "Read threads still alive.  Setting exit code to 128."
-        128
-      elsif status.exitstatus
-        status.exitstatus
-      elsif status.signaled?
+      if status.signaled?
         @logger.warn <<~WARN.chomp
           Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{@pid})
         WARN
         status.termsig + 128
+      elsif @read_threads.any?(&:alive?)
+        @logger.warn "Read threads still alive.  Setting exit code to 128."
+        128
+      elsif status.exitstatus
+        status.exitstatus
       else
         @logger.error "No exit code provided (pid: #{@pid})!"
         128
