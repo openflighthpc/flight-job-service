@@ -138,13 +138,9 @@ module FlightJobScriptAPI
 
     def determine_exit_code(status)
       if status.signaled?
-        @logger.warn <<~WARN.chomp
-          Inferring exit code from signal #{Signal.signame(status.termsig)} (pid: #{@pid})
-        WARN
+        signame = Signal.signame(status.termsig)
+        @logger.warn "Inferring exit code from signal #{signame} (pid: #{@pid})"
         status.termsig + 128
-      elsif @read_threads.any?(&:alive?)
-        @logger.warn "Read threads still alive.  Setting exit code to 128."
-        128
       elsif status.exitstatus
         status.exitstatus
       else
@@ -153,15 +149,16 @@ module FlightJobScriptAPI
       end
     end
 
-    # Wait for the remaining timeout for the read threads to finish.
+    # Wait for the remaining timeout for the read threads to finish.  Kill any
+    # threads still alive after the timeout has expired.
     #
     # As the subprocess has completed, we would usually expect that the pipes
     # are closed and the next reads will read any remaining data.  There are
     # some circumstances, involving zombie grandchild processes, where that
     # might not be the case.
     #
-    # We want to ensure that waiting on the read threads does not cause
-    # `Subprocess#run` to hang for longer than `@timeout`.
+    # We allow the threads any remaining timeout to complete reading the
+    # pipes.  After that we kill the threads.
     def wait_for_read_threads(start_time)
       loop do
         break if @read_threads.none?(&:alive?)
@@ -172,6 +169,8 @@ module FlightJobScriptAPI
 
         @read_threads.select(&:alive?).first.join(remaining)
       end
+
+      @read_threads.select(&:alive?).map(&:kill)
     end
 
     def create_pipes

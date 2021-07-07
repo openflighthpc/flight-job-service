@@ -35,7 +35,7 @@ class Template
         next if cmd.exitstatus == 0
         raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
       end
-      JSON.parse(cmd.stdout).map do |metadata|
+      cmd.stdout.map do |metadata|
         new(**metadata)
       end
     end
@@ -61,7 +61,7 @@ class Template
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"
       end
 
-      new(**JSON.parse(cmd.stdout))
+      new(**cmd.stdout)
     end
   end
 

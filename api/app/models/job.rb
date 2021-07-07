@@ -37,7 +37,7 @@ class Job
         next if cmd.exitstatus == 0
         raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list jobs'
       end
-      JSON.parse(cmd.stdout).map do |metadata|
+      cmd.stdout.map do |metadata|
         new(user: opts[:user], **metadata)
       end
     end
@@ -55,7 +55,7 @@ class Job
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find job: #{id}"
       end
 
-      new(user: opts[:user], **JSON.parse(cmd.stdout))
+      new(user: opts[:user], **cmd.stdout)
     end
   end
 
@@ -105,7 +105,7 @@ class Job
       end
     end
 
-    @metadata = JSON.parse(cmd.stdout)
+    @metadata = cmd.stdout
   end
 
   def index_result_files

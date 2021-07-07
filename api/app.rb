@@ -332,7 +332,7 @@ class RenderApp < Sinatra::Base
     # Either way, the 'job' resource was created
     if [0, 2].include?(cmd.exitstatus)
       response.headers['Content-Type'] = 'application/vnd.api+json'
-      script = Script.new(user: @current_user, **JSON.parse(cmd.stdout))
+      script = Script.new(user: @current_user, **cmd.stdout)
       status 201
       next JSONAPI::Serializer.serialize(script).to_json
 

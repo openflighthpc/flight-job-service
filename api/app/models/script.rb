@@ -35,7 +35,7 @@ class Script
         next if cmd.exitstatus == 0
         raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list scripts'
       end
-      JSON.parse(cmd.stdout).map do |metadata|
+      cmd.stdout.map do |metadata|
         new(user: opts[:user], **metadata)
       end
     end
@@ -53,7 +53,7 @@ class Script
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find script: #{id}"
       end
 
-      new(user: opts[:user], **JSON.parse(cmd.stdout))
+      new(user: opts[:user], **cmd.stdout)
     end
   end
 

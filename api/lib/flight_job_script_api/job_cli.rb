@@ -160,6 +160,7 @@ module FlightJobScriptAPI
           )
           sp.run(@cmd.first == :noop ? nil : @cmd, @stdin, &block)
         end
+      parse_result(result)
       log_command(result)
       result
     end
@@ -168,6 +169,22 @@ module FlightJobScriptAPI
 
     def passwd
       @passwd ||= Etc.getpwnam(@user)
+    end
+
+    def parse_result(result)
+      if result.exitstatus == 0 && expect_json_response?
+        begin
+          unless result.stdout.nil? || result.stdout.strip == ''
+            result.stdout = JSON.parse(result.stdout)
+          end
+        rescue JSON::ParserError
+          result.exitstatus = 128
+        end
+      end
+    end
+
+    def expect_json_response?
+      @cmd.first != :noop && @cmd.any? {|i| i.strip == '--json'}
     end
 
     def log_command(result)
