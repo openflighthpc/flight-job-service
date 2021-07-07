@@ -196,11 +196,11 @@ class JobFile
   def payload_command
     return @payload_command unless @payload_command.nil?
     @payload_command = if @file_id == 'stdout'
-      FlightJobScriptAPI::SystemCommand.flight_view_job_stdout(@job_id, user: @user)
+      FlightJobScriptAPI::SystemCommand.view_job_stdout(@job_id, user: @user)
     elsif @file_id == 'stderr'
-      FlightJobScriptAPI::SystemCommand.flight_view_job_stderr(@job_id, user: @user)
+      FlightJobScriptAPI::SystemCommand.view_job_stderr(@job_id, user: @user)
     elsif decoded_file_id
-      FlightJobScriptAPI::SystemCommand.flight_view_job_results(@job_id, decoded_file_id, user: @user)
+      FlightJobScriptAPI::SystemCommand.view_job_results(@job_id, decoded_file_id, user: @user)
     else
       false
     end

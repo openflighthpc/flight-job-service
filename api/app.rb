@@ -324,7 +324,7 @@ class RenderApp < Sinatra::Base
     notes = params['notes'].to_s
     notes = nil if notes.empty?
     answers = params['answers'].dup.to_json
-    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(
+    cmd = FlightJobScriptAPI::SystemCommand.create_script(
       params[:id], name, notes: notes, answers: answers, user: @current_user
     )
 

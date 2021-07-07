@@ -32,97 +32,105 @@ module FlightJobScriptAPI
   class CommandError < Sinja::ServiceUnavailable; end
 
   class SystemCommand
-    # Used to ensure each user is only running a single command at at time
-    # NOTE: These objects will be indefinitely cached in memory until the server
-    #       is restarted. This may constitute a memory leak if an indefinite
-    #       number of users access the service.
-    #       Consider refactoring
-    def self.mutexes
-      @mutexes ||= Hash.new { |h, k| h[k] = Mutex.new }
-    end
-
-    def self.flight_list_templates(**opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'list-templates', '--json', **opts).run
-    end
-
-    def self.flight_info_template(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'info-template', id, '--json', **opts).run
-    end
-
-    def self.flight_list_scripts(**opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'list-scripts', '--json', **opts).run
-    end
-
-    def self.flight_info_script(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'info-script', id, '--json', **opts).run
-    end
-
-    def self.flight_create_script(template_id, name = nil, answers: nil, notes: nil, **opts)
-      # Define the paths so they can be cleaned up
-      # NOTE: Tempfile should not be used as the file permissions will be incorrect
-      #       Instead the paths are defined with UUIDs and then created after the command forks
-      answers_path = File.join('/tmp', "flight-job-script-api-#{SecureRandom.uuid}")
-      notes_path = File.join('/tmp', "flight-job-script-api-#{SecureRandom.uuid}")
-      args = name ? [template_id, name] : [template_id]
-      args.push('--answers', "@#{answers_path}") if answers
-      args.push('--notes', "@#{notes_path}") if notes
-      sys = new(*FlightJobScriptAPI.config.flight_job, 'create-script', *args, '--json', **opts)
-      sys.run do
-        File.write answers_path, answers if answers
-        File.write notes_path, notes if notes
+    class << self
+      # Used to ensure each user is only running a single command at at time
+      # NOTE: These objects will be indefinitely cached in memory until the server
+      #       is restarted. This may constitute a memory leak if an indefinite
+      #       number of users access the service.
+      #       Consider refactoring
+      def mutexes
+        @mutexes ||= Hash.new { |h, k| h[k] = Mutex.new }
       end
-    ensure
-      FileUtils.rm_f answers_path
-      FileUtils.rm_f notes_path
-    end
 
-    def self.flight_edit_script_notes(script_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', **opts).run
-    end
+      def list_templates(**opts)
+        new(*flight_job, 'list-templates', '--json', **opts).run
+      end
 
-    def self.flight_edit_script(script_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'edit-script', script_id, '--json', '--force', '--content', '@-', **opts).run
-    end
+      def info_template(id, **opts)
+        new(*flight_job, 'info-template', id, '--json', **opts).run
+      end
 
-    def self.flight_delete_script(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'delete-script', id, '--json',**opts).run
-    end
+      def list_scripts(**opts)
+        new(*flight_job, 'list-scripts', '--json', **opts).run
+      end
 
-    def self.flight_list_jobs(**opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'list-jobs', '--json', **opts).run
-    end
+      def info_script(id, **opts)
+        new(*flight_job, 'info-script', id, '--json', **opts).run
+      end
 
-    def self.flight_info_job(id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'info-job', id, '--json', **opts).run
-    end
+      def create_script(template_id, name = nil, answers: nil, notes: nil, **opts)
+        # Define the paths so they can be cleaned up
+        # NOTE: Tempfile should not be used as the file permissions will be incorrect
+        #       Instead the paths are defined with UUIDs and then created after the command forks
+        answers_path = File.join('/tmp', "flight-job-script-api-#{SecureRandom.uuid}")
+        notes_path = File.join('/tmp', "flight-job-script-api-#{SecureRandom.uuid}")
+        args = name ? [template_id, name] : [template_id]
+        args.push('--answers', "@#{answers_path}") if answers
+        args.push('--notes', "@#{notes_path}") if notes
+        sys = new(*flight_job, 'create-script', *args, '--json', **opts)
+        sys.run do
+          File.write answers_path, answers if answers
+          File.write notes_path, notes if notes
+        end
+      ensure
+        FileUtils.rm_f answers_path
+        FileUtils.rm_f notes_path
+      end
 
-    def self.flight_submit_job(script_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'submit-job', script_id, '--json', **opts).run
-    end
+      def edit_script_notes(script_id, **opts)
+        new(*flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', **opts).run
+      end
 
-    def self.flight_view_job_stdout(job_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'view-job-stdout', job_id, **opts).run
-    end
+      def edit_script(script_id, **opts)
+        new(*flight_job, 'edit-script', script_id, '--json', '--force', '--content', '@-', **opts).run
+      end
 
-    def self.flight_view_job_stderr(job_id, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'view-job-stderr', job_id, **opts).run
-    end
+      def delete_script(id, **opts)
+        new(*flight_job, 'delete-script', id, '--json',**opts).run
+      end
 
-    def self.flight_view_job_results(job_id, filename, **opts)
-      new(*FlightJobScriptAPI.config.flight_job, 'view-job-results', job_id, filename, **opts).run
-    end
+      def list_jobs(**opts)
+        new(*flight_job, 'list-jobs', '--json', **opts).run
+      end
 
-    def self.recursive_glob_dir(dir, **opts)
-      sys = new(:noop, 'recursively glob directory', **opts)
-      sys.run do |stdout, stderr|
-        exit 20 unless Dir.exists?(dir)
-        json = Dir.glob(File.join(dir, '**/*'))
-          .map { |p| Pathname.new(p) }
-          .reject(&:directory?)
-          .reject(&:symlink?)
-          .select(&:readable?) # XXX: Non-readable files would be an odd occurrence
-          .map { |p| { file: p.to_s, size: p.size } }
-        stdout.puts(JSON.generate(json))
+      def info_job(id, **opts)
+        new(*flight_job, 'info-job', id, '--json', **opts).run
+      end
+
+      def submit_job(script_id, **opts)
+        new(*flight_job, 'submit-job', script_id, '--json', **opts).run
+      end
+
+      def view_job_stdout(job_id, **opts)
+        new(*flight_job, 'view-job-stdout', job_id, **opts).run
+      end
+
+      def view_job_stderr(job_id, **opts)
+        new(*flight_job, 'view-job-stderr', job_id, **opts).run
+      end
+
+      def view_job_results(job_id, filename, **opts)
+        new(*flight_job, 'view-job-results', job_id, filename, **opts).run
+      end
+
+      def recursive_glob_dir(dir, **opts)
+        sys = new(:noop, 'recursively glob directory', **opts)
+        sys.run do |stdout, stderr|
+          exit 20 unless Dir.exists?(dir)
+          json = Dir.glob(File.join(dir, '**/*'))
+            .map { |p| Pathname.new(p) }
+            .reject(&:directory?)
+            .reject(&:symlink?)
+            .select(&:readable?) # XXX: Non-readable files would be an odd occurrence
+            .map { |p| { file: p.to_s, size: p.size } }
+          stdout.puts(JSON.generate(json))
+        end
+      end
+
+      private
+
+      def flight_job
+        FlightJobScriptAPI.config.flight_job
       end
     end
 

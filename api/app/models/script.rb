@@ -31,7 +31,7 @@ class Script
     prepend FlightJobScriptAPI::ModelCache
 
     def index(**opts)
-      cmd = FlightJobScriptAPI::SystemCommand.flight_list_scripts(**opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::SystemCommand.list_scripts(**opts).tap do |cmd|
         next if cmd.exitstatus == 0
         raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list scripts'
       end
@@ -47,7 +47,7 @@ class Script
     end
 
     def find!(id, **opts)
-      cmd = FlightJobScriptAPI::SystemCommand.flight_info_script(id, **opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::SystemCommand.info_script(id, **opts).tap do |cmd|
         next if cmd.exitstatus == 0
         return nil if cmd.exitstatus == 22
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find script: #{id}"
@@ -81,7 +81,7 @@ class Script
   end
 
   def delete
-    FlightJobScriptAPI::SystemCommand.flight_delete_script(id, user: user).tap do |cmd|
+    FlightJobScriptAPI::SystemCommand.delete_script(id, user: user).tap do |cmd|
       next if cmd.exitstatus == 0
       raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to delete script: #{id}"
     end
