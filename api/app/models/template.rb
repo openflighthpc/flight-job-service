@@ -31,7 +31,7 @@ class Template
     prepend FlightJobScriptAPI::ModelCache
 
     def index(**opts)
-      cmd = FlightJobScriptAPI::SystemCommand.list_templates(**opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::JobCLI.list_templates(**opts).tap do |cmd|
         next if cmd.exitstatus == 0
         raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
       end
@@ -55,7 +55,7 @@ class Template
       #       being ignored
       return if /\A\d+\Z/.match?(id)
 
-      cmd = FlightJobScriptAPI::SystemCommand.info_template(id, **opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::JobCLI.info_template(id, **opts).tap do |cmd|
         next if cmd.exitstatus == 0
         return nil if cmd.exitstatus == 21
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"

@@ -31,7 +31,7 @@ require 'pathname'
 module FlightJobScriptAPI
   class CommandError < Sinja::ServiceUnavailable; end
 
-  class SystemCommand
+  class JobCLI
     class << self
       # Used to ensure each user is only running a single command at at time
       # NOTE: These objects will be indefinitely cached in memory until the server
@@ -178,7 +178,6 @@ module FlightJobScriptAPI
         STATUS: #{result.exitstatus}
       INFO
       FlightJobScriptAPI.logger.debug <<~DEBUG
-
         STDIN:
         #{@stdin.to_s}
         STDOUT:
