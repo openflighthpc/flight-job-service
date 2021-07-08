@@ -151,12 +151,10 @@ module FlightJobScriptAPI
         self.class.mutexes[@user].synchronize do
           FlightJobScriptAPI.logger.debug("Running subprocess (#{@user}): #{stringified_cmd}")
           sp = Subprocess.new(
-            dir: passwd.dir,
             env: @env,
-            gid: passwd.gid,
             logger: FlightJobScriptAPI.logger,
             timeout: FlightJobScriptAPI.config.command_timeout,
-            uid: passwd.uid,
+            username: @user,
           )
           sp.run(@cmd.first == :noop ? nil : @cmd, @stdin, &block)
         end

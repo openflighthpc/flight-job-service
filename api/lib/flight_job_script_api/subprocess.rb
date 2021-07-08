@@ -29,13 +29,15 @@ module FlightJobScriptAPI
   class Subprocess
     class Result < Struct.new(:stdout, :stderr, :exitstatus, :pid); end
 
-    def initialize(dir:, env:, gid:, logger:, timeout:, uid:)
-      @dir = dir
+    def initialize(dir:nil, env:, logger:, supplementary_groups:false, timeout:, username:)
       @env = env
-      @gid = gid
       @logger = logger
+      @passwd = Etc.getpwnam(username)
+      @supplementary_groups = supplementary_groups
       @timeout = timeout
-      @uid = uid
+      @username = username
+
+      @dir = dir || @passwd.dir
     end
 
     def run(cmd, stdin, &block)
@@ -67,8 +69,14 @@ module FlightJobScriptAPI
         @err_read.close
         @in_write.close
 
-        Process::Sys.setgid(@gid)
-        Process::Sys.setuid(@uid)
+        # Jump through hoops to 1) drop the parent process's group permissions
+        # and 2) add all groups for user.
+        Process.groups = []
+        Process.gid = @passwd.gid
+        if @supplementary_groups
+          Process.initgroups(@username, @passwd.gid)
+        end
+        Process.uid = @passwd.uid
         Process.setsid
 
         block.call if block
