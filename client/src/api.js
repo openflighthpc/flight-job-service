@@ -3,6 +3,7 @@ import useFetch from 'use-http';
 
 import {
   CurrentUserContext,
+  useClearCache,
   utils,
 } from 'flight-webapp-components';
 
@@ -119,16 +120,6 @@ export function useFetchScript(id) {
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
-}
-
-function useClearCache() {
-  const { cache: memoryCache } = useFetch({ persist: false });
-  const { cache: storageCache } = useFetch({ persist: true, cachePolicy: 'cache-first' });
-
-  return function() {
-    memoryCache.clear();
-    storageCache.clear();
-  };
 }
 
 function clearCacheInterceptor(clearCache) {
