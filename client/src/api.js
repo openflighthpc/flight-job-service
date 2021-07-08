@@ -13,7 +13,7 @@ export function useFetchTemplates() {
     {
       headers: { Accept: 'application/vnd.api+json' },
       persist: true,
-      cacheLife: 600000, //ms
+      cacheLife: 10 * 60 * 1000, // 10 minutes in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -36,7 +36,7 @@ export function useFetchTemplate(id) {
         }
       },
       persist: true,
-      cacheLife: 600000, //ms
+      cacheLife: 10 * 60 * 1000, // 10 minutes in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -49,7 +49,7 @@ export function useFetchQuestions(templateId) {
     {
       headers: { Accept: 'application/vnd.api+json' },
       persist: true,
-      cacheLife: 600000, //ms
+      cacheLife: 10 * 60 * 1000, // 10 minutes in ms
       cachePolicy: 'cache-first'
     },
     [ templateId, currentUser.authToken ]
@@ -92,7 +92,7 @@ export function useFetchScripts() {
         }
       },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -113,7 +113,7 @@ export function useFetchScript(id) {
         }
       },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -176,7 +176,7 @@ export function useFetchScriptNotes(script) {
         Accept: 'application/vnd.api+json',
       },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, scriptId ],
@@ -210,7 +210,7 @@ export function useFetchScriptContent(script) {
         Accept: 'application/vnd.api+json',
       },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, scriptId ],
@@ -296,7 +296,7 @@ export function useFetchJobs() {
         }
       },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -318,7 +318,7 @@ export function useFetchJob(id) {
         }
       },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
@@ -331,7 +331,7 @@ export function useFetchOutputFiles(id) {
     {
       headers: { Accept: 'application/vnd.api+json' },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, id ]);
@@ -344,7 +344,7 @@ export function useFetchResultFiles(id) {
     {
       headers: { Accept: 'application/vnd.api+json' },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, id ]);
@@ -357,7 +357,7 @@ export function useFetchFileContent(file) {
     {
       headers: { Accept: 'application/vnd.api+json' },
       persist: true,
-      cacheLife: 60000, //ms
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, file.id ]);
