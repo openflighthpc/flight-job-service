@@ -57,6 +57,7 @@ export function useFetchQuestions(templateId) {
 }
 
 export function useGenerateScript(templateId, answers, scriptName) {
+  const clearCache = useClearCache();
   const request = useFetch(
     `/render/${templateId}`,
     {
@@ -65,6 +66,9 @@ export function useGenerateScript(templateId, answers, scriptName) {
         Accept: 'text/plain',
         'Content-Type': 'application/json',
       },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
+      },
       body: {
         answers,
         name: scriptName,
@@ -72,8 +76,6 @@ export function useGenerateScript(templateId, answers, scriptName) {
       cachePolicy: 'no-cache',
     },
   );
-  // Clear the cache
-  localStorage.removeItem("useHTTPcache");
   return request;
 }
 
@@ -119,7 +121,27 @@ export function useFetchScript(id) {
     [ currentUser.authToken ]);
 }
 
+function useClearCache() {
+  const { cache: memoryCache } = useFetch({ persist: false });
+  const { cache: storageCache } = useFetch({ persist: true, cachePolicy: 'cache-first' });
+
+  return function() {
+    memoryCache.clear();
+    storageCache.clear();
+  };
+}
+
+function clearCacheInterceptor(clearCache) {
+  return function({ response }) {
+    if (response.ok) {
+      clearCache();
+    }
+    return response;
+  }
+}
+
 export function useSubmitScript(script) {
+  const clearCache = useClearCache();
   const request = useFetch(
     '/jobs',
     {
@@ -127,6 +149,9 @@ export function useSubmitScript(script) {
       headers: {
         Accept: 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       body: {
         "data": {
@@ -144,25 +169,24 @@ export function useSubmitScript(script) {
       cachePolicy: 'no-cache',
     },
   );
-  // Clear the cache
-  localStorage.removeItem("useHTTPcache");
   return request;
 }
 
 export function useDeleteScript(script) {
+  const clearCache = useClearCache();
   const request = useFetch(
     `/scripts/${script.id}`,
     {
       method: 'delete',
       headers: {
         Accept: 'application/vnd.api+json',
-      //   'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       cachePolicy: 'no-cache',
     },
   );
-  // Clear the cache
-  localStorage.removeItem("useHTTPcache");
   return request;
 }
 
@@ -184,9 +208,9 @@ export function useFetchScriptNotes(script) {
 }
 
 export function useSaveScriptNotes(notes) {
+  const clearCache = useClearCache();
   const id = notes == null ? undefined : notes.id;
-  // Clear the cache
-  localStorage.removeItem("useHTTPcache");
+
   return useFetch(
     `/notes/${id}`,
     {
@@ -194,6 +218,9 @@ export function useSaveScriptNotes(notes) {
       headers: {
         Accept: 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       cachePolicy: 'no-cache',
     },
@@ -218,9 +245,9 @@ export function useFetchScriptContent(script) {
 }
 
 export function useSaveScriptContent(contentResource) {
+  const clearCache = useClearCache();
   const id = contentResource == null ? undefined : contentResource.id;
-  // Clear the cache
-  localStorage.removeItem("useHTTPcache");
+
   return useFetch(
     `/contents/${id}`,
     {
@@ -228,6 +255,9 @@ export function useSaveScriptContent(contentResource) {
       headers: {
         Accept: 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       cachePolicy: 'no-cache',
     },
