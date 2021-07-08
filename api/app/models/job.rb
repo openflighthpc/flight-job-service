@@ -116,11 +116,18 @@ class Job
     [ find_stdout_file, find_stderr_file ].compact
   end
 
+  def stderr_merged?
+    paths = metadata.slice('stdout_path', 'stderr_path').values.uniq
+    return nil if paths.length == 1 && paths.first.nil?
+    paths.length == 1
+  end
+
   def find_stdout_file
     JobFile.find("#{id}.stdout", user: user)
   end
 
   def find_stderr_file
+    return nil if stderr_merged?
     JobFile.find("#{id}.stderr", user: user)
   end
 

@@ -188,8 +188,8 @@ class JobFile
   # `flight job` command
   def is_readable?(id, path)
     logger = FlightJobScriptAPI.logger
-    logger.debug("Checking file is readable: path:#{path.inspect}; user:#{@user.inspect}")
-    sp = Subprocess.new(
+    logger.debug("Checking file is readable: id:#{id.inspect} path:#{path.inspect} user:#{@user.inspect}")
+    sp = FlightJobScriptAPI::Subprocess.new(
       env: {},
       logger: logger,
       timeout: FlightJobScriptAPI.config.command_timeout,
@@ -199,7 +199,7 @@ class JobFile
       exit(20) unless File.exists?(path)
       File.stat(path).readable? ? exit(0) : exit(20)
     end
-    logger.debug("Checked file is readable: path:#{path.inspect}; user:#{@user.inspect}; exitstatus:#{result.exitstatus}; pid=#{result.pid}")
+    logger.debug("Checked file is readable: id:#{id.inspect} path:#{path.inspect} user:#{@user.inspect} exitstatus:#{result.exitstatus}; pid=#{result.pid}")
     case result.exitstatus
     when 0
       true
