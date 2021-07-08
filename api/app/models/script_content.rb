@@ -49,7 +49,7 @@ class ScriptContent
   end
 
   def save_payload(content)
-    FlightJobScriptAPI::SystemCommand.flight_edit_script(
+    FlightJobScriptAPI::JobCLI.edit_script(
       id, user: script.user, stdin: content
     ).tap do |cmd|
       next if cmd.exitstatus == 0

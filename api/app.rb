@@ -324,7 +324,7 @@ class RenderApp < Sinatra::Base
     notes = params['notes'].to_s
     notes = nil if notes.empty?
     answers = params['answers'].dup.to_json
-    cmd = FlightJobScriptAPI::SystemCommand.flight_create_script(
+    cmd = FlightJobScriptAPI::JobCLI.create_script(
       params[:id], name, notes: notes, answers: answers, user: @current_user
     )
 
@@ -332,7 +332,7 @@ class RenderApp < Sinatra::Base
     # Either way, the 'job' resource was created
     if [0, 2].include?(cmd.exitstatus)
       response.headers['Content-Type'] = 'application/vnd.api+json'
-      script = Script.new(user: @current_user, **JSON.parse(cmd.stdout))
+      script = Script.new(user: @current_user, **cmd.stdout)
       status 201
       next JSONAPI::Serializer.serialize(script).to_json
 

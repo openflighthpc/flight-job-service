@@ -31,11 +31,11 @@ class Template
     prepend FlightJobScriptAPI::ModelCache
 
     def index(**opts)
-      cmd = FlightJobScriptAPI::SystemCommand.flight_list_templates(**opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::JobCLI.list_templates(**opts).tap do |cmd|
         next if cmd.exitstatus == 0
         raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list templates'
       end
-      JSON.parse(cmd.stdout).map do |metadata|
+      cmd.stdout.map do |metadata|
         new(**metadata)
       end
     end
@@ -55,13 +55,13 @@ class Template
       #       being ignored
       return if /\A\d+\Z/.match?(id)
 
-      cmd = FlightJobScriptAPI::SystemCommand.flight_info_template(id, **opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::JobCLI.info_template(id, **opts).tap do |cmd|
         next if cmd.exitstatus == 0
         return nil if cmd.exitstatus == 21
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find template: #{id}"
       end
 
-      new(**JSON.parse(cmd.stdout))
+      new(**cmd.stdout)
     end
   end
 

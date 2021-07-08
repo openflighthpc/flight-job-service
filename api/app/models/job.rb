@@ -33,11 +33,11 @@ class Job
     prepend FlightJobScriptAPI::ModelCache
 
     def index(**opts)
-      cmd = FlightJobScriptAPI::SystemCommand.flight_list_jobs(**opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::JobCLI.list_jobs(**opts).tap do |cmd|
         next if cmd.exitstatus == 0
         raise FlightJobScriptAPI::CommandError, 'Unexpectedly failed to list jobs'
       end
-      JSON.parse(cmd.stdout).map do |metadata|
+      cmd.stdout.map do |metadata|
         new(user: opts[:user], **metadata)
       end
     end
@@ -49,13 +49,13 @@ class Job
     end
 
     def find!(id, **opts)
-      cmd = FlightJobScriptAPI::SystemCommand.flight_info_job(id, **opts).tap do |cmd|
+      cmd = FlightJobScriptAPI::JobCLI.info_job(id, **opts).tap do |cmd|
         next if cmd.exitstatus == 0
         return nil if cmd.exitstatus == 23
         raise FlightJobScriptAPI::CommandError, "Unexpectedly failed to find job: #{id}"
       end
 
-      new(user: opts[:user], **JSON.parse(cmd.stdout))
+      new(user: opts[:user], **cmd.stdout)
     end
   end
 
@@ -96,7 +96,7 @@ class Job
       raise MissingScript, "Cannot create a job without a script"
     end
 
-    cmd = FlightJobScriptAPI::SystemCommand.flight_submit_job(script_id, user: user).tap do |cmd|
+    cmd = FlightJobScriptAPI::JobCLI.submit_job(script_id, user: user).tap do |cmd|
       next if cmd.exitstatus == 0
       if cmd.exitstatus == 22
         raise MissingScript, "Failed to locate script : #{script_id}"
@@ -105,7 +105,7 @@ class Job
       end
     end
 
-    @metadata = JSON.parse(cmd.stdout)
+    @metadata = cmd.stdout
   end
 
   def index_result_files
