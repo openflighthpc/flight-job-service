@@ -37,12 +37,7 @@ class JobSerializer < ApplicationSerializer
 
   attribute(:start_time) { object.metadata['actual_start_time'] }
   attribute(:end_time) { object.metadata['actual_end_time'] }
-
-  attribute(:merged_stderr) do
-    paths = object.metadata.slice('stdout_path', 'stderr_path').values.uniq
-    return nil if paths.length == 1 && paths.first.nil?
-    paths.length == 1
-  end
+  attribute(:merged_stderr) { object.stderr_merged? }
 
   has_one :script
   has_one(:stdout_file) { object.find_stdout_file }

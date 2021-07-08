@@ -74,8 +74,15 @@ class App < Sinatra::Base
       end
     end
 
-    def includes?(resource_name)
-      ( params['include'] || [] ).include?(resource_name)
+    def include_string
+      case params.fetch('include', nil)
+      when String
+        params.fetch('include').underscore
+      when Array
+        params.fetch('include').map(&:underscore).join(',')
+      else
+        ''
+      end
     end
   end
 
@@ -142,13 +149,12 @@ class App < Sinatra::Base
   resource :scripts, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Script.find!(id, user: current_user)
+        Script.find!(id, user: current_user, include: include_string)
       end
     end
 
     index do
-      Template.index(user: current_user) if includes?('template')
-      Script.index(user: current_user)
+      Script.index(user: current_user, include: include_string)
     end
 
     show
@@ -197,7 +203,7 @@ class App < Sinatra::Base
   resource :jobs, pkre: /[\w-]+/ do
     helpers do
       def find(id)
-        Job.find!(id, user: current_user)
+        Job.find!(id, user: current_user, include: include_string)
       end
 
       def validate!
@@ -210,8 +216,7 @@ class App < Sinatra::Base
     end
 
     index do
-      Script.index(user: current_user) if includes?('script')
-      Job.index(user: current_user)
+      Job.index(user: current_user, include: include_string)
     end
 
     show
@@ -225,8 +230,18 @@ class App < Sinatra::Base
     end
 
     has_one :script do
+      helpers do
+        # NOTE: The 'serialize_linkage' method gets called on sideloads before its
+        # result is discarded. However it is in-inadvertently triggering a SystemCommand
+        def serialize_linkage(**_)
+          return {} if @action == :create
+          super
+        end
+      end
+
       graft(sideload_on: :create) do |rio|
         raise Sinja::ForbiddenError, "A job's script can not be modified" unless @action == :create
+
         resource.script_id = rio[:id]
       end
     end

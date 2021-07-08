@@ -116,11 +116,43 @@ class Job
     [ find_stdout_file, find_stderr_file ].compact
   end
 
+  def stderr_merged?
+    paths = metadata.slice('stdout_path', 'stderr_path').values.uniq
+    return nil if paths.length == 1 && paths.first.nil?
+    paths.length == 1
+  end
+
   def find_stdout_file
     JobFile.find("#{id}.stdout", user: user)
   end
 
   def find_stderr_file
+    return nil if stderr_merged?
     JobFile.find("#{id}.stderr", user: user)
+  end
+
+  def cache_related_resources
+    if script_data = metadata['script']
+      Script.cache(user: user, **script_data)
+    end
+
+    if files_data = metadata['result_files']
+      files_data.each do |opts|
+        file = opts['file']
+        size = opts['size']
+        file_id = JobFile.generate_file_id(metadata['results_dir'], file)
+        JobFile.cache(id, file_id, user: user, size: size)
+      end
+    end
+
+    # NOTE: This pre-populates the stdout/stderr files in the cache
+    # and bypasses the existence check on 'find'
+    if stdout_size = metadata['stdout_size']
+      JobFile.cache(id, 'stdout', user: user, size: stdout_size)
+    end
+
+    if !stderr_merged? && stderr_size = metadata['stderr_size']
+      JobFile.cache(id, 'stderr', user: user, size: stderr_size)
+    end
   end
 end

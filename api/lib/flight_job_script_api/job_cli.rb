@@ -43,19 +43,27 @@ module FlightJobScriptAPI
       end
 
       def list_templates(**opts)
-        new(*flight_job, 'list-templates', '--json', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'list-templates', '--json', *includes, **opts).run
       end
 
       def info_template(id, **opts)
-        new(*flight_job, 'info-template', id, '--json', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'info-template', id, '--json', *includes, **opts).run
       end
 
       def list_scripts(**opts)
-        new(*flight_job, 'list-scripts', '--json', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'list-scripts', '--json', *includes, **opts).run
       end
 
       def info_script(id, **opts)
-        new(*flight_job, 'info-script', id, '--json', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'info-script', id, '--json', *includes, **opts).run
       end
 
       def create_script(template_id, name = nil, answers: nil, notes: nil, **opts)
@@ -67,7 +75,9 @@ module FlightJobScriptAPI
         args = name ? [template_id, name] : [template_id]
         args.push('--answers', "@#{answers_path}") if answers
         args.push('--notes', "@#{notes_path}") if notes
-        sys = new(*flight_job, 'create-script', *args, '--json', **opts)
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        sys = new(*flight_job, 'create-script', *args, '--json', *includes, **opts)
         sys.run do
           File.write answers_path, answers if answers
           File.write notes_path, notes if notes
@@ -78,53 +88,39 @@ module FlightJobScriptAPI
       end
 
       def edit_script_notes(script_id, **opts)
-        new(*flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'edit-script-notes', script_id, '--json', '--notes', '@-', *includes, **opts).run
       end
 
       def edit_script(script_id, **opts)
-        new(*flight_job, 'edit-script', script_id, '--json', '--force', '--content', '@-', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'edit-script', script_id, '--json', '--force', '--content', '@-', *includes, **opts).run
       end
 
       def delete_script(id, **opts)
-        new(*flight_job, 'delete-script', id, '--json',**opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'delete-script', id, '--json', *includes, **opts).run
       end
 
       def list_jobs(**opts)
-        new(*flight_job, 'list-jobs', '--json', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'list-jobs', '--json', *includes, **opts).run
       end
 
       def info_job(id, **opts)
-        new(*flight_job, 'info-job', id, '--json', **opts).run
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'info-job', id, '--json', *includes, **opts).run
       end
 
       def submit_job(script_id, **opts)
-        new(*flight_job, 'submit-job', script_id, '--json', **opts).run
-      end
-
-      def view_job_stdout(job_id, **opts)
-        new(*flight_job, 'view-job-stdout', job_id, **opts).run
-      end
-
-      def view_job_stderr(job_id, **opts)
-        new(*flight_job, 'view-job-stderr', job_id, **opts).run
-      end
-
-      def view_job_results(job_id, filename, **opts)
-        new(*flight_job, 'view-job-results', job_id, filename, **opts).run
-      end
-
-      def recursive_glob_dir(dir, **opts)
-        sys = new(:noop, 'recursively glob directory', **opts)
-        sys.run do |stdout, stderr|
-          exit 20 unless Dir.exists?(dir)
-          json = Dir.glob(File.join(dir, '**/*'))
-            .map { |p| Pathname.new(p) }
-            .reject(&:directory?)
-            .reject(&:symlink?)
-            .select(&:readable?) # XXX: Non-readable files would be an odd occurrence
-            .map { |p| { file: p.to_s, size: p.size } }
-          stdout.puts(JSON.generate(json))
-        end
+        opts = opts.dup
+        includes = opts.key?(:include) ? ["--include", opts.delete(:include)] : []
+        new(*flight_job, 'submit-job', script_id, '--json', *includes, **opts).run
       end
 
       private
@@ -156,7 +152,7 @@ module FlightJobScriptAPI
             timeout: FlightJobScriptAPI.config.command_timeout,
             username: @user,
           )
-          sp.run(@cmd.first == :noop ? nil : @cmd, @stdin, &block)
+          sp.run(@cmd, @stdin, &block)
         end
       parse_result(result)
       log_command(result)
@@ -182,7 +178,7 @@ module FlightJobScriptAPI
     end
 
     def expect_json_response?
-      @cmd.first != :noop && @cmd.any? {|i| i.strip == '--json'}
+      @cmd.any? {|i| i.strip == '--json'}
     end
 
     def log_command(result)
@@ -203,7 +199,7 @@ module FlightJobScriptAPI
     end
 
     def stringified_cmd
-      @stringified_cmd ||= (@cmd.first == :noop ? @cmd[1..-1] : @cmd)
+      @stringified_cmd ||= @cmd
         .map { |s| s.empty? ? '""' : s }.join(' ')
     end
   end

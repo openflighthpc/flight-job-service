@@ -94,4 +94,10 @@ class Script
   def find_note
     ScriptNote.find(id, user: user)
   end
+
+  def cache_related_resources
+    if template_data = metadata['template']
+      Template.cache(**template_data)
+    end
+  end
 end
