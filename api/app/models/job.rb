@@ -151,7 +151,7 @@ class Job
       JobFile.cache(id, 'stdout', user: user, size: stdout_size)
     end
 
-    if stderr_size = metadata['stderr_size']
+    if !stderr_merged? && stderr_size = metadata['stderr_size']
       JobFile.cache(id, 'stderr', user: user, size: stderr_size)
     end
   end

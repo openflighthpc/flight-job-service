@@ -112,7 +112,7 @@ class JobFile
     return false unless File.exists?(path)
     # NOTE: The permission check prevents malicious user's querying the
     # filesystem.
-    is_readable?(id, path)
+    is_readable?
   end
 
   def find_job
@@ -186,7 +186,7 @@ class JobFile
   #
   # We directly check the file permissions here to avoid launching a new
   # `flight job` command
-  def is_readable?(id, path)
+  def is_readable?
     logger = FlightJobScriptAPI.logger
     logger.debug("Checking file is readable: id:#{id.inspect} path:#{path.inspect} user:#{@user.inspect}")
     sp = FlightJobScriptAPI::Subprocess.new(
