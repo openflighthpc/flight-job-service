@@ -2,16 +2,36 @@ import { useContext } from 'react';
 import useFetch from 'use-http';
 
 import {
+  ConfigContext,
   CurrentUserContext,
+  useClearCache,
   utils,
 } from 'flight-webapp-components';
 
+// Duplicates use-http's cache key creation.
+function useCacheKey({ url, method='GET', body="" }) {
+  const { apiRootUrl } = useContext(ConfigContext);
+  return `url:${apiRootUrl}${url}||method:${method}||body:${body}`;
+}
+
 export function useFetchTemplates() {
   const { currentUser } = useContext(CurrentUserContext);
-  return useFetch(
+  const cacheKey = useCacheKey({ url: "/templates" });
+  const request = useFetch(
     "/templates",
-    { headers: { Accept: 'application/vnd.api+json' } },
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
+      cacheLife: 10 * 60 * 1000, // 10 minutes in ms
+      cachePolicy: 'cache-first'
+    },
     [ currentUser.authToken ]);
+
+  if (request.error) {
+    request.cache.delete(cacheKey);
+  }
+
+  return request;
 }
 
 export function useFetchTemplate(id) {
@@ -19,7 +39,9 @@ export function useFetchTemplate(id) {
   return useFetch(
     `/templates/${id}`,
     {
-      headers: { Accept: 'application/vnd.api+json' },
+      headers: {
+        Accept: 'application/vnd.api+json',
+      },
       interceptors: {
         response: async ({ response }) => {
           if (response.ok) {
@@ -27,7 +49,10 @@ export function useFetchTemplate(id) {
           }
           return response;
         }
-      }
+      },
+      persist: true,
+      cacheLife: 10 * 60 * 1000, // 10 minutes in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
 }
@@ -36,12 +61,18 @@ export function useFetchQuestions(templateId) {
   const { currentUser } = useContext(CurrentUserContext);
   return useFetch(
     `/templates/${templateId}/questions`,
-    { headers: { Accept: 'application/vnd.api+json' } },
+    {
+      headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
+      cacheLife: 10 * 60 * 1000, // 10 minutes in ms
+      cachePolicy: 'cache-first'
+    },
     [ templateId, currentUser.authToken ]
   );
 }
 
 export function useGenerateScript(templateId, answers, scriptName) {
+  const clearCache = useClearCache();
   const request = useFetch(
     `/render/${templateId}`,
     {
@@ -49,6 +80,9 @@ export function useGenerateScript(templateId, answers, scriptName) {
       headers: {
         Accept: 'text/plain',
         'Content-Type': 'application/json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       body: {
         answers,
@@ -73,7 +107,10 @@ export function useFetchScripts() {
           }
           return response;
         }
-      }
+      },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
 }
@@ -91,12 +128,25 @@ export function useFetchScript(id) {
           }
           return response;
         }
-      }
+      },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
 }
 
+function clearCacheInterceptor(clearCache) {
+  return function({ response }) {
+    if (response.ok) {
+      clearCache();
+    }
+    return response;
+  }
+}
+
 export function useSubmitScript(script) {
+  const clearCache = useClearCache();
   const request = useFetch(
     '/jobs',
     {
@@ -104,6 +154,9 @@ export function useSubmitScript(script) {
       headers: {
         Accept: 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       body: {
         "data": {
@@ -125,13 +178,16 @@ export function useSubmitScript(script) {
 }
 
 export function useDeleteScript(script) {
+  const clearCache = useClearCache();
   const request = useFetch(
     `/scripts/${script.id}`,
     {
       method: 'delete',
       headers: {
         Accept: 'application/vnd.api+json',
-      //   'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       cachePolicy: 'no-cache',
     },
@@ -148,13 +204,18 @@ export function useFetchScriptNotes(script) {
       headers: {
         Accept: 'application/vnd.api+json',
       },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, scriptId ],
   );
 }
 
 export function useSaveScriptNotes(notes) {
+  const clearCache = useClearCache();
   const id = notes == null ? undefined : notes.id;
+
   return useFetch(
     `/notes/${id}`,
     {
@@ -162,6 +223,9 @@ export function useSaveScriptNotes(notes) {
       headers: {
         Accept: 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       cachePolicy: 'no-cache',
     },
@@ -177,13 +241,18 @@ export function useFetchScriptContent(script) {
       headers: {
         Accept: 'application/vnd.api+json',
       },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, scriptId ],
   );
 }
 
 export function useSaveScriptContent(contentResource) {
+  const clearCache = useClearCache();
   const id = contentResource == null ? undefined : contentResource.id;
+
   return useFetch(
     `/contents/${id}`,
     {
@@ -191,6 +260,9 @@ export function useSaveScriptContent(contentResource) {
       headers: {
         Accept: 'application/vnd.api+json',
         'Content-Type': 'application/vnd.api+json',
+      },
+      interceptors: {
+        response: clearCacheInterceptor(clearCache),
       },
       cachePolicy: 'no-cache',
     },
@@ -257,7 +329,10 @@ export function useFetchJobs() {
           }
           return response;
         }
-      }
+      },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
 }
@@ -276,7 +351,10 @@ export function useFetchJob(id) {
           }
           return response;
         }
-      }
+      },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
 }
@@ -287,6 +365,9 @@ export function useFetchOutputFiles(id) {
     `/jobs/${id}/output-files`,
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, id ]);
 }
@@ -297,6 +378,9 @@ export function useFetchResultFiles(id) {
     `/jobs/${id}/result-files`,
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, id ]);
 }
@@ -307,6 +391,9 @@ export function useFetchFileContent(file) {
     `/${file.type}/${file.id}?fields[files]=payload`,
     {
       headers: { Accept: 'application/vnd.api+json' },
+      persist: true,
+      cacheLife: 1 * 60 * 1000, // 1 minute in ms
+      cachePolicy: 'cache-first'
     },
     [ currentUser.authToken, file.id ]);
 }
