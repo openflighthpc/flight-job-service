@@ -2,14 +2,22 @@ import { useContext } from 'react';
 import useFetch from 'use-http';
 
 import {
+  ConfigContext,
   CurrentUserContext,
   useClearCache,
   utils,
 } from 'flight-webapp-components';
 
+// Duplicates use-http's cache key creation.
+function useCacheKey({ url, method='GET', body="" }) {
+  const { apiRootUrl } = useContext(ConfigContext);
+  return `url:${apiRootUrl}${url}||method:${method}||body:${body}`;
+}
+
 export function useFetchTemplates() {
   const { currentUser } = useContext(CurrentUserContext);
-  return useFetch(
+  const cacheKey = useCacheKey({ url: "/templates" });
+  const request = useFetch(
     "/templates",
     {
       headers: { Accept: 'application/vnd.api+json' },
@@ -18,6 +26,12 @@ export function useFetchTemplates() {
       cachePolicy: 'cache-first'
     },
     [ currentUser.authToken ]);
+
+  if (request.error) {
+    request.cache.delete(cacheKey);
+  }
+
+  return request;
 }
 
 export function useFetchTemplate(id) {
