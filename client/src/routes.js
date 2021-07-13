@@ -7,6 +7,7 @@ import TemplatePage from './TemplatePage';
 import TemplateQuestionsPage from './TemplateQuestionsPage';
 import TemplatesPage from './TemplatesPage';
 import UnconfiguredDashboard from './UnconfiguredDashboard';
+import NotFoundDashboard from './NotFoundDashboard';
 
 const routes = [
   {
@@ -64,6 +65,11 @@ const routes = [
     Component: Dashboard,
     sideNav: true,
   },
+  {
+    name: 'Not found',
+    Component: NotFoundDashboard,
+    sideNav: true
+  }
 ]
 
 const unconfiguredRoutes = [
@@ -73,6 +79,11 @@ const unconfiguredRoutes = [
     Component: UnconfiguredDashboard,
     sideNav: true,
   },
+  {
+    name: 'Not found',
+    Component: NotFoundDashboard,
+    sideNav: true
+  }
 ];
 
 export {
