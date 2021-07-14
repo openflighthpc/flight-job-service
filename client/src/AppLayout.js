@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Redirect, Route } from "react-router-dom";
+import { Redirect, Route, Switch } from "react-router-dom";
 
 import {
   AnimatedRouter,
@@ -29,6 +29,7 @@ function AppLayout() {
           AuthenticatedRoute={AuthenticatedRoute}
           Redirect={Redirect}
           Route={Route}
+          Switch={Switch}
           exact={!unconfigured}
           routes={unconfigured ? unconfiguredRoutes : routes}
           sideNav={SideNav}
