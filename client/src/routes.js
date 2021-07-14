@@ -79,11 +79,6 @@ const unconfiguredRoutes = [
     Component: UnconfiguredDashboard,
     sideNav: true,
   },
-  {
-    name: 'Not found',
-    Component: NotFoundDashboard,
-    sideNav: true
-  }
 ];
 
 export {
